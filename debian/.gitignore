@@ -1,0 +1,6 @@
+*.debhelper.log
+*.substvars
+debhelper-build-stamp
+files
+golang-brocade-vyatta-yang-dev/
+tmp/

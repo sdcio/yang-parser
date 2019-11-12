@@ -1,0 +1,25 @@
+module string-pass-esc-seq {
+	namespace "urn:vyatta.com:mgmt:string-pass-esc-seq";
+	prefix string-pass-esc-seq;
+
+	organization "AT&T Inc.";
+// Messy string below to test escape sequence substition
+	contact
+		"AT&T
+		 Postal: 208 S. Akard Street
+		         Dallas, TX 75202
+    " +
+// Take care when editing, the next line contains a \r\n (line-break)
+// That we would like to keep in this schema definition!!!
+	"	 Web: www.att.com  
+" + "   Some additional test data" +
+               '\\ \n \t \r \n \. \*\* \\\\\\\ Left untouched!!' + "" +
+               "\\ \\" + "\t\t    Two LineBreak Variants \n  \r\n  Two Lines" +
+       "Line 1:\n      " +
+       "Line 2:     \r\n" +
+       " Let's quote something \"2 Bee or not 2 Bee\"  " ;
+
+       revision 2015-03-09 {
+               description "Initial revision.";
+	}
+}

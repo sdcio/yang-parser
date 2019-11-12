@@ -1,0 +1,31 @@
+module string-pass_concat {
+	namespace "urn:vyatta.com:mgmt:string-pass-concat";
+	prefix string-pass_concat;
+
+	organization "AT&T Inc.";
+// Messy string below to test string concatenation and whitespace trimming
+	contact
+		"AT&T
+		 Postal: 208 S. Akard Street
+			 Dallas, TX 75202
+	" +
+// Take care when editing, the next line contains a \r\n (line-break)
+// That we would like to keep in this schema definition!!!
+	"	 Web: www.att.com  
+" + "   Some additional test data" +
+		' SingleQuote with space and newline to be preserved
+      ' + ' Second SingleQuote' + "" +
+		" DoubleQuote" + " With WS " + "with NewLine Trim Next 3 WS   
+    Trim before here" ;
+
+	revision 2015-03-09 {
+		description "Initial revision."{testPrefix:testUnknown;}
+	}
+
+	container testcontainer {
+		leaf testleaf {
+			type boolean;
+			description "Testing" + '   123   ';
+		}
+	}
+}

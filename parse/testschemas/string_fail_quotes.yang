@@ -1,0 +1,17 @@
+module string-fail-quotes {
+	namespace "urn:vyatta.com:mgmt:string-fail-quotes";
+	prefix string-fail-quotes;
+
+	organization "AT&T Inc.";
+	contact
+		"AT&T
+		 Postal: 208 S. Akard Street
+		         Dallas, TX 75202
+		 Web: www.att.com\n" +
+		"Some additional test data" +nonQuoteString;
+	// The above line is an attempted concatenation with missing quotes
+
+	revision 2015-03-09 {
+		description "Initial revision.";
+	}
+}

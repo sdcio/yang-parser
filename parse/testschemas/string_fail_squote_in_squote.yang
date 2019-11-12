@@ -1,0 +1,13 @@
+module string-fail-squote-in-squote {
+	namespace "urn:vyatta.com:mgmt:string-squote-in-squote";
+	prefix string-fail-squote-in-squote;
+
+	organization "AT&T Inc.";
+	contact
+		"AT&T
+		 Postal: 208 S. Akard Street
+		         Dallas, TX 75202
+		 Web: www.att.com\n" + "Some additional test data" +
+		' \' No_single_quote_escaping \'  in_single_quoted_string';
+	}
+}

@@ -1,0 +1,13 @@
+module string-fail-dangling-plus {
+	namespace "urn:vyatta.com:mgmt:string-fail-dangling-plus";
+	prefix string-fail-dangling-plus;
+
+	organization "AT&T Inc.";
+	contact
+		"AT&T
+		 Postal: 208 S. Akard Street
+		         Dallas, TX 75202
+		 Web: www.att.com" + "Dangling Plus" + ;
+	}
+
+}

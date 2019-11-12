@@ -1,0 +1,33 @@
+Source: golang-github-danos-yang
+Section: devel
+Priority: extra
+Maintainer: Vyatta Package Maintainers <DL-vyatta-help@att.com>
+Build-Depends:
+ debhelper (>= 9),
+ dh-golang (>= 1.18),
+ golang (>= 1.10),
+ golang-github-danos-encoding-rfc7951-dev,
+ golang-github-danos-mgmterror-dev,
+ golang-github-danos-utils-exec-dev,
+ golang-github-danos-utils-natsort-dev,
+ golang-github-danos-utils-pathutil-dev,
+ golang-github-danos-utils-tsort-dev,
+ golang-golang-x-tools
+Standards-Version: 3.9.8
+
+Package: golang-github-danos-yang-dev
+Architecture: all
+Depends:
+ golang-github-danos-encoding-rfc7951-dev,
+ golang-github-danos-mgmterror-dev,
+ golang-github-danos-utils-exec-dev,
+ golang-github-danos-utils-natsort-dev,
+ golang-github-danos-utils-pathutil-dev,
+ golang-github-danos-utils-tsort-dev,
+ ${misc:Depends},
+ ${shlibs:Depends}
+Built-Using: ${misc:Built-Using}
+Description: YANG processing library
+ Golang YANG processing library
+ .
+ This package contains the source.
