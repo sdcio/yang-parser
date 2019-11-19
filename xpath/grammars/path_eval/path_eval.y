@@ -7,7 +7,9 @@
 
 // This XPATH parser is intended to strip out everything except paths
 // to allow for validation at compile time.  While invalid paths are
-// perfectly acceptable in XPATH, it turns out Cisco's NCS objects.
+// perfectly acceptable in XPATH, it turns out some NETCONF clients are
+// overly restrictive and won't compile them
+//.
 // Perhaps more relevant is the fact that if our YANG has invalid paths,
 // it's highly likely someone made a mistake and we should point it out ...
 //

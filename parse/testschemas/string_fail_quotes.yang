@@ -7,10 +7,8 @@ module string-fail-quotes {
 		"AT&T
 		 Postal: 208 S. Akard Street
 		         Dallas, TX 75202
-		 Web: www.att.com\n" +
-		"Some additional test data" +nonQuoteString;
-	// The above line is an attempted concatenation with missing quotes
-
+		 Web: www.att.com" +
+		"Some additional test data" + nonQuoteString;
 	revision 2015-03-09 {
 		description "Initial revision.";
 	}

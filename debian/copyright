@@ -1,8 +1,8 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 
 Files: *
-Copyright: 2017-2019, AT&T Intellectual Property. All rights reserved.
-           2014-2018, Brocade Communications Systems, Inc.
+Copyright: 2017-2019, AT&T Intellectual Property.
+           2014-2017, Brocade Communications Systems, Inc
 License: MPL-2.0
 
 Files: parse/lex.go parse/parse.go

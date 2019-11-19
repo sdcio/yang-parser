@@ -154,6 +154,20 @@ func (c *Compiler) applyAugment(
 			c.applyChange(a, applyToNode, ch)
 		}
 	}
+	for _, kid := range a.Children() {
+		if kid.Type() == parse.NodeUses {
+			// Handle a uses within an augment which is augmenting
+			// a node in a parent uses
+			applyToPath := a.ArgSchema()
+			applyToPfx := applyToPath[0].Space
+			applyToMod, _ := kid.GetModuleByPrefix(
+				applyToPfx, c.modules, c.skipUnknown)
+			if err := c.expandGroupings(applyToMod, applyToNode, schema.Current); err != nil {
+				c.error(applyToNode, err)
+				return
+			}
+		}
+	}
 }
 
 func (c *Compiler) expandModule(module *parse.Module) {

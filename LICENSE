@@ -118,8 +118,8 @@ This Source Code Form is "Incompatible With Secondary Licenses", as defined by t
 Files with the "SPDX-License-Identifier: BSD-3-Clause" tag are available under the following license:
 
 Copyright (c) 2011, The Go Authors.
-Copyright (c) 2019, AT&T Intellectual Property.
 Copyright (c) 2014-2015, Brocade Communications Systems, Inc.
+Copyright (c) 2019, AT&T Intellectual Property.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 

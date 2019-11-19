@@ -219,7 +219,8 @@ func (n *node) ChildrenByType(match NodeType) []Node {
 		}
 	}
 	if len(ch) == 0 && n.NodeType == NodeRpc {
-		return n.getImplicitRpcChildren(match)
+		ch = n.getImplicitRpcChildren(match)
+		n.AddChildren(ch...)
 	}
 	return ch
 }

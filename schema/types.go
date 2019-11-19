@@ -1,4 +1,4 @@
-// Copyright (c) 2017,2019, AT&T Intellectual Property. All rights reserved
+// Copyright (c) 2017-2019, AT&T Intellectual Property. All rights reserved
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -762,6 +762,11 @@ func (u *union) MatchType(ctx ValidateCtx, path []string, s string) Type {
 	for _, t := range u.typs {
 		err := t.Validate(ctx, path, s)
 		if err == nil {
+			if u, ok := t.(Union); ok {
+				// a type within a union matched
+				// get the non-union base type
+				return u.MatchType(ctx, path, s)
+			}
 			return t
 		}
 	}

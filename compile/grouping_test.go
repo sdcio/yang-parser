@@ -1,4 +1,5 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019, AT&T Intellectual Property
+// All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -718,6 +719,80 @@ func TestComplexGroupExpansion(t *testing.T) {
 					NewLeafChecker("one"),
 					NewLeafChecker("two"),
 					NewLeafChecker("three")}),
+			NewLeafChecker("three"),
+		})
+
+	actual := getSchemaNodeFromPath(t, schema_text, []string{"c1"})
+
+	expected.check(t, actual)
+}
+
+func TestUsesAugmentUses(t *testing.T) {
+
+	schema_text := bytes.NewBufferString(fmt.Sprintf(
+		SchemaTemplate,
+		`grouping g1 {
+			leaf two {
+				type string;
+			}
+			container box {
+				leaf one {
+					type string;
+				}
+			}
+		}
+		grouping g2 {
+			uses g1 {
+				refine two {
+					config false;
+				}
+				augment "box" {
+					leaf two {
+						type string;
+					}
+				}
+			}
+			leaf three {
+				type string;
+			}
+		}
+		grouping g4 {
+			leaf four {
+				type string;
+			}
+		}
+		container c1 {
+			leaf one {
+				type string;
+			}
+			uses g2 {
+				refine two {
+					config true;
+				}
+				augment "box" {
+					leaf three {
+						type string;
+					}
+					uses g4 {
+						refine four {
+							mandatory true;
+						}
+					}
+				}
+			}
+		}`))
+
+	expected := NewContainerChecker(
+		"c1",
+		[]NodeChecker{
+			NewLeafChecker("one"),
+			NewLeafChecker("two", CheckConfig(true)),
+			NewContainerChecker("box",
+				[]NodeChecker{
+					NewLeafChecker("one"),
+					NewLeafChecker("two"),
+					NewLeafChecker("three"),
+					NewLeafChecker("four", CheckMandatory(true))}),
 			NewLeafChecker("three"),
 		})
 

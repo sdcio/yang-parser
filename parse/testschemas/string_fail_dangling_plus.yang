@@ -7,7 +7,10 @@ module string-fail-dangling-plus {
 		"AT&T
 		 Postal: 208 S. Akard Street
 		         Dallas, TX 75202
-		 Web: www.att.com" + "Dangling Plus" + ;
+		 Web: www.att.com" + "Dangling Plus" +;
+
+	revision 2015-03-09 {
+		description "Initial revision.";
 	}
 
 }

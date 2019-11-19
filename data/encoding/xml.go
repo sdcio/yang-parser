@@ -59,16 +59,20 @@ func (xmlNode *unmarshaledXML) unserializedChildren(path []string, sn schema.Nod
 
 		v, ok := fields[name]
 		switch cn.(type) {
-		// Without the schema In XML we can't actually tell the
-		// difference between leaf or container vs a leaf-list or
-		// list with only one entry. We therefore need to convert
-		// our flat list entries into a proper list here.
-		case schema.List, schema.LeafList:
+		case schema.LeafList:
 			if !ok {
 				v = &unmarshaledXML{c.XMLName, "", make([]*unmarshaledXML, 0)}
 				fields[name] = v
 				list = append(list, v)
 			}
+			v.Children = append(v.Children, c)
+		case schema.List:
+			// We may validly have multiple list elements with the same
+			// name so no need to check ok.  For each element we create a
+			// List entry in <list>, with a single child for the listEntry.
+			v = &unmarshaledXML{c.XMLName, "", make([]*unmarshaledXML, 0)}
+			fields[name] = v
+			list = append(list, v)
 			v.Children = append(v.Children, c)
 		default:
 			if ok {

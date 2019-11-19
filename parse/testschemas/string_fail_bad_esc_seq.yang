@@ -8,6 +8,9 @@ module string-fail-bad-esc-seq {
 		"AT&T
 		 Postal: 208 S. Akard Street
 		         Dallas, TX 75202
-		 Web: www.att.com";
+		 Web: www.att.com \* ";
 
 	revision 2015-03-09 {
+		description "Initial revision."{testPrefix:testUnknown;}
+	}
+}

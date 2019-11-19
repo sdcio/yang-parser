@@ -13,19 +13,19 @@ module string-pass_concat {
 // That we would like to keep in this schema definition!!!
 	"	 Web: www.att.com  
 " + "   Some additional test data" +
-		' SingleQuote with space and newline to be preserved
+               ' SingleQuote with space and newline to be preserved
       ' + ' Second SingleQuote' + "" +
-		" DoubleQuote" + " With WS " + "with NewLine Trim Next 3 WS   
+               " DoubleQuote" + " With WS " + "with NewLine Trim Next 3 WS   
     Trim before here" ;
 
-	revision 2015-03-09 {
-		description "Initial revision."{testPrefix:testUnknown;}
-	}
+       revision 2015-03-09 {
+               description "Initial revision."{testPrefix:testUnknown;}
+       }
 
-	container testcontainer {
-		leaf testleaf {
-			type boolean;
-			description "Testing" + '   123   ';
-		}
-	}
+       container testcontainer {
+               leaf testleaf {
+                       type boolean;
+                       description "Testing" + '   123   ';
+               }
+       }
 }
