@@ -818,11 +818,69 @@ func NewUnion(
 	}
 }
 
-/* TODO(jhs): finish these types
-type Identityref struct {
-	path string
+type Identityref interface {
+	Type
+	Identities() []*Identity
+	String() string
+	isIdentityRef()
 }
-*/
+
+type identityref struct {
+	ytyp
+	identities []*Identity
+}
+
+// Ensure that other schema types don't meet the interface
+func (*identityref) isIdentityRef() {}
+
+// Compile time check that the concrete type meets the interface
+var _ Identityref = (*identityref)(nil)
+
+func (i *identityref) Identities() []*Identity { return i.identities }
+
+func (i *identityref) String() string {
+	var s string
+	s = i.identities[0].Val
+	for _, id := range i.identities[1:] {
+		s = s + ", " + id.Val
+	}
+	return s
+}
+func (i *identityref) Validate(ctx ValidateCtx, path []string, s string) error {
+	for _, id := range i.identities {
+		if id.Val == s {
+			return nil
+		}
+	}
+	return newInvalidValueError(path, genErrorString(i))
+}
+
+func (i *identityref) errors() []string {
+	out := make([]string, 0, len(i.identities))
+	for _, id := range i.identities {
+		if id.Status() == Obsolete {
+			continue
+		}
+		out = append(out, id.Val)
+	}
+	return out
+}
+
+func NewIdentityref(
+	name xml.Name,
+	ids []*Identity,
+	def string,
+	hasDef bool,
+) Identityref {
+	if ids == nil {
+		ids = make([]*Identity, 0)
+	}
+
+	return &identityref{
+		ytyp:       newType(name, def, hasDef),
+		identities: ids,
+	}
+}
 
 type InstanceId interface {
 	Type
@@ -1398,6 +1456,29 @@ func (l *Length) errMsg() string {
 		buf.WriteString(estr)
 	}
 	return buf.String()
+}
+
+type Identity struct {
+	yrestrict
+	Val       string
+	Desc      string
+	Ref       string
+	status    Status
+	Value     string
+	Module    string
+	Namespace string
+}
+
+func NewIdentity(mod, namespace, val, desc, ref string, status Status, value string) *Identity {
+	return &Identity{Module: mod, Namespace: namespace, Val: val, Desc: desc, Ref: ref, status: status, Value: value}
+}
+
+func (i *Identity) String() string {
+	return i.Val
+}
+
+func (i *Identity) Status() Status {
+	return i.status
 }
 
 type Enum struct {

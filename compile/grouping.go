@@ -427,7 +427,8 @@ func (c *Compiler) assertReferenceStatus(src, dst parse.Node, parentStatus schem
 	if srcStatus < dstStatus {
 		c.error(
 			src,
-			fmt.Errorf("Cannot reference deprecated node within module"))
+			fmt.Errorf("%s node cannot reference %s node within same module",
+				srcStatus, dstStatus))
 	}
 }
 

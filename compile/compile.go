@@ -126,6 +126,7 @@ type Compiler struct {
 	skipUnknown      bool
 	verifiedFeatures featuresMap
 	featuresChecker  FeaturesChecker
+	identities       map[string]parse.Node
 	generateWarnings bool
 	filter           SchemaFilter
 	extensions       Extensions
@@ -407,19 +408,19 @@ func (comp *Compiler) validateRangeBoundaries(
 	}
 }
 
-// Given an IfFeatureNode, get the module and feature that is being referenced
-// The reference will be of the form [prefix:]feature
+// Given a Node, get the module and Node that is being referenced
+// The reference will be of the form [prefix:]name
 // It is an implicit reference to the local module when the optional
 // [prefix:] is absent
-func (c *Compiler) getModuleAndFeature(m parse.Node, n parse.Node) (parse.Node, parse.Node) {
+func (c *Compiler) getModuleAndReference(m, n parse.Node, targetType parse.NodeType) (parse.Node, parse.Node) {
 	// Assume an implicit local module reference until
 	// we learn otherwise.
 	targetModule := m
-	featName := n.Argument().String()
-	nameparts := strings.Split(featName, ":")
+	name := n.Argument().String()
+	nameparts := strings.Split(name, ":")
 	if len(nameparts) > 2 {
 		// Can't have more than one ':'
-		c.error(n, fmt.Errorf("Invalid feature name: %s", featName))
+		c.error(n, fmt.Errorf("Invalid %s name: %s", targetType.String(), name))
 		return nil, nil
 	}
 	if len(nameparts) == 2 {
@@ -430,25 +431,25 @@ func (c *Compiler) getModuleAndFeature(m parse.Node, n parse.Node) (parse.Node, 
 		if err != nil {
 			c.error(n, err)
 		}
-		featName = nameparts[1]
+		name = nameparts[1]
 	}
 
-	feature := targetModule.LookupChild(parse.NodeFeature, featName)
-	if feature == nil {
+	reference := targetModule.LookupChild(targetType, name)
+	if reference == nil {
 		if !c.skipUnknown {
 			// Feature not found in specified module
-			c.error(n, fmt.Errorf("Feature not valid: %s", n.Argument().String()))
+			c.error(n, fmt.Errorf("%s not valid: %s", targetType.String(), n.Argument().String()))
 			return nil, nil
 		}
 		var nc parse.NodeCardinality
 		if c.extensions != nil {
 			nc = c.extensions.NodeCardinality
 		}
-		feature = parse.NewFakeNodeByType(nc, parse.NodeFeature, featName)
-		targetModule.AddChildren(feature)
+		reference = parse.NewFakeNodeByType(nc, targetType, name)
+		targetModule.AddChildren(reference)
 	}
 
-	return targetModule, feature
+	return targetModule, reference
 }
 
 // Verify a feature.
@@ -475,7 +476,7 @@ func (c *Compiler) isFeatureValid(m parse.Node, n parse.Node, featTree map[strin
 
 	// Verify each feature that this feature references via an if-feature
 	for _, ifFeat := range n.ChildrenByType(parse.NodeIfFeature) {
-		mod, feature := c.getModuleAndFeature(m, ifFeat)
+		mod, feature := c.getModuleAndReference(m, ifFeat, parse.NodeFeature)
 		c.assertReferenceStatus(n, feature, schema.Current)
 		enabled = c.isFeatureValid(mod, feature, featTree) && enabled
 	}
@@ -523,6 +524,60 @@ func (c *Compiler) getEnabledFeaturesForPrefix(name string) []string {
 		}
 	}
 	return features
+}
+
+func (c *Compiler) identityCheckCyclicRef(name string, ids map[string]parse.Node, assigned map[string]bool) {
+	if _, ok := assigned[name]; ok {
+		c.error(ids[name], fmt.Errorf("Identity cyclic reference %s\n", name))
+	}
+	assigned[name] = true
+
+	for _, nd := range ids[name].ChildrenByType(parse.NodeIdentity) {
+		nm := nd.Root().Name() + ":" + nd.Name()
+		c.identityCheckCyclicRef(nm, ids, assigned)
+	}
+
+}
+
+func (c *Compiler) checkIdentities() error {
+	ids := make(map[string]parse.Node)
+
+	// Get all identities, check for duplicates
+	for _, module := range c.modules {
+		mod := module.GetModule()
+		for _, ident := range mod.ChildrenByType(parse.NodeIdentity) {
+			name := mod.Name() + ":" + ident.Name()
+			if _, ok := ids[name]; ok {
+				c.error(ident, fmt.Errorf("Duplicate identity %s in module %s", ident.Name(), mod.Name()))
+			} else {
+				ids[name] = ident
+			}
+		}
+	}
+
+	// Process derived identities, building
+	// identity tree.
+	for name, ident := range ids {
+		for _, base := range ident.ChildrenByType(parse.NodeBase) {
+			mod, tIdent := c.getModuleAndReference(ident.Root(), base, parse.NodeIdentity)
+			tnm := mod.Name() + ":" + tIdent.Name()
+			if _, ok := ids[tnm]; ok {
+				tIdent.AddChildren(ident)
+				c.assertReferenceStatus(ident, tIdent, schema.Current)
+			} else {
+				c.error(ident, fmt.Errorf("Can't find base identity %s for identity %s\n", base.Name(), name))
+			}
+		}
+	}
+
+	// Now we have an identity tree,
+	// check there are no cyclic references
+	for nme, _ := range ids {
+		c.identityCheckCyclicRef(nme, ids, make(map[string]bool))
+	}
+
+	c.identities = ids
+	return nil
 }
 
 func (c *Compiler) findMissingImportStatement(name string) parse.Node {
@@ -578,6 +633,11 @@ func (c *Compiler) ExpandModules() (err error) {
 	err = c.checkFeatures()
 	if err != nil {
 		panic(fmt.Errorf("feature %s", err))
+	}
+
+	err = c.checkIdentities()
+	if err != nil {
+		panic(fmt.Errorf("identity %s", err))
 	}
 
 	// Check for cycles in all groupings before applying
@@ -1059,7 +1119,7 @@ func (c *Compiler) CheckUnknown(m parse.Node, n parse.Node) {
 // local module.
 func (c *Compiler) CheckIfFeature(n parse.Node, parentStatus schema.Status) bool {
 
-	mod, feature := c.getModuleAndFeature(n.Root(), n)
+	mod, feature := c.getModuleAndReference(n.Root(), n, parse.NodeFeature)
 
 	c.assertReferenceStatus(n, feature, parentStatus)
 
@@ -1353,7 +1413,7 @@ func (c *Compiler) BuildList(features inheritedFeatures, m parse.Node, n parse.N
 
 func (c *Compiler) BuildLeafList(features inheritedFeatures, m parse.Node, n parse.Node) schema.Node {
 	c.CheckMinMax(n, n.Min(), n.Max())
-	typ := c.BuildType(n.ChildByType(parse.NodeTyp), emptyDefault, false, features.status)
+	typ := c.BuildType(n, n.ChildByType(parse.NodeTyp), emptyDefault, false, features.status)
 
 	l := schema.NewLeafList(
 		n.Name(),
@@ -1419,6 +1479,7 @@ func (c *Compiler) BuildOpdOption(
 	tch := node.ChildByType(parse.NodeTyp)
 	if tch != nil {
 		typ = c.BuildType(
+			node,
 			tch,
 			defVal,
 			hasDef,
@@ -1465,6 +1526,7 @@ func (c *Compiler) BuildOpdArgument(
 	defVal := node.Def()
 
 	typ := c.BuildType(
+		node,
 		node.ChildByType(parse.NodeTyp),
 		defVal,
 		hasDef,
@@ -1510,6 +1572,7 @@ func (comp *Compiler) BuildLeaf(
 	defVal := node.Def()
 
 	typ := comp.BuildType(
+		node,
 		node.ChildByType(parse.NodeTyp),
 		defVal,
 		hasDef,
@@ -1666,47 +1729,66 @@ func (comp *Compiler) makeEnumeration(
 	return schema.NewEnumeration(name, enums, def, hasDef)
 }
 
-func (c *Compiler) getIdentities(e schema.Enumeration, node parse.Node) []*schema.Enum {
+func (c *Compiler) identityValues(cfgNode, node parse.Node, ident parse.Node, rt []*schema.Identity) []*schema.Identity {
+	strp := cfgNode.GetNodeModulename(cfgNode.Root()) + ":"
 
-	base := node.ChildByType(parse.NodeBase)
-	if e != nil {
-		if base != nil {
+	for _, id := range ident.ChildrenByType(parse.NodeIdentity) {
+		nm := id.Root().Name() + ":" + id.Name()
+		rname := strings.TrimPrefix(nm, strp)
+		i := schema.NewIdentity(id.GetNodeModulename(id.Root()),
+			id.GetNodeNamespace(id.Root(), c.modules),
+			rname, id.Desc(), id.Ref(),
+			c.getStatus(id, schema.Current), id.Name())
+		rt = append(rt, i)
+		n, _ := c.identities[nm]
+		rt = c.identityValues(cfgNode, node, n, rt)
+	}
+	return rt
+}
+
+func (c *Compiler) getIdentities(cfgNode parse.Node, i schema.Identityref, node parse.Node, parentStatus schema.Status) []*schema.Identity {
+
+	baseStmnt := node.ChildByType(parse.NodeBase)
+	if i != nil {
+		if baseStmnt != nil {
 			c.error(node, errors.New("cannot restrict predefined identityref"))
 		}
-		return e.Enums()
+		return i.Identities()
 	}
 
-	if base == nil {
+	if baseStmnt == nil {
 		c.error(node, errors.New("cannot use identityref without a base"))
 	}
 
 	mod := node.Root()
-	enums := make([]*schema.Enum, 0, 0)
-	for _, id := range mod.ChildrenByType(parse.NodeIdentity) {
-		id_base := id.ChildByType(parse.NodeBase)
-		if (id_base != nil) && (id_base.Name() == base.Name()) {
-			enum := schema.NewEnum(id.ArgId(), id.Desc(), id.Ref(),
-				c.getStatus(id, schema.Current), id.Value())
-			enums = append(enums, enum)
-		}
-	}
-	return enums
+	tm, ident := c.getModuleAndReference(mod, baseStmnt, parse.NodeIdentity)
+
+	idid, _ := c.identities[tm.Name()+":"+ident.Name()]
+
+	idents := make([]*schema.Identity, 0, 0)
+
+	c.assertReferenceStatus(node, idid, parentStatus)
+	node.AddChildren(ident)
+	ids := c.identityValues(cfgNode, node, idid, idents)
+	return ids
 }
 
 func (c *Compiler) makeIdentityRef(
 	name xml.Name,
+	cfgNode parse.Node,
 	node parse.Node,
-	base schema.Enumeration,
+	base schema.Identityref,
+	parentStatus schema.Status,
 	def string,
 	hasDef bool,
 ) schema.Type {
 
 	c.validateRestrictions(node, base, SchemaIdentity)
 
-	enums := c.getIdentities(base, node)
+	idents := c.getIdentities(cfgNode, base, node, parentStatus)
 	def, hasDef = c.getDefault(base, def, hasDef)
 
-	return schema.NewEnumeration(name, enums, def, hasDef)
+	return schema.NewIdentityref(name, idents, def, hasDef)
 }
 
 func (c *Compiler) getRequire(base schema.InstanceId, node parse.Node) bool {
@@ -1856,7 +1938,7 @@ func (comp *Compiler) makeUinteger(
 	return schema.NewUinteger(bitSize, name, rbs.(schema.UrbSlice), msg, def, hasDef)
 }
 
-func (c *Compiler) getTypes(base schema.Union, node parse.Node, parentStatus schema.Status) []schema.Type {
+func (c *Compiler) getTypes(base schema.Union, cfgNode, node parse.Node, parentStatus schema.Status) []schema.Type {
 	if base != nil {
 		if len(node.ChildrenByType(parse.NodeTyp)) > 0 {
 			c.error(node, errors.New("cannot restrict predefined union"))
@@ -1872,7 +1954,7 @@ func (c *Compiler) getTypes(base schema.Union, node parse.Node, parentStatus sch
 
 	types := make([]schema.Type, 0, num_types)
 	for _, t := range node.ChildrenByType(parse.NodeTyp) {
-		typ := c.BuildType(t, emptyDefault, false, parentStatus)
+		typ := c.BuildType(cfgNode, t, emptyDefault, false, parentStatus)
 		types = append(types, typ)
 	}
 
@@ -1881,6 +1963,7 @@ func (c *Compiler) getTypes(base schema.Union, node parse.Node, parentStatus sch
 
 func (c *Compiler) makeUnion(
 	name xml.Name,
+	cfgNode parse.Node,
 	node parse.Node,
 	base schema.Union,
 	parentStatus schema.Status,
@@ -1890,7 +1973,7 @@ func (c *Compiler) makeUnion(
 
 	c.validateRestrictions(node, base, SchemaUnion)
 
-	typs := c.getTypes(base, node, parentStatus)
+	typs := c.getTypes(base, cfgNode, node, parentStatus)
 	def, hasDef = c.getDefault(base, def, hasDef)
 
 	return schema.NewUnion(name, typs, def, hasDef)
@@ -2078,7 +2161,7 @@ func (c *Compiler) validateRestrictions(n parse.Node, typ schema.Type, schemaTyp
 	}
 }
 
-func (c *Compiler) makeBuiltinType(n parse.Node, typeName string, def string, hasDef bool, parentStatus schema.Status) schema.Type {
+func (c *Compiler) makeBuiltinType(cfgNode, n parse.Node, typeName string, def string, hasDef bool, parentStatus schema.Status) schema.Type {
 
 	tname := xml.Name{Space: "builtin", Local: typeName}
 
@@ -2097,7 +2180,7 @@ func (c *Compiler) makeBuiltinType(n parse.Node, typeName string, def string, ha
 	case "enumeration":
 		typ = c.makeEnumeration(tname, n, nil, def, hasDef)
 	case "identityref":
-		typ = c.makeIdentityRef(tname, n, nil, def, hasDef)
+		typ = c.makeIdentityRef(tname, cfgNode, n, nil, parentStatus, def, hasDef)
 	case "instance-identifier":
 		typ = c.makeInstanceId(tname, n, nil, def, hasDef)
 	case "int8", "int16", "int32", "int64":
@@ -2109,7 +2192,7 @@ func (c *Compiler) makeBuiltinType(n parse.Node, typeName string, def string, ha
 	case "uint8", "uint16", "uint32", "uint64":
 		typ = c.makeUinteger(tname, n, nil, def, hasDef)
 	case "union":
-		typ = c.makeUnion(tname, n, nil, parentStatus, def, hasDef)
+		typ = c.makeUnion(tname, cfgNode, n, nil, parentStatus, def, hasDef)
 	}
 
 	// TODO make part of creating the type once CheckSyntax is out of the picture
@@ -2118,7 +2201,7 @@ func (c *Compiler) makeBuiltinType(n parse.Node, typeName string, def string, ha
 	return typ
 }
 
-func (c *Compiler) refineType(n parse.Node, tname xml.Name, typ schema.Type, def string, hasDef bool, parentStatus schema.Status) schema.Type {
+func (c *Compiler) refineType(cfgNode, n parse.Node, tname xml.Name, typ schema.Type, def string, hasDef bool, parentStatus schema.Status) schema.Type {
 	switch t := typ.(type) {
 	case schema.Boolean:
 		typ = c.makeBoolean(tname, n, t, def, hasDef)
@@ -2135,11 +2218,13 @@ func (c *Compiler) refineType(n parse.Node, tname xml.Name, typ schema.Type, def
 	case schema.Uinteger:
 		typ = c.makeUinteger(tname, n, t, def, hasDef)
 	case schema.Union:
-		typ = c.makeUnion(tname, n, t, parentStatus, def, hasDef)
+		typ = c.makeUnion(tname, cfgNode, n, t, parentStatus, def, hasDef)
 	case schema.String:
 		typ = c.makeString(n, tname, t, def, hasDef)
 	case schema.Leafref:
 		typ = c.makeLeafref(n, tname, t, def, hasDef)
+	case schema.Identityref:
+		typ = c.makeIdentityRef(tname, cfgNode, n, t, parentStatus, def, hasDef)
 	default:
 		c.error(n, errors.New("cannot modify type"))
 	}
@@ -2174,13 +2259,14 @@ func (c *Compiler) validateDefault(node parse.Node, t schema.Type) {
 // Cannot have default and mandatory - unclear how we will check if default
 // is inherited.
 func (c *Compiler) BuildType(
+	cfgNode parse.Node,
 	typ parse.Node,
 	def string,
 	hasDef bool,
 	parentStatus schema.Status,
 ) schema.Type {
 
-	baseType, tname, done := c.BuildBaseType(typ, def, hasDef, parentStatus)
+	baseType, tname, done := c.BuildBaseType(cfgNode, typ, def, hasDef, parentStatus)
 	if done {
 		c.filterDisabledExtensions(typ)
 		return c.extendType(typ, nil, baseType)
@@ -2188,12 +2274,13 @@ func (c *Compiler) BuildType(
 
 	// Having constructed the underlying type, we can now add the likes
 	// of range / length etc.
-	t := c.refineType(typ, tname, baseType, def, hasDef, parentStatus)
+	t := c.refineType(cfgNode, typ, tname, baseType, def, hasDef, parentStatus)
 	c.filterDisabledExtensions(typ)
 	return c.extendType(typ, baseType, t)
 }
 
 func (c *Compiler) BuildBaseType(
+	cfgNode parse.Node,
 	typ parse.Node,
 	def string,
 	hasDef bool,
@@ -2228,14 +2315,14 @@ func (c *Compiler) BuildBaseType(
 	}
 
 	if refType == nil {
-		return c.makeBuiltinType(typ, tname.Local, def, hasDef, parentStatus), tname, true
+		return c.makeBuiltinType(cfgNode, typ, tname.Local, def, hasDef, parentStatus), tname, true
 	}
 	c.assertReferenceStatus(typ, refType, parentStatus)
 
 	typ2 := refType.ChildByType(parse.NodeTyp)
 	tdef := refType.Def()
 	thasdef := refType.HasDef()
-	return c.BuildType(typ2, tdef, thasdef, schema.Current), tname, false
+	return c.BuildType(cfgNode, typ2, tdef, thasdef, schema.Current), tname, false
 }
 
 func (c *Compiler) CheckMinMax(n parse.Node, min, max uint) {
