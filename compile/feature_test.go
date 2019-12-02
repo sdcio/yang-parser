@@ -215,7 +215,7 @@ var ifFeatureFailTests = []TestCase{
 			if-feature thirdtestfeature;
 		}`,
 		ExpResult: false,
-		ExpErrMsg: "Feature not valid: thirdtestfeature",
+		ExpErrMsg: "feature not valid: thirdtestfeature",
 	},
 	{
 		Description: "if-feature of non existent feature, " +
@@ -226,7 +226,7 @@ var ifFeatureFailTests = []TestCase{
 			if-feature test:thirdtestfeature;
 		}`,
 		ExpResult: false,
-		ExpErrMsg: "Feature not valid: test:thirdtestfeature",
+		ExpErrMsg: "feature not valid: test:thirdtestfeature",
 	},
 	{
 		Description: "if-feature of non existent feature, remote reference",

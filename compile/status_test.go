@@ -159,7 +159,7 @@ func TestDeprecatedGroupingStatusOutwithModule(t *testing.T) {
 		namespace "urn:vyatta.com:test:yang-compile1";
 		prefix test1;
 
-		organization "Brocade Communications Systems, Inc.";
+		organization "AT&T Inc.";
 		revision 2014-12-29 {
 			description "Test schema";
 		}
@@ -187,7 +187,7 @@ func TestDeprecatedGroupingStatusOutwithModule(t *testing.T) {
 			prefix mod1;
 		}
 
-		organization "Brocade Communications Systems, Inc.";
+		organization "AT&T Inc.";
 		revision 2014-12-29 {
 			description "Test schema";
 		}
@@ -309,7 +309,7 @@ func TestDeprecatedGroupingStatusWithinModule(t *testing.T) {
 
 		uses dep;`
 
-	expected := "Cannot reference deprecated node within module"
+	expected := "Current node cannot reference Deprecated node within same module"
 
 	ExpectFailure(t, expected, input)
 }
@@ -343,7 +343,7 @@ func TestDeprecatedAugmentReferenceOutwithModule(t *testing.T) {
 		namespace "urn:vyatta.com:test:yang-compile1";
 		prefix test1;
 
-		organization "Brocade Communications Systems, Inc.";
+		organization "AT&T Inc.";
 		revision 2014-12-29 {
 			description "Test schema";
 		}
@@ -362,7 +362,7 @@ func TestDeprecatedAugmentReferenceOutwithModule(t *testing.T) {
 			prefix mod1;
 		}
 
-		organization "Brocade Communications Systems, Inc.";
+		organization "AT&T Inc.";
 		revision 2014-12-29 {
 			description "Test schema";
 		}
@@ -404,7 +404,7 @@ func TestAugmentReferenceDeprecatedWithinModule(t *testing.T) {
 			}
 		}`
 
-	expected := "Cannot reference deprecated node within module"
+	expected := "Current node cannot reference Deprecated node within same module"
 
 	ExpectFailure(t, expected, input)
 }
@@ -424,7 +424,7 @@ func TestAugmentReferenceInheritedDeprecatedWithinModule(t *testing.T) {
 			}
 		}`
 
-	expected := "Cannot reference deprecated node within module"
+	expected := "Current node cannot reference Deprecated node within same module"
 
 	ExpectFailure(t, expected, input)
 }
@@ -493,7 +493,7 @@ func TestReferenceDeprecatedTypedef(t *testing.T) {
 			type dep;
 		}`
 
-	expected := "Cannot reference deprecated node within module"
+	expected := "Current node cannot reference Deprecated node within same module"
 
 	ExpectFailure(t, expected, input)
 }
@@ -531,7 +531,7 @@ func TestLoseInheritedDeprecatedReferenceDeprecatedTypedef(t *testing.T) {
 			type dep;
 		}`
 
-	expected := "Cannot reference deprecated node within module"
+	expected := "Current node cannot reference Deprecated node within same module"
 
 	ExpectFailure(t, expected, input)
 }
@@ -565,7 +565,7 @@ func TestReferenceDeprecatedIfFeature(t *testing.T) {
 			if-feature dep;
 		}`
 
-	expected := "Cannot reference deprecated node within module"
+	expected := "Current node cannot reference Deprecated node within same module"
 
 	ExpectFailure(t, expected, input)
 }
@@ -600,7 +600,7 @@ func TestFeatureReferenceDeprecatedIfFeature(t *testing.T) {
 			if-feature dep;
 		}`
 
-	expected := "Cannot reference deprecated node within module"
+	expected := "Current node cannot reference Deprecated node within same module"
 
 	ExpectFailure(t, expected, input)
 }
@@ -620,4 +620,167 @@ func TestDeprecatedFeatureReferenceDeprecatedIfFeature(t *testing.T) {
 		}`
 
 	ExpectSuccess(t, NodeChecker{"dummy", nil}, input)
+}
+
+func TestIdentityReferenceDeprecatedIdentity(t *testing.T) {
+
+	input :=
+		`identity foo {
+			status obsolete;
+		}
+		identity bar {
+			base foo;
+		}`
+
+	expected := "Current node cannot reference Obsolete node within same module"
+
+	ExpectFailure(t, expected, input)
+}
+func TestIdentityReferenceObsoleteIdentity(t *testing.T) {
+
+	input :=
+		`identity foo {
+			status deprecated;
+		}
+		identity bar {
+			base foo;
+		}`
+
+	expected := "Current node cannot reference Deprecated node within same module"
+
+	ExpectFailure(t, expected, input)
+}
+
+func TestDeprecatedIdentityReferenceObsoleteIdentity(t *testing.T) {
+
+	input :=
+		`identity foo {
+			status obsolete;
+		}
+		identity bar {
+			base foo;
+			status deprecated;
+		}`
+
+	expected := "Deprecated node cannot reference Obsolete node within same module"
+
+	ExpectFailure(t, expected, input)
+}
+
+func TestValidIdentityrefSuccess(t *testing.T) {
+
+	input :=
+		`identity foo {
+			status current;
+		}
+		identity bar {
+			base foo;
+			status deprecated;
+		}
+		identity foobar {
+			base bar;
+			status obsolete;
+		}
+		leaf current {
+			type identityref {
+				base foo;
+			}
+		}
+		leaf deprecated {
+			status deprecated;
+			type identityref {
+				base bar;
+			}
+		}
+		leaf obsolete {
+			status obsolete;
+			type identityref {
+				base foobar;
+			}
+		}`
+
+	ExpectSuccess(t, NodeChecker{"current", nil}, input)
+}
+
+func TestIdentityrefReferenceDeprecated(t *testing.T) {
+
+	input :=
+		`identity foo {
+			status deprecated;
+		}
+		identity bar {
+			base foo;
+			status deprecated;
+		}
+		identity foobar {
+			base bar;
+			status obsolete;
+		}
+		leaf dummy {
+			type identityref {
+				base foo;
+			}
+		}`
+
+	expected := "Current node cannot reference Deprecated node within same module"
+	ExpectFailure(t, expected, input)
+}
+
+func TestInvalidCurrentIdentityrefReferenceObsoleteIdentity(t *testing.T) {
+
+	input :=
+		`identity foo {
+			status obsolete;
+		}
+		identity bar {
+			base foo;
+			status obsolete;
+		}
+		identity foobar {
+			base bar;
+			status obsolete;
+		}
+		leaf dummy {
+			type identityref {
+				base foo;
+			}
+		}`
+
+	expected := "Current node cannot reference Obsolete node within same module"
+	ExpectFailure(t, expected, input)
+}
+
+func TestInvalidDeprecatedIdentityrefReferenceObsoleteIdentity(t *testing.T) {
+
+	input :=
+		`identity foo {
+			status obsolete;
+		}
+		identity bar {
+			base foo;
+			status obsolete;
+		}
+		identity foobar {
+			base bar;
+			status obsolete;
+		}
+		typedef newtype {
+			type identityref {
+				base foo;
+			}
+			status obsolete;
+		}
+		container levelone {
+			status deprecated;
+
+			container leveltwo {
+				leaf dummy {
+					// status inherited from levelone
+					type newtype;
+				}
+			}
+		}`
+
+	expected := "Deprecated node cannot reference Obsolete node within same module"
+	ExpectFailure(t, expected, input)
 }
