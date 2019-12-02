@@ -10,6 +10,7 @@ package encoding
 import (
 	"bytes"
 	"encoding/xml"
+	"strings"
 
 	"github.com/danos/mgmterror"
 	"github.com/danos/utils/pathutil"
@@ -19,6 +20,7 @@ import (
 
 type unmarshaledXML struct {
 	XMLName  xml.Name
+	XMLAttr  []xml.Attr        `xml:",any,attr"`
 	Chardata string            `xml:",chardata"`
 	Children []*unmarshaledXML `xml:",any"`
 }
@@ -37,11 +39,46 @@ func (xmlNode *unmarshaledXML) values() ([]string, error) {
 			if len(v.Children) > 0 {
 				return nil, mgmterror.NewUnknownElementApplicationError(v.name())
 			}
-			list[i] = v.Chardata
+			list[i] = (string)(v.Chardata)
 		}
 		return list, nil
 	}
 	return []string{xmlNode.Chardata}, nil
+}
+
+func locateIdentity(typ schema.Type, val, ns string) *schema.Identity {
+	switch t := typ.(type) {
+	case schema.Identityref:
+		for _, id := range t.Identities() {
+			if id.Namespace == ns && id.Value == val {
+				return id
+			}
+		}
+	case schema.Union:
+		for _, utyp := range t.Typs() {
+			i := locateIdentity(utyp, val, ns)
+			if i != nil {
+				return i
+			}
+		}
+	default:
+	}
+	return nil
+}
+
+func (xmlNode *unmarshaledXML) convertPrefixedValue(sn schema.Node) {
+	for _, atr := range xmlNode.XMLAttr {
+		if atr.Name.Space == "xmlns" {
+			if strings.HasPrefix(xmlNode.Chardata, atr.Name.Local+":") {
+				// Assume that this is an identityref value
+				id := locateIdentity(sn.Type(), strings.TrimPrefix(xmlNode.Chardata, atr.Name.Local+":"), atr.Value)
+				if id != nil {
+					xmlNode.Chardata = id.Val
+				}
+			}
+		}
+	}
+
 }
 
 func (xmlNode *unmarshaledXML) unserializedChildren(path []string, sn schema.Node) ([]unserialized, error) {
@@ -60,8 +97,9 @@ func (xmlNode *unmarshaledXML) unserializedChildren(path []string, sn schema.Nod
 		v, ok := fields[name]
 		switch cn.(type) {
 		case schema.LeafList:
+			c.convertPrefixedValue(cn)
 			if !ok {
-				v = &unmarshaledXML{c.XMLName, "", make([]*unmarshaledXML, 0)}
+				v = &unmarshaledXML{c.XMLName, c.XMLAttr, "", make([]*unmarshaledXML, 0)}
 				fields[name] = v
 				list = append(list, v)
 			}
@@ -70,10 +108,19 @@ func (xmlNode *unmarshaledXML) unserializedChildren(path []string, sn schema.Nod
 			// We may validly have multiple list elements with the same
 			// name so no need to check ok.  For each element we create a
 			// List entry in <list>, with a single child for the listEntry.
-			v = &unmarshaledXML{c.XMLName, "", make([]*unmarshaledXML, 0)}
+			v = &unmarshaledXML{c.XMLName, c.XMLAttr, "", make([]*unmarshaledXML, 0)}
 			fields[name] = v
 			list = append(list, v)
 			v.Children = append(v.Children, c)
+		case schema.Leaf:
+			if ok {
+				err := mgmterror.NewTooManyElementsError(name)
+				err.Path = pathutil.Pathstr(path)
+				return nil, err
+			}
+			c.convertPrefixedValue(cn)
+			fields[name] = c
+			list = append(list, c)
 		default:
 			if ok {
 				err := mgmterror.NewTooManyElementsError(name)
@@ -141,6 +188,30 @@ func unmarshalXMLInternal(
 	return datatree, nil
 }
 
+func namespacePrefixes(sn schema.Node, value string) []xml.Attr {
+	nsprefixes := make([]xml.Attr, 0)
+
+	typ := sn.Type()
+	if utyp, ok := typ.(schema.Union); ok {
+		// For a union type, get the base type the value matches
+		// so that it can be correctly encoded
+		typ = utyp.MatchType(nil, []string{}, value)
+	}
+
+	if idref, ok := typ.(schema.Identityref); ok {
+		// identityref requires local prefix for identity namepace
+		for _, idn := range idref.Identities() {
+			if value == idn.Val && sn.Namespace() != idn.Namespace {
+				nsprefixes = append(nsprefixes,
+					xml.Attr{Name: xml.Name{Local: "xmlns:" + idn.Module},
+						Value: idn.Namespace})
+			}
+		}
+	}
+
+	return nsprefixes
+}
+
 func encodeXmlChildren(enc *xml.Encoder, sn schema.Node, n datanode.DataNode) {
 
 	for _, cn := range n.YangDataChildren() {
@@ -157,7 +228,8 @@ func encodeXmlChildren(enc *xml.Encoder, sn schema.Node, n datanode.DataNode) {
 
 		case schema.Leaf, schema.LeafList:
 			for _, v := range cn.YangDataValues() {
-				enc.EncodeToken(xml.StartElement{Name: c_name})
+				nsprefixes := namespacePrefixes(csn, v)
+				enc.EncodeToken(xml.StartElement{Name: c_name, Attr: nsprefixes})
 				enc.EncodeToken(xml.CharData([]byte(v)))
 				enc.EncodeToken(xml.EndElement{Name: c_name})
 			}

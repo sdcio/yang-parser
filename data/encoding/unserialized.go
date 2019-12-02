@@ -8,6 +8,8 @@
 package encoding
 
 import (
+	"strings"
+
 	"github.com/danos/mgmterror"
 	"github.com/danos/yang/data/datanode"
 	"github.com/danos/yang/schema"
@@ -62,29 +64,83 @@ func getChildName(path []string, node unserialized, sn schema.Node) (string, err
 	return name, nil
 }
 
+func matchIdentityref(path []string, typ schema.Type, val string) bool {
+	switch t := typ.(type) {
+	case schema.Union:
+		for _, utyp := range t.Typs() {
+			if matchIdentityref(path, utyp, val) {
+				return true
+			}
+		}
+	case schema.Identityref:
+		if err := t.Validate(nil, path, val); err == nil {
+			return true
+		}
+	default:
+		return false
+
+	}
+	return false
+}
+
+// RFC 7951; sec 6.8 requires that an identityref should accept both
+// the namespace-qualified and simple form of an identity value where the
+// namespace of the identity value matches the leaf-(list) node.
+// Internally, we reject the namespace-qualified value when the simple form
+// is possible. When this occurs, we convert the identityref value to
+// a simple form identity value where possible.
+// Note: RFC7951 uses the module name as the namespace.
+func isIdentityrefSimpleFormValid(path []string, sn schema.Node, val string) (string, bool) {
+	// Try trimming the module prefix from value
+	modPrfx := sn.Module() + ":"
+	if !strings.HasPrefix(val, modPrfx) {
+		return "", false
+	}
+
+	simpleform := strings.TrimPrefix(val, modPrfx)
+
+	// check that possible simpleform value
+	// is a valid identityref value
+	if matchIdentityref(path, sn.Type(), simpleform) {
+		return simpleform, true
+	}
+	return "", false
+
+}
+
 func convertToDataNode(path []string, name string, node unserialized, sn schema.Node) (datanode.DataNode, error) {
 
-	var err error
 	children := []datanode.DataNode{}
 	vals := []string{}
 
 	switch sn.(type) {
 	case schema.Leaf, schema.LeafList, schema.LeafValue:
-		vals, err = node.values()
+		values, err := node.values()
 		if err != nil {
 			return nil, err
 		}
 		if _, ok := sn.(schema.Leaf); ok {
 			if _, isEmpty := sn.Type().(schema.Empty); isEmpty {
-				if len(vals) > 0 && (len(vals) != 1 || vals[0] != "") {
+				if len(values) > 0 && (len(values) != 1 || values[0] != "") {
 					return nil, schema.NewEmptyLeafValueError(node.name(), path)
 				}
 			}
 		}
 		// Validate the values
-		for _, v := range vals {
+		for _, v := range values {
 			if err := sn.Validate(nil, path, []string{v}); err != nil {
-				return nil, err
+				// Check for an identityref that is using RFC7951 namespace-qualified form
+				// where the simple form is preferred
+				// e.g. we have "module-name:value" when "value" is preferred
+
+				simple, valid := isIdentityrefSimpleFormValid(path, sn, v)
+				if !valid {
+					// No valid value found
+					return nil, err
+				}
+				vals = append(vals, simple)
+			} else {
+				vals = append(vals, v)
 			}
 		}
 
