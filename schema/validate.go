@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 AT&T Intellectual Property
+// Copyright (c) 2017-2020 AT&T Intellectual Property
 // All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
@@ -13,6 +13,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/danos/mgmterror"
 	"github.com/danos/utils/exec"
@@ -54,7 +55,7 @@ func skipCheck(c xnode, valType ValidationType) bool {
 
 func checkWhenAndMusts(
 	c xnode,
-	debug bool,
+	debugCtx *yangValDebugContext,
 	valType ValidationType,
 ) ([]*exec.Output, []error, bool) {
 
@@ -70,8 +71,8 @@ func checkWhenAndMusts(
 	// parent.
 	for _, ctxt := range c.schema().Whens() {
 		checkWhenMachineFn := func() ([]*exec.Output, []error, bool) {
-			return checkMachine(c, ctxt.Mach, ctxt.RunAsParent, "when", debug,
-				ctxt.ErrMsg)
+			return checkMachine(c, ctxt.Mach, ctxt.RunAsParent, "when",
+				debugCtx, ctxt.ErrMsg)
 		}
 		outs, errs, _ = exec.AppendOutput(checkWhenMachineFn, outs, errs)
 	}
@@ -85,7 +86,7 @@ func checkWhenAndMusts(
 	// For must, we validate all checks and report all errors.
 	for _, ctxt := range c.schema().Musts() {
 		checkMachineFn := func() ([]*exec.Output, []error, bool) {
-			return checkMachine(c, ctxt.Mach, false, "must", debug,
+			return checkMachine(c, ctxt.Mach, false, "must", debugCtx,
 				ctxt.ErrMsg)
 		}
 		outs, errs, _ = exec.AppendOutput(checkMachineFn, outs, errs)
@@ -94,7 +95,7 @@ func checkWhenAndMusts(
 	// Additionally, must statements on non-presence child containers
 	// of configured nodes must be evaluated.
 	checkNPContMustsFn := func() ([]*exec.Output, []error, bool) {
-		return checkNPContMusts(c, debug)
+		return checkNPContMusts(c, debugCtx)
 	}
 	outs, errs, _ = exec.AppendOutput(checkNPContMustsFn, outs, errs)
 
@@ -109,18 +110,21 @@ func checkWhenAndMusts(
 // As we need to check the tree recursively, exec.AppendOutput doesn't work
 // as it uses pass by value.  So, this wrapper around the internal function
 // allows us to accumulate results by passing by reference instead.
-func checkNPContMusts(c xnode, debug bool) ([]*exec.Output, []error, bool) {
+func checkNPContMusts(
+	c xnode,
+	debugCtx *yangValDebugContext,
+) ([]*exec.Output, []error, bool) {
 
 	outs, errs := make([]*exec.Output, 0), make([]error, 0)
 
 	ret_outs, ret_errs, ret_status :=
-		checkNPContMustsInternal(c, debug, &outs, &errs)
+		checkNPContMustsInternal(c, debugCtx, &outs, &errs)
 	return *ret_outs, *ret_errs, ret_status
 }
 
 func checkNPContMustsInternal(
 	c xnode,
-	debug bool,
+	debugCtx *yangValDebugContext,
 	outs *[]*exec.Output,
 	errs *[]error,
 ) (*[]*exec.Output, *[]error, bool) {
@@ -142,13 +146,13 @@ func checkNPContMustsInternal(
 
 		for _, ctxt := range npContXNode.schema().Musts() {
 			new_outs, new_errs, _ := checkMachine(
-				npContXNode, ctxt.Mach, false, "must", debug, ctxt.ErrMsg)
+				npContXNode, ctxt.Mach, false, "must", debugCtx, ctxt.ErrMsg)
 			*outs = append(*outs, new_outs...)
 			*errs = append(*errs, new_errs...)
 		}
 
 		// Check children ...
-		checkNPContMustsInternal(npContXNode, debug, outs, errs)
+		checkNPContMustsInternal(npContXNode, debugCtx, outs, errs)
 	}
 
 	return outs, errs, true
@@ -190,7 +194,7 @@ func getUnconfiguredNPContainerChildren(c xnode) map[string]Node {
 func checkLeafref(
 	c xnode,
 	lref Leafref,
-	debug bool,
+	debugCtx *yangValDebugContext,
 	valType ValidationType,
 ) ([]*exec.Output, []error, bool) {
 
@@ -200,7 +204,8 @@ func checkLeafref(
 
 	outs, errs := make([]*exec.Output, 0), make([]error, 0)
 
-	if allowedValues, err := lref.AllowedValues(c, debug); err != nil {
+	if allowedValues, err := lref.AllowedValues(
+		c, debugCtx.debugEnabled()); err != nil {
 		return outs, append(errs, err), false
 	} else {
 		for _, value := range allowedValues {
@@ -234,7 +239,7 @@ func checkMachine(
 	mach *xpath.Machine,
 	runAsParent bool,
 	checkName string,
-	debug bool,
+	debugCtx *yangValDebugContext,
 	errMsg string,
 ) ([]*exec.Output, []error, bool) {
 	outs, errs := make([]*exec.Output, 0), make([]error, 0)
@@ -243,6 +248,8 @@ func checkMachine(
 		return outs, errs, true
 	}
 
+	start := time.Now()
+
 	var res *xpath.Result
 	filter := xutils.FullTree
 	if c.schema().Config() {
@@ -250,12 +257,12 @@ func checkMachine(
 	}
 	if runAsParent {
 		res = xpath.NewCtxFromMach(mach, c.XParent()).
-			SetDebug(debug).
+			SetDebug(debugCtx.debugEnabled()).
 			SetAccessibleTree(filter).
 			Run()
 	} else {
 		res = xpath.NewCtxFromMach(mach, c).
-			SetDebug(debug).
+			SetDebug(debugCtx.debugEnabled()).
 			SetAccessibleTree(filter).
 			Run()
 	}
@@ -275,12 +282,35 @@ func checkMachine(
 			boolResult
 	}
 
+	logMachineTimeTakenIfRequired(debugCtx, start, c, checkName, mach)
+
 	return outs, errs, boolResult
+}
+
+// logMachineTimeTakenIfRequired - log time taken to run machine
+func logMachineTimeTakenIfRequired(
+	debugCtx *yangValDebugContext,
+	start time.Time,
+	node xnode,
+	machineType string,
+	mach *xpath.Machine,
+) {
+	// A threshold of zero means NO debug rather than 'debug ALL'.  Any must
+	// statement taking <0.5ms should really be of no interest to us.
+	if debugCtx.mustThresholdLevel() == 0 {
+		return
+	}
+
+	elapsedTimeInMs := int(time.Since(start) / time.Millisecond)
+	if elapsedTimeInMs > debugCtx.mustThresholdLevel() {
+		fmt.Printf("%s %s : \"%s\" - took %dms\n", machineType, node.path(),
+			mach.GetExpr(), elapsedTimeInMs)
+	}
 }
 
 func validateLeafSchema(
 	c xnode,
-	debug bool,
+	debugCtx *yangValDebugContext,
 	valType ValidationType,
 ) ([]*exec.Output, []error, bool) {
 
@@ -295,13 +325,14 @@ func validateLeafSchema(
 	children := c.children()
 	for _, child := range children {
 		checkWhenAndMustsFn := func() ([]*exec.Output, []error, bool) {
-			return checkWhenAndMusts(child, debug, valType)
+			return checkWhenAndMusts(
+				child, debugCtx, valType)
 		}
 		outs, errs, _ = exec.AppendOutput(checkWhenAndMustsFn, outs, errs)
 
 		if lref, ok := child.schema().Type().(Leafref); ok {
 			checkLeafrefFn := func() ([]*exec.Output, []error, bool) {
-				return checkLeafref(child, lref, debug, valType)
+				return checkLeafref(child, lref, debugCtx, valType)
 			}
 			outs, errs, _ = exec.AppendOutput(checkLeafrefFn, outs, errs)
 		}
@@ -542,7 +573,7 @@ func checkUnique(c xnode, valType ValidationType,
 
 func validateListSchema(
 	c xnode,
-	debug bool,
+	debugCtx *yangValDebugContext,
 	valType ValidationType,
 ) ([]*exec.Output, []error, bool) {
 
@@ -559,7 +590,7 @@ func validateListSchema(
 	outs, errs, _ = exec.AppendOutput(checkUniqueFn, outs, errs)
 	for _, n := range children {
 		validateSchemaFn := func() ([]*exec.Output, []error, bool) {
-			return validateSchema(n, debug, valType)
+			return validateSchemaWithLog(n, debugCtx, valType)
 		}
 		outs, errs, _ = exec.AppendOutput(validateSchemaFn, outs, errs)
 	}
@@ -570,32 +601,42 @@ func ValidateSchema(
 	sn Node, c datanode.DataNode, debug bool,
 ) ([]*exec.Output, []error, bool) {
 
-	xnode := createXNode(c, sn, nil)
-	return validateSchema(xnode, debug, ValidateAll)
+	return ValidateSchemaWithLog(
+		sn, c, ValidationDebug(debug))
 }
 
-func validateSchema(
+func ValidateSchemaWithLog(
+	sn Node, c datanode.DataNode, options ...YangDebugOption,
+) ([]*exec.Output, []error, bool) {
+
+	xnode := createXNode(c, sn, nil)
+	return validateSchemaWithLog(
+		xnode, newYangValDbgCtxt(options...), ValidateAll)
+}
+
+func validateSchemaWithLog(
 	c xnode,
-	debug bool,
+	debugCtx *yangValDebugContext,
 	valType ValidationType,
 ) ([]*exec.Output, []error, bool) {
 
 	switch c.schema().(type) {
 	case Leaf, LeafList:
-		return validateLeafSchema(c, debug, valType)
+		return validateLeafSchema(c, debugCtx, valType)
 	case List:
-		return validateListSchema(c, debug, valType)
+		return validateListSchema(c, debugCtx, valType)
 	}
 
 	checkWhenAndMustsFn := func() ([]*exec.Output, []error, bool) {
-		return checkWhenAndMusts(c, debug, valType)
+		return checkWhenAndMusts(c, debugCtx, valType)
 	}
 	outs, errs, _ := checkMandatory(c, valType)
 	outs, errs, _ = exec.AppendOutput(checkWhenAndMustsFn, outs, errs)
 
 	for _, n := range c.children() {
 		validateSchemaFn := func() ([]*exec.Output, []error, bool) {
-			return validateSchema(n, debug, valType)
+			return validateSchemaWithLog(
+				n, debugCtx, valType)
 		}
 		outs, errs, _ = exec.AppendOutput(validateSchemaFn, outs, errs)
 	}
@@ -613,17 +654,17 @@ const (
 )
 
 type SchemaValidator struct {
-	xn      xnode
-	debug   bool
-	valType ValidationType
+	xn       xnode
+	debugCtx *yangValDebugContext
+	valType  ValidationType
 }
 
 func NewSchemaValidator(sn Node, c datanode.DataNode) *SchemaValidator {
 
 	return &SchemaValidator{
-		xn:      createXNode(c, sn, nil),
-		debug:   false,
-		valType: ValidateAll}
+		xn:       createXNode(c, sn, nil),
+		debugCtx: newYangValDbgCtxt(),
+		valType:  ValidateAll}
 }
 
 func (sv *SchemaValidator) SetValidation(
@@ -634,16 +675,55 @@ func (sv *SchemaValidator) SetValidation(
 	return sv
 }
 
-func (sv *SchemaValidator) EnableDebug() *SchemaValidator {
-	sv.debug = true
-	return sv
-}
-
-func (sv *SchemaValidator) SetDebug(debug bool) *SchemaValidator {
-	sv.debug = debug
-	return sv
-}
-
 func (sv *SchemaValidator) Validate() ([]*exec.Output, []error, bool) {
-	return validateSchema(sv.xn, sv.debug, sv.valType)
+	return validateSchemaWithLog(
+		sv.xn, sv.debugCtx, sv.valType)
+}
+
+// yangValDebugContext - debug parameters for YANG validation
+//
+// Encapsulation of debug parameters for YANG validation, allowing for easy
+// addition of future flags, thresholds etc.
+type yangValDebugContext struct {
+	// Basic debug; currently very verbose as includes full machine debug.
+	debug bool
+
+	// Threshold in milliseconds at which we start to log time taken for must
+	// statements.  0 = disabled.
+	// This is independent of value of 'debug' above.
+	mustThreshold int
+}
+
+type YangDebugOption func(*yangValDebugContext)
+
+func newYangValDbgCtxt(opts ...YangDebugOption) *yangValDebugContext {
+
+	yvdc := &yangValDebugContext{
+		debug:         false,
+		mustThreshold: 0,
+	}
+
+	for _, opt := range opts {
+		opt(yvdc)
+	}
+
+	return yvdc
+}
+
+func (yvdc *yangValDebugContext) debugEnabled() bool { return yvdc.debug }
+
+func (yvdc *yangValDebugContext) mustThresholdLevel() int {
+	return yvdc.mustThreshold
+}
+
+func MustLogThreshold(threshold int) YangDebugOption {
+	return func(yvdc *yangValDebugContext) {
+		yvdc.mustThreshold = threshold
+	}
+}
+
+func ValidationDebug(debug bool) YangDebugOption {
+	return func(yvdc *yangValDebugContext) {
+		yvdc.debug = debug
+	}
 }
