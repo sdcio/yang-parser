@@ -1,3 +1,15 @@
+golang-github-danos-yang (2.9) unstable; urgency=medium
+
+  [ Paul Carson ]
+  * Yang compiler: Fully implement identityref
+  * Unit tests to check identityref support
+  * Identity value encode/decode support (Closes: VRVDR-6226)
+
+  [ William Ivory ]
+  * Add optional debug for must statements
+
+ -- William Ivory <william.ivory@intl.att.com>  Fri, 03 Apr 2020 11:40:47 +0100
+
 golang-github-danos-yang (2.8) unstable; urgency=medium
 
   * DANOS Import Master
