@@ -406,15 +406,21 @@ func TestAllValidNameCharacters(t *testing.T) {
 	CheckValidNameRange(t, 0x2070, 0x218F, xutils.EOF, xutils.EOF)
 	CheckValidNameRange(t, 0x2C00, 0x2FEF, xutils.EOF, xutils.EOF)
 
-	// Weirdness - somehow D800 - DFFF are coming out as NAMETEST tokens
+	// The range D800 - DFFF are not valid unicode characters.
+	// This range is used for "surrogate pairs" which allow one to
+	// represent values outwith the BMP when using UTF-16.
+	// i.e a valid pair of such characters represents
+	// a rune beyond 0xFFFF
+	//
+	// As such one should not try to treat them as runes.
+	//
+	// This may explain why D800 - DFFF are coming out as NAMETEST tokens
 	// rather than not being recognised.  Haven't worked out why yet ...
 	CheckValidNameRange(t, 0x3001, 0xD7FF, xutils.EOF, NAMETEST)
 
 	CheckValidNameRange(t, 0xF900, 0xFDCF, xutils.EOF, xutils.EOF)
 	CheckValidNameRange(t, 0xFDF0, 0xFFFD, xutils.EOF, xutils.EOF)
 	CheckValidNameRange(t, 0x10000, 0xEFFFF, xutils.EOF, xutils.EOF)
-
-	t.Skipf("Need to work out what's going on with D800 - DFFF")
 }
 
 func TestLexNodeType(t *testing.T) {
