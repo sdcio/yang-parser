@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, AT&T Intellectual Property.
+// Copyright (c) 2017-2020, AT&T Intellectual Property.
 // All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
@@ -180,7 +180,7 @@ var cardinalities = map[NodeType]map[NodeType]Cardinality{
 		NodeMust:           {'0', 'n'},
 		NodeReference:      {'0', '1'},
 		NodeStatus:         {'0', '1'},
-		NodeTyp:            {'0', '1'},
+		NodeTyp:            {'1', '1'},
 		NodeUnits:          {'0', '1'},
 		NodeWhen:           {'0', '1'},
 		NodeUses:           {'0', 'n'},
