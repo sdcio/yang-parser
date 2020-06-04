@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, AT&T Intellectual Property.  All rights reserved.
+// Copyright (c) 2017-2021, AT&T Intellectual Property.  All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -86,7 +86,7 @@ func (c *Compiler) validateGrouping(
 
 func isMandatory(nod parse.Node) bool {
 	switch nod.Type() {
-	case parse.NodeLeaf:
+	case parse.NodeLeaf, parse.NodeChoice:
 		return nod.Mandatory()
 	case parse.NodeLeafList, parse.NodeList:
 		// List/Leaf-List is mandatory if min-elements > 0
@@ -118,6 +118,8 @@ func isMandatory(nod parse.Node) bool {
 func getAugmentableNodesForModule(applyToMod parse.Node) []parse.Node {
 	allowedNodes := applyToMod.ChildrenByType(parse.NodeDataDef)
 	allowedNodes = append(allowedNodes,
+		applyToMod.ChildrenByType(parse.NodeCase)...)
+	allowedNodes = append(allowedNodes,
 		applyToMod.ChildrenByType(parse.NodeOpdDef)...)
 	allowedNodes = append(allowedNodes,
 		applyToMod.ChildrenByType(parse.NodeRpc)...)
@@ -138,6 +140,7 @@ func (c *Compiler) applyAugment(
 
 	applyToNode := c.getDataDescendant(
 		a, allowedNodes, applyToPath, assertRef)
+
 	if applyToNode == nil {
 		if !c.skipUnknown {
 			c.error(a, fmt.Errorf("Invalid path: %s",

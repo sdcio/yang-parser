@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2020, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2018-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -250,6 +250,20 @@ func (n *node) ChildrenByType(match NodeType) []Node {
 	if len(ch) == 0 && n.NodeType == NodeRpc {
 		ch = n.getImplicitRpcChildren(match)
 		n.AddChildren(ch...)
+	}
+	if n.NodeType == NodeChoice {
+		for _, nd := range n.Children() {
+			switch nd.Type() {
+			case NodeContainer, NodeLeaf, NodeLeafList, NodeList:
+				newnd := newNodeByType(NodeCase,
+					n.tree,
+					item{pos: nd.position(), val: "case"},
+					nd.Name(),
+					[]Node{nd},
+					&Scope{tenv: n.tenv, genv: n.genv}, nil)
+				n.ReplaceChild(nd, newnd)
+			}
+		}
 	}
 	return ch
 }

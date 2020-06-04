@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2017-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -1011,7 +1011,9 @@ func (c *Compiler) BuildNode(
 	case parse.NodeLeaf:
 		retNodes = []schema.Node{c.BuildLeaf(features, m, n, isKey)}
 	case parse.NodeChoice:
-		retNodes = c.BuildChoice(features, m, n)
+		retNodes = []schema.Node{c.BuildChoice(features, m, n)}
+	case parse.NodeCase:
+		retNodes = []schema.Node{c.BuildCase(features, m, n)}
 	case parse.NodeOpdCommand:
 		retNodes = []schema.Node{c.BuildOpdCommand(features, m, n)}
 	case parse.NodeOpdOption:
@@ -1607,19 +1609,81 @@ func (comp *Compiler) BuildLeaf(
 	return comp.extendLeaf(node, leaf)
 }
 
-func (c *Compiler) BuildChoice(features inheritedFeatures, m parse.Node, n parse.Node) []schema.Node {
+func (c *Compiler) checkChoiceDefaultCaseExists(sn schema.Node) error {
+	choice, ok := sn.(schema.Choice)
+	if !ok {
+		return nil
+	}
+	if choice.DefaultCase() == "" ||
+		c.filter != nil && !c.filter(choice) {
+		return nil
+	}
+	for _, child := range choice.Choices() {
 
-	// TODO add case information to each child node
-	children := c.buildChildren(features, m, n.ChildrenByType(parse.NodeDataDef))
-
-	//BUG(jhs): I don't think this is right.
-	for _, cas := range n.ChildrenByType(parse.NodeCase) {
-		children = append(
-			children,
-			c.buildChildren(features, m, cas.ChildrenByType(parse.NodeDataDef))...)
+		if child.Name() == choice.DefaultCase() {
+			return nil
+		}
 	}
 
-	return children
+	return fmt.Errorf("Choice default %s not found.", choice.DefaultCase())
+}
+
+func (c *Compiler) BuildChoice(features inheritedFeatures, m parse.Node, n parse.Node) schema.Node {
+	children := c.buildChildren(features, m, n.ChildrenByType(parse.NodeDataDef))
+	if n.HasDef() && n.Mandatory() {
+		c.error(n, errors.New("Choice cannot have default and be mandatory."))
+	}
+
+	choice, err := schema.NewChoice(
+		n.Name(),
+		n.GetNodeNamespace(m, c.modules),
+		n.GetNodeModulename(m),
+		n.GetNodeSubmoduleName(),
+		n.Def(),
+		n.Desc(),
+		n.Ref(),
+		n.Mandatory(),
+		features.config,
+		features.status,
+		c.BuildWhens(n),
+		children,
+	)
+
+	if err != nil {
+		c.error(n, err)
+	}
+	if err := c.checkChoiceDefaultCaseExists(choice); err != nil {
+		c.error(n, err)
+	}
+
+	c.filterDisabledExtensions(n)
+	nd := c.extendChoice(n, choice)
+	return nd
+}
+
+func (c *Compiler) BuildCase(features inheritedFeatures, m parse.Node, n parse.Node) schema.Node {
+	children := c.buildChildren(features, m, n.ChildrenByType(parse.NodeDataDef))
+
+	// TODO: PAC: Namespace should be same as choice
+	ycase, err := schema.NewCase(
+		n.Name(),
+		n.GetNodeNamespace(m, c.modules),
+		n.GetNodeModulename(m),
+		n.GetNodeSubmoduleName(),
+		n.Desc(),
+		n.Ref(),
+		features.config,
+		features.status,
+		c.BuildWhens(n),
+		children,
+	)
+
+	if err != nil {
+		c.error(n, err)
+	}
+
+	c.filterDisabledExtensions(n)
+	return c.extendCase(n, ycase)
 }
 
 func (c *Compiler) makeBoolean(

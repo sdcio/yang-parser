@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020, AT&T Intellectual Property.
+// Copyright (c) 2017-2021, AT&T Intellectual Property.
 // All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
@@ -316,6 +316,9 @@ func NewModelSet(modules map[string]Model, submodules map[string]Submodule,
 
 		ms.rpcs[mod.Namespace()] = mod.Rpcs()
 		ms.notifications[mod.Namespace()] = mod.Notifications()
+		for _, chs := range mod.Choices() {
+			ms.addChoice(chs)
+		}
 	}
 
 	return ms, nil
@@ -329,6 +332,7 @@ type Node interface {
 	CheckCardinality(xutils.PathType, int) error
 	Children() []Node
 	OpdChildren() []Node
+	Choices() []Node
 	Name() string
 	Namespace() string
 	Module() string
@@ -443,6 +447,7 @@ type node struct {
 	arguments    []string
 	whenContexts []WhenContext
 	mustContexts []MustContext
+	choices      []Node
 }
 
 func (n *node) String() string {
@@ -495,6 +500,18 @@ func (n *node) Paths(path string) []string {
 	return out
 }
 
+func (n *node) addChoice(ch Node) error {
+	name := ch.Name()
+	for _, cn := range n.choices {
+		if cn.Name() == name {
+			return errors.New("redefinition of name " + name)
+		}
+	}
+
+	n.choices = append(n.choices, ch)
+	return nil
+}
+
 func (n *node) addChild(ch Node) error {
 	name := ch.Name()
 	if _, exists := n.children[name]; exists {
@@ -509,13 +526,101 @@ func (n *node) addChild(ch Node) error {
 	return nil
 }
 
-func (n *node) addChildren(children []Node) error {
+type nodeFilter = func(n Node) bool
+
+func anyNode(n Node) bool { return true }
+
+func choiceNode(n Node) bool {
+	_, ok := n.(Choice)
+	return ok
+}
+
+func caseNode(n Node) bool {
+	_, ok := n.(Case)
+	return ok
+}
+
+// addAction allows additional/alternative actions to be performed
+// when adding chilren nodes to a node. It takes the parent node, that
+// children are being added to, and a child Node that may be
+// added as a child to the parent.
+// It returns true when when no other actions should be performed
+// after this action.
+
+type addAction = func(parent *node, child Node) (halt bool, err error)
+
+func addChoiceToChoices(parent *node, child Node) (bool, error) {
+	var err error
+	if _, ok := child.(Choice); ok {
+		err = parent.addChoice(child)
+	}
+	return false, err
+}
+
+func addToChoices(include nodeFilter) addAction {
+	return func(parent *node, child Node) (bool, error) {
+		if include != nil && include(child) {
+			if err := parent.addChoice(child); err != nil {
+				return true, err
+			}
+		}
+		return false, nil
+	}
+}
+
+func includeChildrenOf(include, exclude nodeFilter) addAction {
+	return func(parent *node, child Node) (bool, error) {
+		if include != nil && include(child) == false {
+			return false, nil
+		}
+		for _, ch := range child.Children() {
+			if exclude != nil && exclude(ch) == true {
+				continue
+			}
+			if err := parent.addChild(ch); err != nil {
+				return true, err
+			}
+		}
+		return true, nil
+	}
+}
+
+func addToChildrenExcluding(exclude nodeFilter) addAction {
+	return func(parent *node, child Node) (bool, error) {
+		if exclude != nil && exclude(child) {
+			return false, nil
+		}
+		err := parent.addChild(child)
+		return false, err
+	}
+}
+
+// addChildrenWithActionChain performs the given actions in the order provided until
+// one of the actions returns halt, at which point all other actions are ignored.
+//
+func (n *node) addChildrenWithActionChain(children []Node, actions ...addAction) error {
 	for _, ch := range children {
-		if err := n.addChild(ch); err != nil {
-			return err
+		for _, action := range actions {
+			halt, err := action(n, ch)
+			if err != nil {
+				return err
+			}
+			if halt {
+				// no more processing for this child node
+				break
+			}
 		}
 	}
+
 	return nil
+}
+
+func (n *node) addChildren(children []Node) error {
+	return n.addChildrenWithActionChain(children,
+		addChoiceToChoices,
+		includeChildrenOf(choiceNode, caseNode),
+		addToChildrenExcluding(choiceNode),
+	)
 }
 
 func (n *node) Repeatable() bool {
@@ -536,9 +641,11 @@ func (n *node) addOpdChildren(children []Node) error {
 
 func (n *node) addParent(p *node) {
 }
+
 func (n *node) Parent() *node {
 	return n.parent
 }
+
 func (n *node) removeChild(ch Node, children map[string]Node) error {
 	name := ch.Name()
 	if _, ok := children[name]; ok {
@@ -583,7 +690,29 @@ func genChildList(children map[string]Node) []Node {
 	for _, v := range children {
 		ch = append(ch, v)
 	}
+
 	return ch
+}
+
+func genSchemaChildList(children map[string]Node) []Node {
+	ch := make([]Node, 0, len(children))
+	for _, v := range children {
+		switch v.(type) {
+
+		case Choice:
+			ch = append(ch, v)
+		case Case:
+			ch = append(ch, v)
+		default:
+			ch = append(ch, v)
+		}
+	}
+	return ch
+
+}
+
+func (n *node) Choices() []Node {
+	return n.choices
 }
 
 func (n *node) Children() []Node {
@@ -1196,7 +1325,7 @@ func (n *leafValue) Status() Status {
 	// case Identity:
 	// 	return Current
 	default:
-		return Current
+		return n.Node.Status()
 	}
 }
 
@@ -1733,6 +1862,7 @@ func (n *leafList) Child(name string) Node {
 
 type Choice interface {
 	Node
+	DefaultCase() string
 	isChoice()
 }
 
@@ -1749,23 +1879,29 @@ func (*choice) isChoice() {}
 var _ Choice = (*choice)(nil)
 
 func NewChoice(
-	name, namespace, modulename, def, desc, ref string,
+	name, namespace, modulename, submodulename, def, desc, ref string,
 	mandatory, config bool,
 	status Status,
+	whens []WhenContext,
 	children []Node,
 ) (Choice, error) {
 	c := &choice{node: makenode()}
 	c.name.Local = name
 	c.name.Space = namespace
 	c.module = modulename
+	c.submodule = submodulename
 	c.def = def
 	c.Desc = desc
 	c.Ref = ref
 	c.mandatory = mandatory
 	c.config = config
 	c.status = status
+	c.whenContexts = whens
 
-	if err := c.addChildren(children); err != nil {
+	if err := c.addChildrenWithActionChain(children,
+		addToChoices(anyNode),
+		includeChildrenOf(caseNode, choiceNode),
+		addToChildrenExcluding(caseNode)); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -1783,13 +1919,89 @@ func (n *choice) HasDefault() bool {
 	return n.def != ""
 }
 func (n *choice) DefaultChildNames() []string {
-	if n.def == "" {
-		return nil
-	}
-	return []string{n.def}
+	return nil
+}
+
+func (n *choice) DefaultCase() string {
+	return n.def
+}
+
+func (n *choice) Mandatory() bool {
+	return n.mandatory
 }
 
 func (n *choice) Validate(ctx ValidateCtx, path []string, p []string) error {
+	if len(p) == 0 {
+		return errors.New("choice requires argument")
+	}
+	path = append(path, p[0])
+	c, ok := n.node.children[p[0]]
+	if !ok {
+		return NewInvalidPathError(path)
+	}
+	path = append(path, p[0])
+	return c.Validate(ctx, path, p[1:])
+}
+
+type Case interface {
+	Node
+	isCase()
+}
+
+type ycase struct {
+	*node
+	mandatory bool
+}
+
+// Ensure that other schema types don't meet the interface
+func (*ycase) isCase() {}
+
+// Compile time check that the concrete type meets the interface
+var _ Case = (*ycase)(nil)
+
+func NewCase(
+	name, namespace, modulename, submodule, desc, ref string,
+	config bool,
+	status Status,
+	whens []WhenContext,
+	children []Node,
+) (Case, error) {
+	c := &ycase{node: makenode()}
+	c.name.Local = name
+	c.name.Space = namespace
+	c.module = modulename
+	c.submodule = submodule
+	c.Desc = desc
+	c.Ref = ref
+	c.config = config
+	c.status = status
+	c.whenContexts = whens
+
+	if err := c.addChildrenWithActionChain(children,
+		addToChoices(anyNode),
+		includeChildrenOf(choiceNode, caseNode),
+		addToChildrenExcluding(choiceNode)); err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+func (n *ycase) Child(s string) Node {
+	return n.children[s]
+}
+
+func (n *ycase) Descendant(path []string) Node {
+	return n.descendant(n, path)
+}
+
+func (n *ycase) HasDefault() bool {
+	return false
+}
+func (n *ycase) DefaultChildNames() []string {
+	return []string{}
+}
+
+func (n *ycase) Validate(ctx ValidateCtx, path []string, p []string) error {
 	if len(p) == 0 {
 		return errors.New("choice requires argument")
 	}

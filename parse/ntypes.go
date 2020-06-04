@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, AT&T Intellectual Property.
+// Copyright (c) 2017-2021, AT&T Intellectual Property.
 // All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
@@ -15,10 +15,6 @@ func (t NodeType) String() string { return nodeNames[t] }
 
 func (t NodeType) IsDataNode() bool {
 	return (t > NodeDataDef) && (t < NodeDataDefEnd)
-}
-
-func (t NodeType) IsDataOrCaseNode() bool {
-	return (t > NodeDataDef) && (t <= NodeCase)
 }
 
 func (t NodeType) IsTypeRestriction() bool {
@@ -63,9 +59,9 @@ const (
 	NodeChoice
 	NodeUses
 	NodeAnyxml
+	NodeCase
 	NodeDataDefEnd
 	//Additional node for augment data-def
-	NodeCase
 	NodeGrouping
 	NodeMust
 	NodeRpc

@@ -1,4 +1,5 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property.
+// All rights reserved.
 //
 // Copyright (c) 2016-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -46,6 +47,10 @@ type Extensions interface {
 	ExtendList(parse.Node, schema.List) (schema.List, error)
 	ExtendLeaf(parse.Node, schema.Leaf) (schema.Leaf, error)
 	ExtendLeafList(parse.Node, schema.LeafList) (schema.LeafList, error)
+
+	// Extend choice and case nodes
+	ExtendChoice(parse.Node, schema.Choice) (schema.Choice, error)
+	ExtendCase(parse.Node, schema.Case) (schema.Case, error)
 
 	// Extend the type, given the parse node and the base type that this
 	// type is derived from. The base time may be nil, when the type is
@@ -187,6 +192,36 @@ func (comp *Compiler) extendLeafList(p parse.Node, l schema.LeafList) schema.Lea
 	}
 
 	return l2
+}
+
+func (comp *Compiler) extendChoice(p parse.Node, c schema.Choice) schema.Choice {
+
+	if comp.extensions == nil {
+		return c
+	}
+
+	choiceExt, e := comp.extensions.ExtendChoice(p, c)
+	if e != nil {
+		comp.error(p, e)
+		return c
+	}
+
+	return choiceExt
+}
+
+func (comp *Compiler) extendCase(p parse.Node, c schema.Case) schema.Case {
+
+	if comp.extensions == nil {
+		return c
+	}
+
+	caseExt, e := comp.extensions.ExtendCase(p, c)
+	if e != nil {
+		comp.error(p, e)
+		return c
+	}
+
+	return caseExt
 }
 
 func (comp *Compiler) extendType(

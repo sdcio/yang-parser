@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 AT&T Intellectual Property
+// Copyright (c) 2017-2021 AT&T Intellectual Property
 // All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
@@ -354,10 +354,35 @@ func appendMandatoryError(path []string, name string, errs []error) []error {
 	return append(errs, err)
 }
 
+func isAChoice(p, n Node) bool {
+	for _, cd := range p.Choices() {
+		if cd.Child(n.Name()) != nil {
+			return true
+		}
+	}
+	return false
+}
+
+func isACaseChoice(p, n Node) bool {
+	for _, cd := range p.Choices() {
+		switch cd.(type) {
+		case Choice:
+			if cd.Child(n.Name()) != nil {
+				return true
+			}
+		default:
+		}
+	}
+	return false
+}
+
 // Check for mandatory children nodes, for each one found, create an error
 func hasMandatoryChildren(sn Node, path []string, errs []error) []error {
 	path = append(path, sn.Name())
 	for _, csn := range sn.Children() {
+		if isAChoice(sn, csn) {
+			continue
+		}
 		switch v := csn.(type) {
 		case Leaf:
 			if v.Mandatory() {
@@ -377,6 +402,14 @@ func hasMandatoryChildren(sn Node, path []string, errs []error) []error {
 			}
 		}
 	}
+	for _, cd := range sn.Choices() {
+		if _, ok := cd.(Choice); ok {
+			if cd.Mandatory() {
+				msg := fmt.Sprintf("requires one of %v ", cd.Children())
+				errs = appendMandatoryError(path, msg, errs)
+			}
+		}
+	}
 	return errs
 }
 
@@ -389,38 +422,38 @@ func checkMandatory(c xnode, valType ValidationType,
 
 	outs, errs := make([]*exec.Output, 0), make([]error, 0)
 	mandNodes := make(map[string]Node)
+	chMandNodes := make(map[string]Node)
+
 	for _, n := range c.schema().Children() {
+		isMand := false
 		switch v := n.(type) {
 		case Leaf:
-			if v.Mandatory() {
-				mandNodes[v.Name()] = n
-			}
+			isMand = v.Mandatory()
 		case List:
-			if v.Limit().Min > 0 {
-				mandNodes[v.Name()] = n
-			}
+			isMand = v.Limit().Min > 0
 		case LeafList:
-			if v.Limit().Min > 0 {
-				mandNodes[v.Name()] = n
-			}
+			isMand = v.Limit().Min > 0
 		case Container:
-			if !v.Presence() {
-				// non-presence container is potentially
-				// a mandatory node. Check later for
-				// mandatory children.
-				mandNodes[v.Name()] = n
+			isMand = !v.Presence()
+		}
+
+		if isMand {
+			if isAChoice(c.schema(), n) {
+				chMandNodes[n.Name()] = n
+			} else {
+				mandNodes[n.Name()] = n
 			}
 		}
 	}
 
 	children := c.children()
+	cfgCh := make(map[string]xnode, 0)
+	for _, n := range children {
+		cfgCh[n.YangDataName()] = n
+	}
+
 	for k, nd := range mandNodes {
-		found := false
-		for _, n := range children {
-			if found = (k == n.YangDataName()); found {
-				break
-			}
-		}
+		_, found := cfgCh[k]
 		if !found {
 			if _, ok := nd.(Container); ok {
 				// Non-presence container found, so
@@ -431,7 +464,80 @@ func checkMandatory(c xnode, valType ValidationType,
 			}
 		}
 	}
+
+	errs = choiceHasMandatory(cfgCh, c.schema(), c.path(), errs)
+
 	return outs, errs, len(errs) == 0
+}
+
+func hasOneOf(nds []Node, cfg map[string]xnode) bool {
+	for _, nd := range nds {
+		if _, ok := cfg[nd.Name()]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func choiceHasMandatory(cfg map[string]xnode, nd Node, path []string, errs []error) []error {
+	for _, ch := range nd.Choices() {
+		switch ch.(type) {
+		case Choice:
+			if hasOneOf(ch.Children(), cfg) {
+				errs = caseHasMandatory(cfg, ch, path, errs)
+			} else if ch.Mandatory() {
+				msg := fmt.Sprintf("requires one of %v ", ch.Children())
+				errs = appendMandatoryError(path, msg, errs)
+			}
+		default:
+		}
+	}
+	return errs
+}
+
+func hasCaseMandatoryChildren(cfg map[string]xnode, nd Node, path []string, errs []error) []error {
+	for _, csn := range nd.Children() {
+		if _, ok := cfg[csn.Name()]; ok {
+			//skip existing nodes
+			continue
+		}
+		if isACaseChoice(nd, csn) {
+			continue
+		}
+		switch v := csn.(type) {
+		case Leaf:
+			if v.Mandatory() {
+				errs = appendMandatoryError(path, v.Name(), errs)
+			}
+		case List:
+			if v.Limit().Min > 0 {
+				errs = appendMandatoryError(path, v.Name(), errs)
+			}
+		case LeafList:
+			if v.Limit().Min > 0 {
+				errs = appendMandatoryError(path, v.Name(), errs)
+			}
+		case Container:
+			if !v.Presence() {
+				errs = hasMandatoryChildren(csn, path, errs)
+			}
+		}
+	}
+
+	return errs
+}
+func caseHasMandatory(cfg map[string]xnode, nd Node, path []string, errs []error) []error {
+	for _, ca := range nd.Choices() {
+		switch ca.(type) {
+		case Case:
+			// Check if case has presence, a configured child node
+			if hasOneOf(ca.Children(), cfg) {
+				errs = hasCaseMandatoryChildren(cfg, ca, path, errs)
+				errs = choiceHasMandatory(cfg, ca, path, errs)
+			}
+		}
+	}
+	return errs
 }
 
 func resolveDescendant(c xnode, path []xml.Name) string {

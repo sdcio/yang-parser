@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2018-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015-2016 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -696,6 +696,100 @@ func TestAugmentRemoteWithMinElementListFails(t *testing.T) {
 									type string;
 								}
 								min-elements 1;
+							}
+						}
+					}
+				} `,
+			},
+			remoteTestSchema,
+		},
+	}
+	applyAndVerifySchemas(t, &tc, false)
+}
+
+func TestAugmentRemoteWithMandatoryChoiceFails(t *testing.T) {
+	var tc = testutils.TestCase{
+		Description: "Augment with a mandatory choice should be rejected",
+		ExpResult:   false,
+		ExpErrMsg:   "Cannot add mandatory nodes to another module: remote",
+		Schemas: []testutils.TestSchema{
+			{
+				Name: testutils.NameDef{
+					Namespace: "prefix-test",
+					Prefix:    "test",
+				},
+				Imports: []testutils.NameDef{
+					{"prefix-remote", "remote"}},
+				SchemaSnippet: `container testcontainer {
+					description "Test";
+				}
+
+				augment /remote:remotecontainer {
+					choice testchoice {
+						mandatory true;
+
+						leaf testleaf {
+							type string;
+							mandatory true;
+						}
+
+						case container {
+							container testcontainer {
+								leaf testleaf {
+									type string;
+								}
+							}
+						}
+					}
+				} `,
+			},
+			remoteTestSchema,
+		},
+	}
+	applyAndVerifySchemas(t, &tc, false)
+}
+
+func TestAugmentOmmitChoiceCaseFails(t *testing.T) {
+	var tc = testutils.TestCase{
+		Description: "Augment missing choice and case from path is rejected",
+		ExpResult:   false,
+		ExpErrMsg:   "augment /testcontainer/container-one: Invalid path: testcontainer/container-one",
+		Schemas: []testutils.TestSchema{
+			{
+				Name: testutils.NameDef{
+					Namespace: "prefix-test",
+					Prefix:    "test",
+				},
+				Imports: []testutils.NameDef{
+					{"prefix-remote", "remote"}},
+				SchemaSnippet: `container testcontainer {
+					description "Test";
+					choice one {
+						container container-one {
+
+						}
+						case cont-two {
+							container container-two {
+
+							}
+						}
+					}
+				}
+
+				augment /testcontainer/container-one {
+					// augment path should be:
+					// /testcontainer/one/container-one/container-one
+					choice testchoice {
+						leaf testleaf {
+							type string;
+							mandatory true;
+						}
+
+						case container {
+							container testcontainer {
+								leaf testleaf {
+									type string;
+								}
 							}
 						}
 					}

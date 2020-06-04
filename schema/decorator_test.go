@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015-2016 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -192,5 +192,187 @@ container testcontainer {
 
 	actual := getDataTreeWithDefaultsAsJSON(t, input_schema, input_json)
 	expect := `{"testcontainer":{"isset":true,"testboolean":true}}`
+	assertMatch(t, expect, actual)
+}
+
+func TestEmptyChoiceNoDefaultCase(t *testing.T) {
+
+	const input_json = `{"testcontainer":{"testleaf":"data"}}`
+	const input_schema = `
+container testcontainer {
+	leaf testleaf {
+		type string;
+	}
+	leaf testdefault {
+		type string;
+		default "defaultstring";
+	}
+	choice foobar {
+		case foo {
+			leaf foo {
+				type string;
+				default foo;
+			}
+		}
+		case bar {
+			leaf bar {
+				type string;
+				default bar;
+			}
+		}
+	}
+}`
+
+	actual := getDataTreeWithDefaultsAsJSON(t, input_schema, input_json)
+	expect := `{"testcontainer":{"testleaf":"data","testdefault":"defaultstring"}}`
+	assertMatch(t, expect, actual)
+}
+
+func TestEmptyChoiceDefaultCase(t *testing.T) {
+
+	const input_json = `{"testcontainer":{}}`
+	const input_schema = `
+container testcontainer {
+	presence "for testing";
+	choice foobar {
+		default foo;
+		case foo {
+			leaf foo {
+				type string;
+				default foo;
+			}
+		}
+		case bar {
+			leaf bar {
+				type string;
+				default bar;
+			}
+		}
+	}
+}`
+
+	actual := getDataTreeWithDefaultsAsJSON(t, input_schema, input_json)
+	expect := `{"testcontainer":{"foo":"foo"}}`
+	assertMatch(t, expect, actual)
+}
+
+func TestEmptyChoiceDefaultNestedCase(t *testing.T) {
+
+	const input_json = `{"testcontainer":{}}`
+	const input_schema = `
+container testcontainer {
+	presence "";
+	leaf testleaf {
+		type string;
+	}
+	choice foobar {
+		default foo;
+		case foo {
+			leaf foo {
+				type string;
+			}
+
+			choice foobar {
+				default foobar;
+				case bar {
+					leaf barleaf {
+						type string;
+						default "barleafvalue";
+					}
+				}
+				case foobar {
+					leaf defone {
+						type string;
+						default "defone value";
+					}
+				}
+			}
+		}
+		case bar {
+			leaf bar {
+				type string;
+				default bar;
+			}
+		}
+	}
+}`
+
+	actual := getDataTreeWithDefaultsAsJSON(t, input_schema, input_json)
+	expect := `{"testcontainer":{"defone":"defone value"}}`
+	assertMatch(t, expect, actual)
+}
+
+func TestChoiceOverrideDefaultCase(t *testing.T) {
+
+	const input_json = `{"testcontainer":{"baz":"data"}}`
+	const input_schema = `
+container testcontainer {
+	leaf testleaf {
+		type string;
+	}
+	choice foobar {
+		default foo;
+		case foo {
+			leaf foo {
+				type string;
+				default foo;
+			}
+		}
+		case bar {
+			leaf baz {
+				type string;
+			}
+			leaf bar {
+				type string;
+				default bar;
+			}
+		}
+	}
+}`
+
+	actual := getDataTreeWithDefaultsAsJSON(t, input_schema, input_json)
+	expect := `{"testcontainer":{"baz":"data","bar":"bar"}}`
+	assertMatch(t, expect, actual)
+}
+
+func TestNestedChoiceOverrideDefaultCase(t *testing.T) {
+
+	const input_json = `{"testcontainer":{"baz":"data"}}`
+	const input_schema = `
+container testcontainer {
+	leaf testleaf {
+		type string;
+	}
+	choice top {
+		default default;
+		case foobar {
+			choice foobar {
+				default foo;
+				case foo {
+					leaf foo {
+						type string;
+						default foo;
+					}
+				}
+				case bar {
+					leaf baz {
+						type string;
+					}
+					leaf bar {
+						type string;
+						default bar;
+					}
+				}
+			}
+		}
+		leaf default {
+			type string;
+			default default;
+		}
+	}
+}`
+
+	actual := getDataTreeWithDefaultsAsJSON(t, input_schema, input_json)
+	expect := `{"testcontainer":{"baz":"data","bar":"bar"}}`
 	assertMatch(t, expect, actual)
 }
