@@ -685,8 +685,6 @@ func NewOpdCommand(
 	repeatable bool,
 	passOpcArgs bool,
 	status Status,
-	whens []WhenContext,
-	musts []MustContext,
 	children []Node,
 ) (OpdCommand, error) {
 
@@ -704,8 +702,6 @@ func NewOpdCommand(
 	c.passOpcArgs = passOpcArgs
 	c.config = false
 	c.status = status
-	c.whenContexts = whens
-	c.mustContexts = musts
 	c.arguments = make([]string, 1)
 	c.addArguments(children)
 	if err := c.addChildren(children); err != nil {
@@ -1277,8 +1273,6 @@ func NewOpdArgument(
 	passOpcArgs bool,
 	typ Type,
 	status Status,
-	whens []WhenContext,
-	musts []MustContext,
 	children []Node,
 ) (OpdArgument, error) {
 	o := &opdArgument{node: makenode()}
@@ -1298,8 +1292,6 @@ func NewOpdArgument(
 	o.typ = typ
 	o.config = false
 	o.status = status
-	o.whenContexts = whens
-	o.mustContexts = musts
 	o.arguments = make([]string, 1)
 	o.addArguments(children)
 	if err := o.addChildren(children); err != nil {
@@ -1464,8 +1456,6 @@ func NewOpdOption(
 	passOpcArgs bool,
 	typ Type,
 	status Status,
-	whens []WhenContext,
-	musts []MustContext,
 	children []Node,
 ) (OpdOption, error) {
 	o := &opdOption{node: makenode()}
@@ -1485,8 +1475,6 @@ func NewOpdOption(
 	o.typ = typ
 	o.config = false
 	o.status = status
-	o.whenContexts = whens
-	o.mustContexts = musts
 	o.arguments = make([]string, 1)
 	o.addArguments(children)
 	if err := o.addChildren(children); err != nil {

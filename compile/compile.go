@@ -1455,8 +1455,6 @@ func (c *Compiler) BuildOpdCommand(features inheritedFeatures, m parse.Node, n p
 		c.getRepeatable(n, features.repeatable),
 		c.getPassOpcArgs(n, features.passOpcArgs),
 		features.status,
-		c.BuildWhens(n),
-		c.BuildMusts(n),
 		c.buildChildren(features, m, n.ChildrenByType(parse.NodeOpdDef)),
 	)
 
@@ -1507,8 +1505,6 @@ func (c *Compiler) BuildOpdOption(
 		c.getPassOpcArgs(node, features.passOpcArgs),
 		typ,
 		features.status,
-		c.BuildWhens(node),
-		c.BuildMusts(node),
 		c.buildChildren(features, mod, node.ChildrenByType(parse.NodeOpdDef)),
 	)
 	if err != nil {
@@ -1551,8 +1547,6 @@ func (c *Compiler) BuildOpdArgument(
 		c.getPassOpcArgs(node, features.passOpcArgs),
 		typ,
 		features.status,
-		c.BuildWhens(node),
-		c.BuildMusts(node),
 		c.buildChildren(features, mod, node.ChildrenByType(parse.NodeOpdDef)),
 	)
 	if err != nil {
