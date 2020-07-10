@@ -1043,7 +1043,8 @@ func (Fracdigit) restriction() {}
 type Pattern struct {
 	Pattern string
 	*regexp.Regexp
-	Msg string
+	Msg    string
+	AppTag string
 }
 
 func (p Pattern) String() string {
@@ -1064,6 +1065,11 @@ func (p Pattern) Validate(s string) error {
 	}
 	merr := mgmterror.NewInvalidValueApplicationError()
 	merr.Message = p.message()
+	if p.AppTag == "" {
+		merr.AppTag = "pattern-violation"
+	} else {
+		merr.AppTag = p.AppTag
+	}
 	merr.Info = append(merr.Info, *mgmterror.NewMgmtErrorInfoTag(
 		mgmterror.VyattaNamespace, "pattern", p.String()))
 	if p.Msg != "" {
@@ -1402,8 +1408,9 @@ func (rangeBdry LbSlice) Append(start, end interface{}) RangeBoundarySlicer {
 // Length
 type Length struct {
 	yrestrict
-	Lbs LbSlice
-	Msg string
+	Lbs    LbSlice
+	Msg    string
+	AppTag string
 }
 
 func (l *Length) Validate(i uint64) error {
@@ -1427,6 +1434,12 @@ func (l *Length) Validate(i uint64) error {
 	}
 	merr := mgmterror.NewInvalidValueApplicationError()
 	merr.Message = errMsg
+	if l.AppTag == "" {
+		merr.AppTag = "length-violation"
+	} else {
+		merr.AppTag = l.AppTag
+	}
+
 	// While this is a lame info tag, its presence indicates this
 	// is a length error
 	merr.Info = append(merr.Info, *mgmterror.NewMgmtErrorInfoTag(

@@ -1992,7 +1992,8 @@ func (c *Compiler) getPatterns(base schema.String, n parse.Node) [][]schema.Patt
 		ps = append(ps, schema.Pattern{
 			Pattern: p.Argument().String(),
 			Regexp:  p.ArgPattern(),
-			Msg:     p.Msg()})
+			Msg:     p.Msg(),
+			AppTag:  p.AppTag()})
 	}
 
 	return append(pats, ps)
@@ -2097,8 +2098,9 @@ func (c *Compiler) getLength(base schema.String, n parse.Node) *schema.Length {
 	c.validateRangeBoundaries(rangeBdrySlice, n)
 
 	return &schema.Length{
-		Lbs: lbs,
-		Msg: length.Msg(),
+		Lbs:    lbs,
+		Msg:    length.Msg(),
+		AppTag: length.AppTag(),
 	}
 }
 
