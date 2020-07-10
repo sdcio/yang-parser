@@ -367,6 +367,10 @@ type WhenAndMustContext struct {
 	// the compiler.  For 'when', it is always the latter.
 	ErrMsg string
 
+	// AppTag is used in the <rpc-error> error-app-tag field in errors sent
+	// to NETCONF clients.
+	AppTag string
+
 	// PathEvalMach is the machine that checks paths in the XPATH expression.
 	PathEvalMach *xpath.Machine
 	Namespace    string
@@ -410,6 +414,7 @@ type MustContext struct {
 func NewMustContext(
 	mach, basePathEvalMach, extPathEvalMach *xpath.Machine,
 	errMsg string,
+	appTag string,
 	namespace string,
 ) MustContext {
 	return MustContext{
@@ -417,6 +422,7 @@ func NewMustContext(
 			Mach:         mach,
 			PathEvalMach: basePathEvalMach,
 			ErrMsg:       errMsg,
+			AppTag:       appTag,
 			Namespace:    namespace,
 		},
 		ExtPathEvalMach: extPathEvalMach,

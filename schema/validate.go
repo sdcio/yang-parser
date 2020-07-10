@@ -17,6 +17,7 @@ import (
 
 	"github.com/danos/mgmterror"
 	"github.com/danos/utils/exec"
+	"github.com/danos/utils/pathutil"
 	"github.com/danos/yang/data/datanode"
 	"github.com/danos/yang/xpath"
 	"github.com/danos/yang/xpath/xutils"
@@ -72,7 +73,7 @@ func checkWhenAndMusts(
 	for _, ctxt := range c.schema().Whens() {
 		checkWhenMachineFn := func() ([]*exec.Output, []error, bool) {
 			return checkMachine(c, ctxt.Mach, ctxt.RunAsParent, "when",
-				debugCtx, ctxt.ErrMsg)
+				debugCtx, ctxt.ErrMsg, ctxt.AppTag)
 		}
 		outs, errs, _ = exec.AppendOutput(checkWhenMachineFn, outs, errs)
 	}
@@ -87,7 +88,7 @@ func checkWhenAndMusts(
 	for _, ctxt := range c.schema().Musts() {
 		checkMachineFn := func() ([]*exec.Output, []error, bool) {
 			return checkMachine(c, ctxt.Mach, false, "must", debugCtx,
-				ctxt.ErrMsg)
+				ctxt.ErrMsg, ctxt.AppTag)
 		}
 		outs, errs, _ = exec.AppendOutput(checkMachineFn, outs, errs)
 	}
@@ -146,7 +147,8 @@ func checkNPContMustsInternal(
 
 		for _, ctxt := range npContXNode.schema().Musts() {
 			new_outs, new_errs, _ := checkMachine(
-				npContXNode, ctxt.Mach, false, "must", debugCtx, ctxt.ErrMsg)
+				npContXNode, ctxt.Mach, false, "must", debugCtx,
+				ctxt.ErrMsg, ctxt.AppTag)
 			*outs = append(*outs, new_outs...)
 			*errs = append(*errs, new_errs...)
 		}
@@ -241,6 +243,7 @@ func checkMachine(
 	checkName string,
 	debugCtx *yangValDebugContext,
 	errMsg string,
+	appTag string,
 ) ([]*exec.Output, []error, bool) {
 	outs, errs := make([]*exec.Output, 0), make([]error, 0)
 
@@ -276,10 +279,13 @@ func checkMachine(
 	}
 
 	if boolResult == false {
-		return outs,
-			append(errs, mgmterror.NewExecError(getPath(c, runAsParent),
-				errMsg)),
-			boolResult
+		mustErr := mgmterror.NewMustViolationError()
+		mustErr.Message = errMsg
+		mustErr.Path = pathutil.Pathstr(getPath(c, runAsParent))
+		if appTag != "" {
+			mustErr.AppTag = appTag
+		}
+		return outs, append(errs, mustErr), boolResult
 	}
 
 	logMachineTimeTakenIfRequired(debugCtx, start, c, checkName, mach)

@@ -89,6 +89,7 @@ type Node interface {
 	Local() bool
 	Secret() bool
 	PassOpcArgs() bool
+	AppTag() string
 
 	// Internal build help
 	position() Pos
@@ -382,6 +383,7 @@ func (n *node) Privileged() bool  { return n.optBool(NodeOpdPrivileged, false) }
 func (n *node) Local() bool       { return n.optBool(NodeOpdLocal, false) }
 func (n *node) Secret() bool      { return n.optBool(NodeOpdSecret, false) }
 func (n *node) PassOpcArgs() bool { return n.optBool(NodeOpdPassOpcArgs, false) }
+func (n *node) AppTag() string    { return n.optString(NodeErrorAppTag) }
 
 func (n *node) Min() uint {
 	ch := n.ChildByType(NodeMinElements)

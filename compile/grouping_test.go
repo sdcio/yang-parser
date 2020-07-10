@@ -595,6 +595,7 @@ func TestRefineListWithKeyBeforeList(t *testing.T) {
 							{
 								expMachine,
 								"'must' condition is false: 'true()'",
+								defaultMustAppTag,
 								NoPathToEvalMachine}})),
 				}),
 		})

@@ -1211,6 +1211,9 @@ func (c *Compiler) BuildMusts(n parse.Node) []schema.MustContext {
 			errMsg = fmt.Sprintf("'must' condition is false: '%s'", mustExpr)
 		}
 
+		// If not set, default is added when error occurs.
+		appTag := must.AppTag()
+
 		// We may have been asked to do extra validation.  This consists of
 		// checking both must and configd:must compile (we only needed one to
 		// work to pass above checks), and creating path evaluation machines
@@ -1230,7 +1233,7 @@ func (c *Compiler) BuildMusts(n parse.Node) []schema.MustContext {
 		}
 		musts = append(musts, schema.NewMustContext(
 			mustMachine, basePathEvalMachine, extPathEvalMachine,
-			errMsg, mustNs))
+			errMsg, appTag, mustNs))
 	}
 
 	return musts

@@ -21,6 +21,8 @@ import (
 	"github.com/danos/yang/testutils"
 )
 
+const defaultMustAppTag = ""
+
 func validateMachine(t *testing.T, expected, actual string) {
 	if expected != actual {
 		t.Fatalf("--- Expected machine ---\n%s\n--- Actual machine ---\n%s\n",
@@ -54,6 +56,7 @@ type whenExp struct {
 type mustExp struct {
 	machineText  string
 	errMsg       string
+	appTag       string
 	pathEvalText string
 }
 
@@ -114,6 +117,11 @@ func checkMusts(expected []mustExp) checkFn {
 				t.Fatalf("Must '%s' errMsg\nExp: '%s'\nGot: '%s'\n",
 					must.Mach.GetExpr(),
 					expected[index].errMsg, must.ErrMsg)
+			}
+			if must.AppTag != expected[index].appTag {
+				t.Fatalf("Must '%s' appTag\nExp: '%s'\nGot: '%s'\n",
+					must.Mach.GetExpr(),
+					expected[index].appTag, must.AppTag)
 			}
 		}
 	}
@@ -453,6 +461,7 @@ func TestXpathMustContainer(t *testing.T) {
 				expMachine,
 				"'must' condition is false: 'mustLeaf and " +
 					"contains(mustLeaf, 'hello world')'",
+				defaultMustAppTag,
 				expPathEvalMachine}}))
 
 	actual := getSchemaNodeFromPath(t, schema_text,
@@ -492,6 +501,7 @@ func TestXpathMustLeaf(t *testing.T) {
 		checkMusts([]mustExp{
 			{
 				expMachine, "'must' condition is false: '../anotherLeaf'",
+				defaultMustAppTag,
 				expPathEvalMachine,
 			}}))
 
@@ -532,6 +542,7 @@ func TestXpathMustLeafList(t *testing.T) {
 		checkMusts([]mustExp{
 			{
 				expMachine, "'must' condition is false: '../anotherLeaf'",
+				defaultMustAppTag,
 				expPathEvalMachine,
 			}}))
 
@@ -583,6 +594,7 @@ func TestXpathMustList(t *testing.T) {
 			{
 				expMachine,
 				"'must' condition is false: '../yetAnotherLeaf'",
+				defaultMustAppTag,
 				expPathEvalMachine,
 			}}))
 
@@ -665,6 +677,7 @@ func TestXpathMustCustomErrors(t *testing.T) {
 				"nameTestPush\t{urn:vyatta.com:test:yang-compile mustLeaf}\n" +
 					"locPathExists\n"),
 			errMsg: "mustLeaf must have value < 8",
+			appTag: defaultMustAppTag,
 		},
 		{
 			machineText: "--- machine start ---\n" +
@@ -681,6 +694,7 @@ func TestXpathMustCustomErrors(t *testing.T) {
 					"nameTestPush\t{urn:vyatta.com:test:yang-compile mustLeaf}\n" +
 					"locPathExists\n"),
 			errMsg: "mustLeaf2 must have value > mustLeaf",
+			appTag: defaultMustAppTag,
 		},
 	}
 
@@ -689,6 +703,50 @@ func TestXpathMustCustomErrors(t *testing.T) {
 		[]NodeChecker{
 			NewLeafChecker("mustLeaf"),
 			NewLeafChecker("mustLeaf2"),
+		},
+		checkMusts(expMusts))
+
+	if actual := getSchemaNodeFromPath(t, schema_text,
+		[]string{"mustContainer"}); actual != nil {
+		expected.check(t, actual)
+	}
+}
+
+func TestXpathMustCustomAppTag(t *testing.T) {
+	schema_text := bytes.NewBufferString(fmt.Sprintf(
+		SchemaTemplate,
+		`container mustContainer {
+			description "Container with must statements";
+			leaf mustLeaf {
+				type uint8;
+			}
+			must "mustLeaf < 8" {
+				error-message "mustLeaf must have value < 8";
+				error-app-tag "custom app-tag";
+			}
+		}`))
+
+	expMusts := []mustExp{
+		{
+			machineText: "--- machine start ---\n" +
+				"nameTestPush\t{urn:vyatta.com:test:yang-compile mustLeaf}\n" +
+				"evalLocPath\n" +
+				"numpush\t\t8\n" +
+				"lt\n" +
+				"store\n" +
+				"---- machine end ----\n",
+			pathEvalText: wrapPathEvalText(
+				"nameTestPush\t{urn:vyatta.com:test:yang-compile mustLeaf}\n" +
+					"locPathExists\n"),
+			errMsg: "mustLeaf must have value < 8",
+			appTag: "custom app-tag",
+		},
+	}
+
+	expected := NewContainerChecker(
+		"mustContainer",
+		[]NodeChecker{
+			NewLeafChecker("mustLeaf"),
 		},
 		checkMusts(expMusts))
 
