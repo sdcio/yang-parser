@@ -37,6 +37,16 @@ func newInvalidValueError(path []string, msg string) error {
 	return err
 }
 
+func newInvalidValueErrorWithAppTag(path []string, msg, appTag string) error {
+	err := mgmterror.NewInvalidValueApplicationError()
+	if len(path) > 0 {
+		err.Path = pathutil.Pathstr(path)
+	}
+	err.Message = msg
+	err.AppTag = appTag
+	return err
+}
+
 func NewMissingChildError(path []string) error {
 	e := mgmterror.NewMissingElementApplicationError("<any child>")
 	e.Path = pathutil.Pathstr(path)

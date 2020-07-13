@@ -1663,14 +1663,15 @@ func (comp *Compiler) makeDecimal64(
 		if fd == 0 {
 			comp.error(node, errors.New("missing fraction-digits"))
 		}
-		base = schema.NewDecimal64(name, fd, nil, "", "", false)
+		base = schema.NewDecimal64(name, fd, nil, "", "", "", false)
 	}
 
 	fd := base.Fd()
-	rbs, msg := comp.getRangeBoundary(base, node)
+	rbs, msg, appTag := comp.getRangeBoundary(base, node)
 	def, hasDef = comp.getDefault(base, def, hasDef)
 
-	return schema.NewDecimal64(name, fd, rbs.(schema.DrbSlice), msg, def, hasDef)
+	return schema.NewDecimal64(name, fd, rbs.(schema.DrbSlice),
+		msg, appTag, def, hasDef)
 }
 
 func (c *Compiler) makeEmpty(
@@ -1881,19 +1882,19 @@ func (comp *Compiler) getBitSize(base schema.Number, node parse.Node, name xml.N
 
 func (comp *Compiler) getRangeBoundary(
 	base schema.Number, node parse.Node,
-) (rbs schema.RangeBoundarySlicer, msg string) {
+) (rbs schema.RangeBoundarySlicer, msg, appTag string) {
 
 	if base != nil {
-		rbs, msg = base.Ranges(), base.Msg()
+		rbs, msg, appTag = base.Ranges(), base.Msg(), base.AppTag()
 	}
 
 	rng := node.ChildByType(parse.NodeRange)
 	if rng == nil {
-		return rbs, msg
+		return rbs, msg, appTag
 	}
 
 	rbs = comp.createRangeBdry(node, rbs, rng.ArgRange())
-	return rbs, rng.Msg()
+	return rbs, rng.Msg(), rng.AppTag()
 }
 
 func (comp *Compiler) makeInteger(
@@ -1910,13 +1911,14 @@ func (comp *Compiler) makeInteger(
 	bits := comp.getBitSize(base, node, name)
 	if base == nil {
 		// Get the initial Rbs
-		base = schema.NewInteger(bits, name, nil, "", "", false)
+		base = schema.NewInteger(bits, name, nil, "", "", "", false)
 	}
 
-	rbs, msg := comp.getRangeBoundary(base, node)
+	rbs, msg, appTag := comp.getRangeBoundary(base, node)
 	def, hasDef = comp.getDefault(base, def, hasDef)
 
-	return schema.NewInteger(bits, name, rbs.(schema.RbSlice), msg, def, hasDef)
+	return schema.NewInteger(bits, name, rbs.(schema.RbSlice),
+		msg, appTag, def, hasDef)
 }
 
 func (comp *Compiler) makeUinteger(
@@ -1932,13 +1934,14 @@ func (comp *Compiler) makeUinteger(
 	// Override or combine with local settings
 	bitSize := comp.getBitSize(base, node, name)
 	if base == nil {
-		base = schema.NewUinteger(bitSize, name, nil, "", "", false)
+		base = schema.NewUinteger(bitSize, name, nil, "", "", "", false)
 	}
 
-	rbs, msg := comp.getRangeBoundary(base, node)
+	rbs, msg, appTag := comp.getRangeBoundary(base, node)
 	def, hasDef = comp.getDefault(base, def, hasDef)
 
-	return schema.NewUinteger(bitSize, name, rbs.(schema.UrbSlice), msg, def, hasDef)
+	return schema.NewUinteger(bitSize, name, rbs.(schema.UrbSlice),
+		msg, appTag, def, hasDef)
 }
 
 func (c *Compiler) getTypes(base schema.Union, cfgNode, node parse.Node, parentStatus schema.Status) []schema.Type {

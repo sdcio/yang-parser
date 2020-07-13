@@ -262,9 +262,10 @@ type Decimal64 interface {
 
 type decimal64 struct {
 	ytyp
-	fd  Fracdigit
-	rbs DrbSlice
-	msg string
+	fd     Fracdigit
+	rbs    DrbSlice
+	msg    string
+	appTag string
 }
 
 // Ensure that other schema types don't meet the interface
@@ -277,6 +278,7 @@ func (d *decimal64) Fd() Fracdigit               { return d.fd }
 func (d *decimal64) Rbs() DrbSlice               { return d.rbs }
 func (d *decimal64) Ranges() RangeBoundarySlicer { return d.rbs }
 func (d *decimal64) Msg() string                 { return d.msg }
+func (d *decimal64) AppTag() string              { return d.appTag }
 func (d *decimal64) BitWidth() BitWidth          { return BitWidth64 }
 
 func NewDecimal64(
@@ -284,6 +286,7 @@ func NewDecimal64(
 	fd Fracdigit,
 	rbs []Drb,
 	msg string,
+	appTag string,
 	def string,
 	hasDef bool,
 ) Decimal64 {
@@ -293,10 +296,14 @@ func NewDecimal64(
 			rbs = append(rbs, fdtab[fd])
 		}
 	}
+	if appTag == "" {
+		appTag = "range-violation"
+	}
 	return &decimal64{
-		ytyp: newType(name, def, hasDef),
-		rbs:  rbs,
-		msg:  msg,
+		ytyp:   newType(name, def, hasDef),
+		rbs:    rbs,
+		msg:    msg,
+		appTag: appTag,
 	}
 }
 
@@ -327,17 +334,17 @@ out:
 		return nil
 	}
 	if d.msg != "" {
-		return newInvalidValueError(path, d.msg)
+		return newInvalidValueErrorWithAppTag(path, d.msg, d.appTag)
 	}
 	switch v := err.(type) {
 	case *strconv.NumError:
 		if v.Err == strconv.ErrSyntax {
-			return newInvalidValueError(path,
-				fmt.Sprintf("%s is not a decimal64", s))
+			return newInvalidValueErrorWithAppTag(path,
+				fmt.Sprintf("%s is not a decimal64", s), d.appTag)
 		}
-		return newInvalidValueError(path, genErrorString(d))
+		return newInvalidValueErrorWithAppTag(path, genErrorString(d), d.appTag)
 	default:
-		return newInvalidValueError(path, genErrorString(d))
+		return newInvalidValueErrorWithAppTag(path, genErrorString(d), d.appTag)
 	}
 }
 
@@ -445,6 +452,7 @@ type Number interface {
 	Type
 	Ranges() RangeBoundarySlicer
 	Msg() string
+	AppTag() string
 	BitWidth() BitWidth
 }
 
@@ -456,9 +464,10 @@ type Integer interface {
 
 type integer struct {
 	ytyp
-	t   BitWidth
-	rbs RbSlice
-	msg string
+	t      BitWidth
+	rbs    RbSlice
+	msg    string
+	appTag string
 }
 
 // Ensure that other schema types don't meet the interface
@@ -470,6 +479,7 @@ var _ Integer = (*integer)(nil)
 func (i *integer) Rbs() RbSlice                { return i.rbs }
 func (i *integer) Ranges() RangeBoundarySlicer { return i.rbs }
 func (i *integer) Msg() string                 { return i.msg }
+func (i *integer) AppTag() string              { return i.appTag }
 func (i *integer) BitWidth() BitWidth          { return i.t }
 
 func (i *integer) Validate(ctx ValidateCtx, path []string, s string) error {
@@ -500,17 +510,17 @@ out:
 		return nil
 	}
 	if i.msg != "" {
-		return newInvalidValueError(path, i.msg)
+		return newInvalidValueErrorWithAppTag(path, i.msg, i.appTag)
 	}
 	switch v := e.(type) {
 	case *strconv.NumError:
 		if v.Err == strconv.ErrSyntax {
-			return newInvalidValueError(path,
-				fmt.Sprintf("'%s' is not an int%d", s, i.t))
+			return newInvalidValueErrorWithAppTag(path,
+				fmt.Sprintf("'%s' is not an int%d", s, i.t), i.appTag)
 		}
-		return newInvalidValueError(path, genErrorString(i))
+		return newInvalidValueErrorWithAppTag(path, genErrorString(i), i.appTag)
 	default:
-		return newInvalidValueError(path, genErrorString(i))
+		return newInvalidValueErrorWithAppTag(path, genErrorString(i), i.appTag)
 	}
 }
 
@@ -527,6 +537,7 @@ func NewInteger(
 	name xml.Name,
 	rbs []Rb,
 	msg string,
+	appTag string,
 	def string,
 	hasDef bool,
 ) Integer {
@@ -535,11 +546,15 @@ func NewInteger(
 		rbs = make([]Rb, 0, 1)
 		rbs = append(rbs, inttab[bitSize])
 	}
+	if appTag == "" {
+		appTag = "range-violation"
+	}
 	return &integer{
-		ytyp: newType(name, def, hasDef),
-		t:    bitSize,
-		rbs:  rbs,
-		msg:  msg,
+		ytyp:   newType(name, def, hasDef),
+		t:      bitSize,
+		rbs:    rbs,
+		msg:    msg,
+		appTag: appTag,
 	}
 }
 
@@ -551,9 +566,10 @@ type Uinteger interface {
 
 type uinteger struct {
 	ytyp
-	t   BitWidth
-	rbs UrbSlice
-	msg string
+	t      BitWidth
+	rbs    UrbSlice
+	msg    string
+	appTag string
 }
 
 // Ensure that other schema types don't meet the interface
@@ -565,6 +581,7 @@ var _ Uinteger = (*uinteger)(nil)
 func (i *uinteger) Rbs() UrbSlice               { return i.rbs }
 func (i *uinteger) Ranges() RangeBoundarySlicer { return i.rbs }
 func (i *uinteger) Msg() string                 { return i.msg }
+func (i *uinteger) AppTag() string              { return i.appTag }
 func (i *uinteger) BitWidth() BitWidth          { return i.t }
 
 func (i *uinteger) Validate(ctx ValidateCtx, path []string, s string) error {
@@ -595,17 +612,19 @@ out:
 		return nil
 	}
 	if i.Msg() != "" {
-		return newInvalidValueError(path, i.Msg())
+		return newInvalidValueErrorWithAppTag(path, i.Msg(), i.AppTag())
 	}
 	switch v := e.(type) {
 	case *strconv.NumError:
 		if v.Err == strconv.ErrSyntax {
-			return newInvalidValueError(path,
-				fmt.Sprintf("'%s' is not an uint%d", s, i.t))
+			return newInvalidValueErrorWithAppTag(path,
+				fmt.Sprintf("'%s' is not an uint%d", s, i.t), i.AppTag())
 		}
-		return newInvalidValueError(path, genErrorString(i))
+		return newInvalidValueErrorWithAppTag(path,
+			genErrorString(i), i.AppTag())
 	default:
-		return newInvalidValueError(path, genErrorString(i))
+		return newInvalidValueErrorWithAppTag(path,
+			genErrorString(i), i.AppTag())
 	}
 }
 
@@ -622,6 +641,7 @@ func NewUinteger(
 	name xml.Name,
 	rbs []Urb,
 	msg string,
+	appTag string,
 	def string,
 	hasDef bool,
 ) Uinteger {
@@ -629,11 +649,15 @@ func NewUinteger(
 		rbs = make([]Urb, 0, 1)
 		rbs = append(rbs, uinttab[bitSize])
 	}
+	if appTag == "" {
+		appTag = "range-violation"
+	}
 	return &uinteger{
-		ytyp: newType(name, def, hasDef),
-		t:    bitSize,
-		rbs:  rbs,
-		msg:  msg,
+		ytyp:   newType(name, def, hasDef),
+		t:      bitSize,
+		rbs:    rbs,
+		msg:    msg,
+		appTag: appTag,
 	}
 }
 
