@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2017-2020, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -2366,12 +2366,15 @@ func ParseModuleDir(dir string, extCard parse.NodeCardinality) (map[string]*pars
 
 func ParseModules(extCard parse.NodeCardinality, list ...string) (map[string]*parse.Tree, error) {
 	modules := make(map[string]*parse.Tree)
+	stringInterner := parse.NewStringInterner()
+	argInterner := parse.NewArgInterner()
 	for _, fname := range list {
 		text, err := ioutil.ReadFile(fname)
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		t, err := parse.Parse(fname, string(text), extCard)
+		t, err := parse.ParseWithInterners(
+			fname, string(text), extCard, stringInterner, argInterner)
 		if err != nil {
 			return nil, err
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2020, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -73,13 +73,36 @@ type Tree struct {
 	lex       *lexer
 	token     [3]item // three-token lookahead for parser.
 	peekCount int
+
+	argInterner    *ArgInterner
+	stringInterner *StringInterner
 }
 
 func Parse(name, text string, extCard NodeCardinality) (*Tree, error) {
-	t := New(name, extCard)
+	return ParseWithInterners(name, text, extCard, NewStringInterner(), NewArgInterner())
+}
+
+func ParseWithInterners(
+	name, text string,
+	extCard NodeCardinality,
+	stringInterner *StringInterner,
+	argInterner *ArgInterner,
+) (*Tree, error) {
+	t := NewWithInterners(name, extCard, stringInterner, argInterner)
 	t.text = text
+	defer t.done()
 	_, err := t.Parse(text)
 	return t, err
+}
+
+func (t *Tree) done() {
+	var empty [3]item
+	copy(t.token[:], empty[:])
+
+	t.extCard = nil
+	t.argInterner = nil
+	t.stringInterner = nil
+	t.lex = nil
 }
 
 func (t *Tree) String() string {
@@ -152,11 +175,25 @@ func (t *Tree) peekNonSpace() (token item) {
 // Parsing.
 // New allocates a new parse tree with the given name.
 func New(name string, card NodeCardinality) *Tree {
+	return NewWithInterners(name, card, NewStringInterner(), NewArgInterner())
+}
+
+func NewWithInterners(
+	name string,
+	card NodeCardinality,
+	stringInterner *StringInterner,
+	argInterner *ArgInterner,
+) *Tree {
 
 	if card == nil {
 		card = func(n NodeType) map[NodeType]Cardinality { return nil }
 	}
-	return &Tree{ParseName: name, extCard: card}
+	return &Tree{
+		ParseName:      name,
+		extCard:        card,
+		argInterner:    argInterner,
+		stringInterner: stringInterner,
+	}
 }
 
 func (t *Tree) ErrorContextPosition(pos int, ctx string) (location, context string) {
@@ -251,7 +288,7 @@ func (t *Tree) stopParse() {
 
 func (t *Tree) Parse(text string) (tree *Tree, err error) {
 	defer t.recover(&err)
-	t.startParse(lex(t.ParseName, text))
+	t.startParse(lexWithInterner(t.ParseName, text, t.stringInterner))
 	t.text = text
 	t.parse()
 	t.stopParse()
@@ -260,7 +297,7 @@ func (t *Tree) Parse(text string) (tree *Tree, err error) {
 
 func (tree *Tree) NewNode(id item, arg string, children []Node, s *Scope) Node {
 	ntype := NodeTypeFromName(id.val, arg)
-	return newNodeByType(ntype, tree, id, arg, children, s)
+	return newNodeByType(ntype, tree, id, arg, children, s, tree.argInterner)
 }
 
 //file:
@@ -601,6 +638,8 @@ func (t *Tree) stmtStar(ctx string, s *Scope) []Node {
 	if len(out) == 0 {
 		return nil
 	} else {
-		return out
+		children := make([]Node, len(out))
+		copy(children, out)
+		return children
 	}
 }

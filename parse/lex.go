@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2020, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2014 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -16,6 +16,28 @@ import (
 	"unicode"
 	"unicode/utf8"
 )
+
+type StringInterner struct {
+	knownStrings map[string]string
+}
+
+func NewStringInterner() *StringInterner {
+	return &StringInterner{
+		knownStrings: make(map[string]string),
+	}
+}
+
+func (i *StringInterner) Intern(in string) string {
+	if i == nil {
+		return in
+	}
+	out, ok := i.knownStrings[in]
+	if ok {
+		return out
+	}
+	i.knownStrings[in] = in
+	return in
+}
 
 // item represents a token or text string returned from the scanner.
 type item struct {
@@ -87,6 +109,8 @@ type lexer struct {
 	lastPos      Pos       // position of most recent item returned by nextItem
 	items        chan item // channel of scanned items
 	bracketDepth int       // nesting depth of ( ) exprs
+
+	interner *StringInterner
 }
 
 // next returns the next rune in the input.
@@ -115,7 +139,7 @@ func (l *lexer) backup() {
 
 // emit passes an item back to the client.
 func (l *lexer) emit(t itemType) {
-	l.items <- item{t, l.start, l.input[l.start:l.pos]}
+	l.items <- item{t, l.start, l.interner.Intern(l.input[l.start:l.pos])}
 	l.start = l.pos
 }
 
@@ -163,10 +187,15 @@ func (l *lexer) nextItem() item {
 
 // lex creates a new scanner for the input string.
 func lex(name, input string) *lexer {
+	return lexWithInterner(name, input, NewStringInterner())
+}
+
+func lexWithInterner(name, input string, interner *StringInterner) *lexer {
 	l := &lexer{
-		name:  name,
-		input: input,
-		items: make(chan item),
+		name:     name,
+		input:    input,
+		items:    make(chan item),
+		interner: interner,
 	}
 	go l.run()
 	return l

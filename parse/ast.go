@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2018-2020, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -95,6 +95,34 @@ type Node interface {
 	checkCardinality() error
 	check() error
 	buildSymbols() (error, Pos)
+}
+
+type argInternerKey struct {
+	nodeType NodeType
+	arg      string
+}
+
+type ArgInterner struct {
+	args map[argInternerKey]Argument
+}
+
+func NewArgInterner() *ArgInterner {
+	return &ArgInterner{
+		args: make(map[argInternerKey]Argument),
+	}
+}
+
+func (i *ArgInterner) Intern(nodeType NodeType, arg Argument) Argument {
+	if i == nil {
+		return arg
+	}
+	k := argInternerKey{nodeType: nodeType, arg: arg.String()}
+	a, ok := i.args[k]
+	if ok {
+		return a
+	}
+	i.args[k] = arg
+	return arg
 }
 
 type DataDef interface {
@@ -197,7 +225,7 @@ func (n *node) getImplicitRpcChildren(match NodeType) []Node {
 				item{pos: n.Pos, val: "input"},
 				"",
 				nil,
-				&Scope{tenv: n.tenv, genv: n.genv}))
+				&Scope{tenv: n.tenv, genv: n.genv}, nil))
 	case NodeOutput:
 		ch = append(ch,
 			newNodeByType(match,
@@ -205,7 +233,7 @@ func (n *node) getImplicitRpcChildren(match NodeType) []Node {
 				item{pos: n.Pos, val: "output"},
 				"",
 				nil,
-				&Scope{tenv: n.tenv, genv: n.genv}))
+				&Scope{tenv: n.tenv, genv: n.genv}, nil))
 	}
 	return ch
 }
@@ -504,15 +532,17 @@ func (n *node) LookupGrouping(s string) (Node, bool) {
 	return n.genv.Get(s)
 }
 
-func newNodeByType(ntype NodeType, tree *Tree, id item, a string, children []Node, s *Scope) *node {
+func newNodeByType(ntype NodeType, tree *Tree, id item, a string, children []Node, s *Scope, interner *ArgInterner) *node {
 	card := make(map[NodeType]Cardinality, len(cardinalities[ntype]))
 
 	for k, v := range yangCardinality(ntype) {
 		card[k] = v
 	}
 
-	for k, v := range tree.extCard(ntype) {
-		card[k] = v
+	if tree.extCard != nil {
+		for k, v := range tree.extCard(ntype) {
+			card[k] = v
+		}
 	}
 
 	node := &node{
@@ -527,7 +557,7 @@ func newNodeByType(ntype NodeType, tree *Tree, id item, a string, children []Nod
 	}
 
 	// Composed bits need added later
-	node.arg = getArgByType(ntype, a)
+	node.arg = getArgByType(ntype, a, interner)
 
 	return node
 }
