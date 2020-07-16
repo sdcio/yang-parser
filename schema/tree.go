@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, AT&T Intellectual Property.
+// Copyright (c) 2017-2020, AT&T Intellectual Property.
 // All rights reserved.
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
@@ -870,6 +870,8 @@ type list struct {
 	limit     Limit
 	keys      []string
 	uniques   [][][]xml.Name
+
+	entry *listEntry
 }
 
 // Ensure that other schema types don't meet the interface
@@ -909,6 +911,8 @@ func NewList(
 	l.uniques = uniques
 	l.whenContexts = whens
 	l.mustContexts = musts
+
+	l.entry = &listEntry{l.node, l}
 
 	if err := l.addChildren(children); err != nil {
 		return nil, err
@@ -967,7 +971,7 @@ func (n *list) Validate(ctx ValidateCtx, path []string, p []string) error {
 func (n *list) HasDefault() bool { return false }
 
 func (n *list) Child(name string) Node {
-	return &listEntry{n.node, n}
+	return n.entry
 }
 
 func (n *list) DefaultChildren() []Node {
