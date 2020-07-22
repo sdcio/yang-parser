@@ -1,3 +1,13 @@
+golang-github-danos-yang (2.10) unstable; urgency=medium
+
+  [ Derek Fawcus ]
+  * Update test comments regarding unicode D800-DFFF
+
+  [ Paul Carson ]
+  * Type statement is mandatory for opd:option (Fixes: VRVDR-50231)
+
+ -- William Ivory <william.ivory@intl.att.com>  Wed, 22 Jul 2020 11:40:51 +0100
+
 golang-github-danos-yang (2.9) unstable; urgency=medium
 
   [ Paul Carson ]
