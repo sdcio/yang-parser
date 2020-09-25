@@ -1,3 +1,20 @@
+golang-github-danos-yang (2.11) unstable; urgency=medium
+
+  [ John Southworth ]
+  * Deduplicate strings and generated arguments during schema parse
+  * Only allocate a single ListEntry
+
+  [ William Ivory ]
+  * AppTag support for must statements
+  * AppTag support for pattern and length
+  * Add AppTag support to range statement
+  * Update copyrights. (Closes: VRVDR-36175)
+
+  [ Paul Carson ]
+  * Opd yang does not support when or must (Fixes: VRVDR-46032)
+
+ -- William Ivory <william.ivory@intl.att.com>  Fri, 25 Sep 2020 08:48:29 +0100
+
 golang-github-danos-yang (2.10) unstable; urgency=medium
 
   [ Derek Fawcus ]
