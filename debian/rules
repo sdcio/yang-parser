@@ -31,9 +31,21 @@ override_dh_auto_install:
 override_dh_auto_test:
 	dh_auto_test -- $(GORACE) $(GOCOVER)
 
-# We do not vet vendor code
+# We do not vet vendor code.
+# Unlike for build, where it seems dh_golang uses the DH_GO_GENERATE flag,
+# it appears that we need to run go generate explicitly here now (in Go1.11
+# and/or previous dh_golang versions we didn't).
+# Additionally, we need to filter the list from dirname or we end up with
+# having to run go generate in 2 different locations and it still complains
+# about a missing definition in an export_for_test.go file.
 vet:
 	if go doc cmd/vet >/dev/null 2>&1; then \
-		go tool vet $$(find . -type f -name \*.go | xargs dirname | \
-			sort -u | grep -v "/vendor/"); \
+		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/danos/yang/xpath/grammars/expr; \
+		go generate;cd -; \
+		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/danos/yang/xpath/grammars/leafref; \
+		go generate;cd -; \
+		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/danos/yang/xpath/grammars/path_eval; \
+		go generate;cd -; \
+		GOPATH=$(CURDIR)/$(GOBUILDDIR) go vet -composites=false $$(find . -type f -name \*.go | \
+		xargs dirname | sort -u | grep $(GOBUILDDIR) | grep -v "/vendor/"); \
 	fi

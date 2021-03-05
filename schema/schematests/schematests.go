@@ -896,7 +896,7 @@ func validateNodesInternal(
 	for _, valNode := range spec {
 		node, success, failReason := st.FindOrWalk(valNode, nodeMatcher, t)
 		if node == nil {
-			testLog(t, " => Cannot find %s node (%s / %s).\n",
+			testLog(t, " => Cannot find %s node (%s / %s): %s\n",
 				valNode.Path, valNode.Statement.Type, valNode.Data.Type,
 				failReason)
 			errMsg := fmt.Sprintf(
