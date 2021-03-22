@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -37,7 +37,6 @@ import (
 %}
 
 %union {
-	inst *xpath.Inst       /* Machine instruction */
 	sym  *xpath.Symbol     /* Symbol table entry */
 	val  float64     /* Numeric value */
 	name string      /* NodeType or AxisName */

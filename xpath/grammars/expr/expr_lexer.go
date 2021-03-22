@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property. All rights reserved
+// Copyright (c) 2018-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015-2016 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -56,7 +56,6 @@ func (x *exprLex) Lex(yylval *exprSymType) int {
 	lexParams := x.GetLexParams()
 
 	retval := xpath.LexCommon(x, lexParams)
-	yylval.inst = lexParams.GetInst()
 	yylval.sym = lexParams.GetSym()
 	yylval.val = lexParams.GetVal()
 	yylval.name = lexParams.GetName()

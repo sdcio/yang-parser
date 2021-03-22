@@ -62,17 +62,11 @@ type XpathLexer interface {
 
 // COMMONSYMTYPE
 type CommonSymType struct {
-	yys       int
-	inst      *Inst    /* Machine instruction */
 	sym       *Symbol  /* Symbol table entry */
 	val       float64  /* Numeric value */
 	name      string   /* NodeType or AxisName */
 	xmlname   xml.Name /* For NameTest */
 	lastToken int
-}
-
-func (cst *CommonSymType) GetInst() *Inst {
-	return cst.inst
 }
 
 func (cst *CommonSymType) GetSym() *Symbol {
