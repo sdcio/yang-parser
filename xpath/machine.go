@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -129,7 +129,7 @@ func (res *Result) GetNonWarnings() []xutils.Warning {
 
 // MACHINE
 //
-// Object used to encapsulate parsing and running of an expression.
+// Object used to encapsulate execution of an expression.
 // Ideally all functions above would be methods on machine, but until / unless
 // we can get Go's YACC implementation to allow parameters to be passed into
 // exprParse, it's hard and we have to rely on a single machine running at one
