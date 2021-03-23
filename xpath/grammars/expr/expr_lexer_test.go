@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -7,9 +7,8 @@
 
 // TODO
 
-// - move exprLex refs to common fns only.  Will need a way to pass multiple
-//   expected tokens in against single expression as we need to be able to
-//   consume as we go.
+// - Will need a way to pass multiple expected tokens in against single
+//   expression as we need to be able to consume as we go.
 
 package expr
 

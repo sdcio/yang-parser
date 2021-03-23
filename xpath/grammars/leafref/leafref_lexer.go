@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2018-2021,  AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015-2016 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -11,7 +11,7 @@
 //go:generate goyacc -o leafref.go -p "leafref" leafref.y
 
 // "leafref" in the above line is the 'prefix' that must match the 'leafref'
-// prefix on the exprLex type below.
+// prefix on the leafrefLex type below.
 
 package leafref
 
