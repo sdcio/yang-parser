@@ -27,7 +27,7 @@ import (
 	xmlname xml.Name   /* For NameTest */
 }
 
-%token	<val>			DOTDOT EQ
+%token	<val>			DOTDOT EQ ERR
 %token	<sym>			FUNC
 %token	<xmlname>		NAMETEST
 

@@ -68,6 +68,7 @@ const EOF = 0
 
 var commonToLeafrefTokenMap = map[int]int{
 	xutils.EOF:      EOF,
+	xutils.ERR:      ERR,
 	xutils.EQ:       EQ,
 	xutils.FUNC:     FUNC,
 	xutils.DOTDOT:   DOTDOT,
@@ -83,6 +84,7 @@ func mapCommonTokenValToLeafref(val int) int {
 
 var leafrefToCommonTokenMap = map[int]int{
 	EOF:      xutils.EOF,
+	ERR:      xutils.ERR,
 	EQ:       xutils.EQ,
 	FUNC:     xutils.FUNC,
 	DOTDOT:   xutils.DOTDOT,
@@ -141,7 +143,7 @@ func (x *leafrefLex) LexPunctuation(c rune) int {
 		return int(c)
 	default:
 		x.SetError(fmt.Errorf("'%c' is not a valid token.", c))
-		return xutils.EOF
+		return xutils.ERR
 	}
 }
 
@@ -153,13 +155,13 @@ func (x *leafrefLex) LexDot(c rune, yylval *xpath.CommonSymType) int {
 		return xutils.DOTDOT
 	default:
 		x.SetError(fmt.Errorf("'.' is not a valid token."))
-		return EOF
+		return xutils.ERR
 	}
 }
 
 func (x *leafrefLex) LexNum(c rune, yylval *xpath.CommonSymType) int {
 	x.SetError(fmt.Errorf("Numbers are not valid tokens."))
-	return EOF
+	return xutils.ERR
 }
 
 func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
@@ -178,7 +180,7 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 		if name.String() != "current" {
 			x.SetError(fmt.Errorf("Function '%s' is not valid here.",
 				name.String()))
-			return xutils.EOF
+			return xutils.ERR
 		}
 		fn, ok := xpath.LookupXpathFunction(name.String(),
 			false, /* no custom functions allowed here */
@@ -188,7 +190,7 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 			return xutils.FUNC
 		}
 		x.SetError(fmt.Errorf("Unable to resolve 'current' function."))
-		return xutils.EOF
+		return xutils.ERR
 	}
 
 	// OK, it's a NameTest token.  Question is whether it's a Prefixed or
@@ -201,19 +203,19 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 		if c := x.NextNonWhitespace(); c != ':' {
 			x.SetError(fmt.Errorf(
 				"Badly formatted QName (exp ':', got '%c'", c))
-			return xutils.EOF
+			return xutils.ERR
 		}
 
 		// Now we need the local part.  No wildcards here
 		c := x.NextNonWhitespace()
 		if c == xutils.EOF {
 			x.SetError(fmt.Errorf("Name requires local part."))
-			return xutils.EOF
+			return xutils.ERR
 		}
 		if !x.IsNameStartChar(c) {
 			x.SetError(fmt.Errorf(
 				"Illegal local part start character: '%c'", c))
-			return xutils.EOF
+			return xutils.ERR
 		}
 		localPartBuf := x.ConstructToken(c, nameMatcher, "NAME")
 		localPart = localPartBuf.String()
@@ -228,7 +230,7 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 		x.SetError(fmt.Errorf(
 			"Neither part of name may begin with XML: '%s:%s'",
 			prefix, localPart))
-		return xutils.EOF
+		return xutils.ERR
 	}
 
 	// If we have a mapping function, map the locally-scoped (within namespace)
@@ -239,7 +241,7 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 		namespace, err = x.GetMapFn()(prefix)
 		if err != nil {
 			x.SetError(err)
-			return xutils.EOF
+			return xutils.ERR
 		}
 	}
 

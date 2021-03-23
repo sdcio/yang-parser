@@ -43,7 +43,7 @@ import (
 	xmlname xml.Name /* For NameTest */
 }
 
-%token	<val>			NUM DOTDOT DBLSLASH DBLCOLON
+%token	<val>			NUM DOTDOT DBLSLASH DBLCOLON ERR
 %token	<sym>			FUNC
 %token	<name>			NODETYPE AXISNAME LITERAL
 %token	<xmlname>		NAMETEST

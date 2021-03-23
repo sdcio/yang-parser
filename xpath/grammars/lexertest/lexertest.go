@@ -157,5 +157,5 @@ func CheckUnlexableToken(
 	t *testing.T,
 	lexer xpath.XpathLexer,
 	expErrMsg string) {
-	checkTokenInternal(t, lexer, xutils.EOF, false, expErrMsg, nil)
+	checkTokenInternal(t, lexer, xutils.ERR, false, expErrMsg, nil)
 }

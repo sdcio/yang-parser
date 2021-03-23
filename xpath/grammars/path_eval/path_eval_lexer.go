@@ -65,6 +65,7 @@ const EOF = 0
 
 var commonToPathEvalTokenMap = map[int]int{
 	xutils.EOF:      EOF,
+	xutils.ERR:      ERR,
 	xutils.NUM:      NUM,
 	xutils.FUNC:     FUNC,
 	xutils.DOTDOT:   DOTDOT,
@@ -95,6 +96,7 @@ func mapCommonTokenValToPathEval(val int) int {
 
 var pathEvalToCommonTokenMap = map[int]int{
 	EOF:      xutils.EOF,
+	ERR:      xutils.ERR,
 	NUM:      xutils.NUM,
 	FUNC:     xutils.FUNC,
 	DOTDOT:   xutils.DOTDOT,

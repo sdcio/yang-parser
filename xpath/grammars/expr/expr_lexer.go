@@ -68,6 +68,7 @@ const EOF = 0
 
 var commonToExprTokenMap = map[int]int{
 	xutils.EOF:      EOF,
+	xutils.ERR:      ERR,
 	xutils.NUM:      NUM,
 	xutils.FUNC:     FUNC,
 	xutils.DOTDOT:   DOTDOT,
@@ -98,6 +99,7 @@ func mapCommonTokenValToExpr(val int) int {
 
 var exprToCommonTokenMap = map[int]int{
 	EOF:      xutils.EOF,
+	ERR:      xutils.ERR,
 	NUM:      xutils.NUM,
 	FUNC:     xutils.FUNC,
 	DOTDOT:   xutils.DOTDOT,

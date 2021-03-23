@@ -245,7 +245,7 @@ func LexCommon(x XpathLexer, yylval *CommonSymType) int {
 		}
 
 		x.SetError(fmt.Errorf("unrecognised character %q", c))
-		return xutils.EOF
+		return xutils.ERR
 	}
 }
 
@@ -289,7 +289,7 @@ func (x *CommonLex) LexColon() int {
 	// Part of a name, should have been detected elsewhere.
 	x.peek = next
 	x.SetError(fmt.Errorf("':' only supported in QNames"))
-	return xutils.EOF
+	return xutils.ERR
 }
 
 func (x *CommonLex) LexAsterisk(yylval *CommonSymType) int {
@@ -330,10 +330,10 @@ func (x *CommonLex) LexRelationalOperator(c rune) int {
 		}
 		x.peek = next
 		x.SetError(fmt.Errorf("'!' only valid when followed by '='"))
-		return xutils.EOF
+		return xutils.ERR
 	default:
 		x.SetError(fmt.Errorf("Invalid relational operator"))
-		return xutils.EOF
+		return xutils.ERR
 	}
 }
 
@@ -389,7 +389,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 		}
 		x.SetError(fmt.Errorf("Unknown function or node type: '%s'",
 			name.String()))
-		return xutils.EOF
+		return xutils.ERR
 	}
 
 	// If next non-whitespace token is '::', NCName is an AxisName.
@@ -399,7 +399,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 			return xutils.AXISNAME
 		}
 		x.SetError(fmt.Errorf("Unknown axis name: '%s'", name.String()))
-		return xutils.EOF
+		return xutils.ERR
 	}
 
 	// If none of the above applies, it's a NameTest token.  Question is
@@ -413,7 +413,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 		if c := x.NextNonWhitespace(); c != ':' {
 			x.SetError(fmt.Errorf(
 				"Badly formatted QName (exp ':', got '%c'", c))
-			return xutils.EOF
+			return xutils.ERR
 		}
 
 		// Now we need the local part - or wildcard (*).  Note that in the
@@ -423,7 +423,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 			// Next token had better be a '*' when formally extracted ...
 			if c := x.NextNonWhitespace(); c != '*' {
 				x.SetError(fmt.Errorf("Badly formatted QName (*)."))
-				return xutils.EOF
+				return xutils.ERR
 			}
 			prefix = name.String()
 			localPart = "*"
@@ -432,7 +432,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 			c := x.NextNonWhitespace()
 			if c == xutils.EOF {
 				x.err = fmt.Errorf("Name requires local part.")
-				return xutils.EOF
+				return xutils.ERR
 			}
 			localPartBuf := x.ConstructToken(c, nameMatcher, "NAME")
 			localPart = localPartBuf.String()
@@ -450,7 +450,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 		namespace, err = x.mapFn(prefix)
 		if err != nil {
 			x.SetError(err)
-			return xutils.EOF
+			return xutils.ERR
 		}
 	}
 
@@ -481,7 +481,7 @@ func (x *CommonLex) LexLiteral(yylval *CommonSymType, quote rune) int {
 
 	yylval.name = b.String()
 	if x.err != nil {
-		return xutils.EOF
+		return xutils.ERR
 	}
 	return xutils.LITERAL
 }
@@ -501,7 +501,7 @@ func (x *CommonLex) LexNum(c rune, yylval *CommonSymType) int {
 	yylval.val = val
 	if err != nil {
 		x.SetError(fmt.Errorf("bad number %q", b.String()))
-		return xutils.EOF
+		return xutils.ERR
 	}
 	return xutils.NUM
 }
@@ -636,7 +636,7 @@ func (x *CommonLex) getOperatorName(name string) int {
 	}
 
 	x.SetError(fmt.Errorf("Unrecognised operator name: '%s'", name))
-	return xutils.EOF
+	return xutils.ERR
 }
 
 func (x *CommonLex) nameIsNodeType(name string) bool {

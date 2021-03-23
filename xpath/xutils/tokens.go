@@ -23,7 +23,8 @@ import (
 // we've forgotten to map and some tokens are ok, some not.
 const (
 	EOF = 0
-	NUM = 0xF000 + iota
+	ERR = 0xF000 + iota
+	NUM
 	FUNC
 	DOTDOT
 	DBLSLASH
@@ -53,6 +54,7 @@ const (
 
 var tokenNameMap = map[int]string{
 	EOF:      "EOF",
+	ERR:      "LexError",
 	NUM:      "NUM",
 	FUNC:     "FUNC",
 	DOTDOT:   "..",
