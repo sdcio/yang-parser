@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -38,7 +38,6 @@ top:
 				{
 					getProgBldr(leafreflex).CodeFn(
 						getProgBldr(leafreflex).Store, "store");
-					return 1;
 				}
 		;
 Expr:

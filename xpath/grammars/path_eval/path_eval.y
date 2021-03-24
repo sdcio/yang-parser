@@ -69,7 +69,6 @@ top:
 					getProgBldr(pathEvallex).CodeFn(
 						getProgBldr(pathEvallex).StorePathEval,
 							"storePathEval");
-					return 1;
 				}
 		;
 Expr:

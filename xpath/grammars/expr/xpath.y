@@ -60,7 +60,6 @@ top:
 				{
 					getProgBldr(exprlex).CodeFn(
 						getProgBldr(exprlex).Store, "store");
-					return 1;
 				}
 		;
 Expr:
