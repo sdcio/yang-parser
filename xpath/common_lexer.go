@@ -62,11 +62,10 @@ type XpathLexer interface {
 
 // COMMONSYMTYPE
 type CommonSymType struct {
-	sym       *Symbol  /* Symbol table entry */
-	val       float64  /* Numeric value */
-	name      string   /* NodeType or AxisName */
-	xmlname   xml.Name /* For NameTest */
-	lastToken int
+	sym     *Symbol  /* Symbol table entry */
+	val     float64  /* Numeric value */
+	name    string   /* NodeType or AxisName */
+	xmlname xml.Name /* For NameTest */
 }
 
 func (cst *CommonSymType) GetSym() *Symbol {
@@ -92,9 +91,6 @@ func (cst *CommonSymType) SetXmlName(name xml.Name) {
 func (cst *CommonSymType) GetXmlName() xml.Name {
 	return cst.xmlname
 }
-
-func (cst *CommonSymType) SetLastToken(token int) { cst.lastToken = token }
-func (cst *CommonSymType) GetLastToken() int      { return cst.lastToken }
 
 // COMMONLEX
 type CommonLex struct {

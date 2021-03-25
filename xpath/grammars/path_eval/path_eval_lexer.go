@@ -38,9 +38,6 @@ func NewPathEvalLex(
 
 func (lexer *pathEvalLex) Parse() {
 	pathEvalParse(lexer)
-	if lexer.GetLexParams().GetLastToken() != xutils.EOF {
-		lexer.Error("syntax error")
-	}
 }
 
 func getProgBldr(lexer pathEvalLexer) *xpath.ProgBuilder {
@@ -57,7 +54,6 @@ func (x *pathEvalLex) Lex(yylval *pathEvalSymType) int {
 	yylval.val = lexParams.GetVal()
 	yylval.name = lexParams.GetName()
 	yylval.xmlname = lexParams.GetXmlName()
-	lexParams.SetLastToken(retval)
 	return mapCommonTokenValToPathEval(retval)
 }
 

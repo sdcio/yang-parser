@@ -41,9 +41,6 @@ func NewExprLex(
 
 func (lexer *exprLex) Parse() {
 	exprParse(lexer)
-	if lexer.GetLexParams().GetLastToken() != xutils.EOF {
-		lexer.Error("syntax error")
-	}
 }
 
 func getProgBldr(lexer exprLexer) *xpath.ProgBuilder {
@@ -60,7 +57,6 @@ func (x *exprLex) Lex(yylval *exprSymType) int {
 	yylval.val = lexParams.GetVal()
 	yylval.name = lexParams.GetName()
 	yylval.xmlname = lexParams.GetXmlName()
-	lexParams.SetLastToken(retval)
 	return mapCommonTokenValToExpr(retval)
 }
 

@@ -42,9 +42,6 @@ func NewLeafrefLex(
 
 func (lexer *leafrefLex) Parse() {
 	leafrefParse(lexer)
-	if lexer.GetLexParams().GetLastToken() != xutils.EOF {
-		lexer.Error("syntax error")
-	}
 }
 
 func getProgBldr(lexer leafrefLexer) *xpath.ProgBuilder {
@@ -60,7 +57,6 @@ func (x *leafrefLex) Lex(yylval *leafrefSymType) int {
 	yylval.sym = lexParams.GetSym()
 	yylval.val = lexParams.GetVal()
 	yylval.xmlname = lexParams.GetXmlName()
-	lexParams.SetLastToken(retval)
 	return mapCommonTokenValToLeafref(retval)
 }
 
