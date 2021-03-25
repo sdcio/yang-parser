@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -156,7 +156,6 @@ func CheckNameTestToken(
 func CheckUnlexableToken(
 	t *testing.T,
 	lexer xpath.XpathLexer,
-	tokenType int,
 	expErrMsg string) {
 	checkTokenInternal(t, lexer, xutils.EOF, false, expErrMsg, nil)
 }

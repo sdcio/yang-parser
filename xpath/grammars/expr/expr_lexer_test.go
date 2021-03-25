@@ -112,7 +112,7 @@ func TestLexBooleanOperators(t *testing.T) {
 
 func TestLexInvalidRelationalOperators(t *testing.T) {
 	lexLine := NewExprLex("! ", nil, nil)
-	CheckUnlexableToken(t, lexLine, xutils.EOF, "'!' only valid when followed by '='")
+	CheckUnlexableToken(t, lexLine, "'!' only valid when followed by '='")
 }
 
 // Cannot have operatorName as first token, nor 2 adjacent operator names
@@ -213,7 +213,7 @@ func TestLexDots(t *testing.T) {
 	CheckToken(t, lexLine, int('.'))
 	CheckNumToken(t, lexLine, 0.2)
 	CheckNumToken(t, lexLine, 2.2)
-	CheckUnlexableToken(t, lexLine, xutils.EOF, "bad number \"2.2.2\"")
+	CheckUnlexableToken(t, lexLine, "bad number \"2.2.2\"")
 }
 
 func TestLexSlashes(t *testing.T) {
@@ -231,7 +231,7 @@ func TestLexColons(t *testing.T) {
 	lexLine := NewExprLex(":: :.", nil, nil)
 
 	CheckToken(t, lexLine, DBLCOLON)
-	CheckUnlexableToken(t, lexLine, xutils.EOF, "':' only supported in QNames")
+	CheckUnlexableToken(t, lexLine, "':' only supported in QNames")
 }
 
 // Need following '(' to be identified as functions.
@@ -249,7 +249,7 @@ func TestLexFunctions(t *testing.T) {
 func TestLexUnrecognisedFunction(t *testing.T) {
 	lexLine := NewExprLex("foo1(2)", nil, nil)
 
-	CheckUnlexableToken(t, lexLine, xutils.EOF, "Unknown function or node type: 'foo1'")
+	CheckUnlexableToken(t, lexLine, "Unknown function or node type: 'foo1'")
 }
 
 // For full XPATH compliance we would allow prefixed function names.  However,
@@ -259,7 +259,7 @@ func TestLexUnrecognisedFunction(t *testing.T) {
 func TestLexUnrecognisedPrefixedFunction(t *testing.T) {
 	lexLine := NewExprLex("foo:bar1(2)", nil, nil)
 	t.Skipf("Probably not needed ... see comment in file.")
-	CheckUnlexableToken(t, lexLine, xutils.EOF,
+	CheckUnlexableToken(t, lexLine,
 		"Unknown function or node type: 'foo1'")
 }
 
@@ -329,14 +329,14 @@ func TestLexEmptyAdjacentLiterals(t *testing.T) {
 func TestLexIncompleteLiteralSingleQuotes(t *testing.T) {
 	lexLine := NewExprLex("'Always plan ahea", nil, nil)
 
-	CheckUnlexableToken(t, lexLine, LITERAL,
+	CheckUnlexableToken(t, lexLine,
 		"End of Literal token not detected.")
 }
 
 func TestLexIncompleteLiteralDoubleQuotes(t *testing.T) {
 	lexLine := NewExprLex("\"Always plan ahea", nil, nil)
 
-	CheckUnlexableToken(t, lexLine, LITERAL,
+	CheckUnlexableToken(t, lexLine,
 		"End of Literal token not detected.")
 }
 
@@ -376,7 +376,7 @@ func TestAllValidNameCharacters(t *testing.T) {
 		lexLine = NewExprLex(pre, nil, nil)
 		if preToken == xutils.EOF {
 			t.Logf(" - Checking start(1) 0x%x", start-1)
-			CheckUnlexableToken(t, lexLine, NAMETEST, "unrecognised character")
+			CheckUnlexableToken(t, lexLine, "unrecognised character")
 		} else {
 			t.Logf(" - Checking start(2) 0x%x", start-1)
 			CheckToken(t, lexLine, preToken)
@@ -386,7 +386,7 @@ func TestAllValidNameCharacters(t *testing.T) {
 		lexLine = NewExprLex(post, nil, nil)
 		if postToken == xutils.EOF {
 			t.Logf(" - Checking end(1) 0x%x", end+1)
-			CheckUnlexableToken(t, lexLine, NAMETEST, "unrecognised character")
+			CheckUnlexableToken(t, lexLine, "unrecognised character")
 		} else {
 			t.Logf(" - Checking end(2) 0x%x", end+1)
 			CheckToken(t, lexLine, postToken)
@@ -476,7 +476,7 @@ func TestLexAxisName(t *testing.T) {
 func TestLexIllegalAxisName(t *testing.T) {
 	lexLine := NewExprLex("unknown-axis::", nil, nil)
 
-	CheckUnlexableToken(t, lexLine, AXISNAME,
+	CheckUnlexableToken(t, lexLine,
 		"Unknown axis name: 'unknown-axis'")
 }
 
@@ -517,7 +517,7 @@ func TestLexNameTestUnprefixed(t *testing.T) {
 func TestLexNameTestUnterminated(t *testing.T) {
 	lexLine := NewExprLex("Pfx: ", nil, nil)
 
-	CheckUnlexableToken(t, lexLine, xutils.EOF, "Name requires local part")
+	CheckUnlexableToken(t, lexLine, "Name requires local part")
 }
 
 // Rules for disambiguating:
@@ -563,18 +563,18 @@ func TestLexMultipleTokens(t *testing.T) {
 func TestLexIllegalNumber(t *testing.T) {
 	lexLine := NewExprLex("1eE6", nil, nil)
 
-	CheckUnlexableToken(t, lexLine, xutils.EOF, "bad number \"1eE6\"")
+	CheckUnlexableToken(t, lexLine, "bad number \"1eE6\"")
 }
 
 func TestInvalidOperator(t *testing.T) {
 	lexLine := NewExprLex("%", nil, nil)
 
-	CheckUnlexableToken(t, lexLine, xutils.EOF, "unrecognised character '%'")
+	CheckUnlexableToken(t, lexLine, "unrecognised character '%'")
 }
 
 func TestInvalidOperator2(t *testing.T) {
 	lexLine := NewExprLex("2 % 4", nil, nil)
 
 	CheckNumToken(t, lexLine, 2)
-	CheckUnlexableToken(t, lexLine, xutils.EOF, "unrecognised character '%'")
+	CheckUnlexableToken(t, lexLine, "unrecognised character '%'")
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015-2016 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -59,7 +59,7 @@ func TestLeafrefLexCurrent(t *testing.T) {
 func TestLeafrefLexIllegalFunction(t *testing.T) {
 	lexLine := NewLeafrefLex("true()", nil, nil)
 
-	CheckUnlexableToken(t, lexLine, FUNC,
+	CheckUnlexableToken(t, lexLine,
 		"Function 'true' is not valid here.")
 }
 
@@ -126,50 +126,50 @@ func TestLeafrefLexNameCharacters(t *testing.T) {
 
 func TestLeafrefLexIllegalNames(t *testing.T) {
 	lexLine := NewLeafrefLex("XML", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Neither part of name may begin with XML: ':XML'")
 
 	lexLine = NewLeafrefLex("xML", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Neither part of name may begin with XML: ':xML'")
 
 	lexLine = NewLeafrefLex("xml", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Neither part of name may begin with XML: ':xml'")
 
 	lexLine = NewLeafrefLex("foo:XML", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Neither part of name may begin with XML: 'foo:XML'")
 
 	lexLine = NewLeafrefLex("bar:xML", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Neither part of name may begin with XML: 'bar:xML'")
 
 	lexLine = NewLeafrefLex("bar:xml", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Neither part of name may begin with XML: 'bar:xml'")
 
 	lexLine = NewLeafrefLex("foo:", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Name requires local part")
 
 	lexLine = NewLeafrefLex("foo:1", nil, lexLeafrefTestMapFn)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Illegal local part start character: '1'")
 }
 
 // We (ab)use LexCommon and need to override handling of a few tokens.
 func TestLeafrefLexTokensRejectedByParser(t *testing.T) {
 	lexLine := NewLeafrefLex(".foo", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"'.' is not a valid token.")
 
 	lexLine = NewLeafrefLex("1foo", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"Numbers are not valid tokens.")
 
 	lexLine = NewLeafrefLex("-foo", nil, nil)
-	CheckUnlexableToken(t, lexLine, NAMETEST,
+	CheckUnlexableToken(t, lexLine,
 		"'-' is not a valid token.")
 
 }
