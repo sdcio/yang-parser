@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -22,26 +22,26 @@ import (
 // enum is deliberately starting at a different place to catch bugs where
 // we've forgotten to map and some tokens are ok, some not.
 const (
-	EOF      = 0
-	NUM      = 0xF000
-	FUNC     = 0xF001
-	DOTDOT   = 0xF002
-	DBLSLASH = 0xF003
-	DBLCOLON = 0xF004
-	GT       = 0xF005
-	GE       = 0xF006
-	LT       = 0xF007
-	LE       = 0xF008
-	EQ       = 0xF009
-	NE       = 0xF00A
-	NODETYPE = 0xF00B
-	AXISNAME = 0xF00C
-	NAMETEST = 0xF00D
-	LITERAL  = 0xF00E
-	OR       = 0xF00F
-	AND      = 0xF010
-	MOD      = 0xF011
-	DIV      = 0xF012
+	EOF = 0
+	NUM = 0xF000 + iota
+	FUNC
+	DOTDOT
+	DBLSLASH
+	DBLCOLON
+	GT
+	GE
+	LT
+	LE
+	EQ
+	NE
+	NODETYPE
+	AXISNAME
+	NAMETEST
+	LITERAL
+	OR
+	AND
+	MOD
+	DIV
 )
 
 // For testing and error pretty-printing, useful to be able to dump a string
