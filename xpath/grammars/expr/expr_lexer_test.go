@@ -21,6 +21,10 @@ import (
 	"github.com/danos/yang/xpath/xutils"
 )
 
+// The UTF-8 encoding for 0xD800, which is invalid in a UTF-8 stream,
+// but is allowed in a CESU-8 stream.
+const badUTF8 = "\xED\xA0\x80"
+
 // Test NUM parsing
 func TestLexInt(t *testing.T) {
 	lexLine := NewExprLex("123", nil, nil)
@@ -341,7 +345,27 @@ func TestLexIncompleteLiteralDoubleQuotes(t *testing.T) {
 }
 
 func TestAllValidNameCharacters(t *testing.T) {
+
+	// The range D800 - DFFF are not valid unicode characters.
+	// This range is used for "surrogate pairs" which allow one to
+	// represent values outwith the BMP when using UTF-16.
+	// i.e a valid pair of such characters represents a rune
+	// beyond 0xFFFF
+	//
+	// Moreover, the high and low surrogate code points are illegal
+	// in UTF-8 (that form being CESU-8), and so utf8.Encode Rune(),
+	// and hence bytes.WriteRune() will encode such runes as a 3 byte
+	// UTF-8 representation of the RuneError value.
+	//
+	// That would then decode upon a round trip as the
+	// "Unicode replacement character"; and not signal an error.
 	createString := func(t *testing.T, start, end rune) string {
+		// Encode the surrogate test case manually.
+		// The lexer will be corrected later to error upon
+		// these invalid inputs.
+		if start == end && end == 0xD800 {
+			return badUTF8
+		}
 		var b bytes.Buffer
 		for c := start; c <= end; c = c + 1 {
 			_, err := b.WriteRune(c)
@@ -405,17 +429,8 @@ func TestAllValidNameCharacters(t *testing.T) {
 	CheckValidNameRange(t, 0x2070, 0x218F, xutils.ERR, xutils.ERR)
 	CheckValidNameRange(t, 0x2C00, 0x2FEF, xutils.ERR, xutils.ERR)
 
-	// The range D800 - DFFF are not valid unicode characters.
-	// This range is used for "surrogate pairs" which allow one to
-	// represent values outwith the BMP when using UTF-16.
-	// i.e a valid pair of such characters represents
-	// a rune beyond 0xFFFF
-	//
-	// As such one should not try to treat them as runes.
-	//
-	// This may explain why D800 - DFFF are coming out as NAMETEST tokens
-	// rather than not being recognised.  Haven't worked out why yet ...
-	CheckValidNameRange(t, 0x3001, 0xD7FF, xutils.ERR, NAMETEST)
+	// NB: See "surrogate pair" comment in createString()
+	CheckValidNameRange(t, 0x3001, 0xD7FF, xutils.ERR, xutils.EOF)
 
 	CheckValidNameRange(t, 0xF900, 0xFDCF, xutils.ERR, xutils.ERR)
 	CheckValidNameRange(t, 0xFDF0, 0xFFFD, xutils.ERR, xutils.ERR)
