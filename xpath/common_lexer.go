@@ -1,4 +1,4 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019-2021, AT&T Intellectual Property. All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -667,7 +667,7 @@ func (x *CommonLex) nameIsAxisName(name string) bool {
 
 // Return the next rune for the lexer.  'peek' may have been set if we
 // needed to look ahead but then didn't consume the character.  In other
-// words, what remains to be parsed when we call next() is:
+// words, what remains to be parsed when we call Next() is:
 //
 //   x.peek (if not EOF) + x.line
 //
@@ -722,8 +722,8 @@ func next(x *CommonLex, line []byte) (rune, []byte) {
 }
 
 // Won't handle string containing whitespace.  For now we only need this
-// to match '(', '::' and ':'.  Function is not pretty, and probably has
-// holes in it, but it is sufficient for current parsing requirements.
+// to match '(', '::', ':' and '*'.  Function is not pretty, and probably
+// has holes in it, but it is sufficient for current parsing requirements.
 func (x *CommonLex) NextNonWhitespaceStringIs(expr string) bool {
 	add := func(b *bytes.Buffer, c rune) {
 		if _, err := b.WriteRune(c); err != nil {
