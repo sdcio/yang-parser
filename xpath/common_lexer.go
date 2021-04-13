@@ -25,7 +25,6 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -204,6 +203,10 @@ func LexCommon(x XpathLexer, yylval *CommonSymType) int {
 		switch c {
 		case xutils.EOF:
 			return xutils.EOF
+
+		case xutils.ERR:
+			x.SetError(fmt.Errorf("Invalid UTF-8 input"))
+			return xutils.ERR
 
 		case '"', '\'':
 			return x.SaveTokenType(x.LexLiteral(yylval, c))
@@ -673,8 +676,7 @@ func (x *CommonLex) Next() rune {
 	c, size := utf8.DecodeRune(x.line)
 	x.line = x.line[size:]
 	if c == utf8.RuneError && size == 1 {
-		log.Print("invalid utf8")
-		return x.Next()
+		return xutils.ERR
 	}
 	return c
 }
@@ -698,15 +700,14 @@ func (x *CommonLex) NextNonWhitespace() rune {
 	return c
 }
 
-func next(x *CommonLex, line []byte) (rune, []byte) {
+func next(line []byte) (rune, []byte) {
 	if len(line) == 0 {
 		return xutils.EOF, nil
 	}
 	c, size := utf8.DecodeRune(line)
 	line = line[size:]
 	if c == utf8.RuneError && size == 1 {
-		x.SetError(fmt.Errorf("Invalid character '%c' (0x%x) ignored.", c, c))
-		return next(x, line)
+		return xutils.ERR, nil
 	}
 	return c, line
 }
@@ -729,11 +730,12 @@ func (x *CommonLex) NextNonWhitespaceStringIs(expr string) bool {
 	}
 
 	// Next, find any (further) non-whitespace
-	line := x.line
-	var c rune
-	for c, line = next(x, line); c != xutils.EOF && !x.isWhitespace(c); {
+	for c, line := next(x.line); c != xutils.EOF && !x.isWhitespace(c); {
+		if c == xutils.ERR {
+			return false
+		}
 		add(&b, c)
-		c, line = next(x, line)
+		c, line = next(line)
 	}
 
 	return strings.HasPrefix(b.String(), expr)

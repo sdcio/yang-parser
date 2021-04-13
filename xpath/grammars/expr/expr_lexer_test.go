@@ -16,6 +16,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"testing"
+	"unicode/utf8"
 
 	. "github.com/danos/yang/xpath/grammars/lexertest"
 	"github.com/danos/yang/xpath/xutils"
@@ -361,8 +362,6 @@ func TestAllValidNameCharacters(t *testing.T) {
 	// "Unicode replacement character"; and not signal an error.
 	createString := func(t *testing.T, start, end rune) string {
 		// Encode the surrogate test case manually.
-		// The lexer will be corrected later to error upon
-		// these invalid inputs.
 		if start == end && end == 0xD800 {
 			return badUTF8
 		}
@@ -401,8 +400,11 @@ func TestAllValidNameCharacters(t *testing.T) {
 		if preToken == xutils.ERR {
 			t.Logf(" - Checking start(1) 0x%x", start-1)
 			CheckUnlexableToken(t, lexLine, "unrecognised character")
-		} else {
+		} else if preToken == utf8.RuneError {
 			t.Logf(" - Checking start(2) 0x%x", start-1)
+			CheckUnlexableToken(t, lexLine, "Invalid UTF-8 input")
+		} else {
+			t.Logf(" - Checking start(3) 0x%x", start-1)
 			CheckToken(t, lexLine, preToken)
 		}
 
@@ -411,8 +413,11 @@ func TestAllValidNameCharacters(t *testing.T) {
 		if postToken == xutils.ERR {
 			t.Logf(" - Checking end(1) 0x%x", end+1)
 			CheckUnlexableToken(t, lexLine, "unrecognised character")
-		} else {
+		} else if postToken == utf8.RuneError {
 			t.Logf(" - Checking end(2) 0x%x", end+1)
+			CheckUnlexableToken(t, lexLine, "Invalid UTF-8 input")
+		} else {
+			t.Logf(" - Checking end(3) 0x%x", end+1)
 			CheckToken(t, lexLine, postToken)
 		}
 	}
@@ -430,7 +435,7 @@ func TestAllValidNameCharacters(t *testing.T) {
 	CheckValidNameRange(t, 0x2C00, 0x2FEF, xutils.ERR, xutils.ERR)
 
 	// NB: See "surrogate pair" comment in createString()
-	CheckValidNameRange(t, 0x3001, 0xD7FF, xutils.ERR, xutils.EOF)
+	CheckValidNameRange(t, 0x3001, 0xD7FF, xutils.ERR, utf8.RuneError)
 
 	CheckValidNameRange(t, 0xF900, 0xFDCF, xutils.ERR, xutils.ERR)
 	CheckValidNameRange(t, 0xFDF0, 0xFFFD, xutils.ERR, xutils.ERR)
