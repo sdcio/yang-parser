@@ -56,13 +56,13 @@ func TestLexTrailingDot(t *testing.T) {
 func TestLexE(t *testing.T) {
 	lexLine := NewExprLex("654E2", nil, nil)
 
-	CheckNumToken(t, lexLine, 654E2)
+	CheckNumToken(t, lexLine, 654e2)
 }
 
 func TestLexe(t *testing.T) {
 	lexLine := NewExprLex("654e2", nil, nil)
 
-	CheckNumToken(t, lexLine, 654E2)
+	CheckNumToken(t, lexLine, 654e2)
 }
 
 // Test whitespace
