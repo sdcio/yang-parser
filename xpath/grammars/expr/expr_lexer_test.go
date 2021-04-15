@@ -374,7 +374,7 @@ func TestAllValidNameCharacters(t *testing.T) {
 		//     being rejected out of hand.  Hence need for pre/postToken types.
 		pre := createString(t, start-1, start-1)
 		lexLine = NewExprLex(pre, nil, nil)
-		if preToken == xutils.EOF {
+		if preToken == xutils.ERR {
 			t.Logf(" - Checking start(1) 0x%x", start-1)
 			CheckUnlexableToken(t, lexLine, "unrecognised character")
 		} else {
@@ -384,7 +384,7 @@ func TestAllValidNameCharacters(t *testing.T) {
 
 		post := createString(t, end+1, end+1)
 		lexLine = NewExprLex(post, nil, nil)
-		if postToken == xutils.EOF {
+		if postToken == xutils.ERR {
 			t.Logf(" - Checking end(1) 0x%x", end+1)
 			CheckUnlexableToken(t, lexLine, "unrecognised character")
 		} else {
@@ -394,16 +394,16 @@ func TestAllValidNameCharacters(t *testing.T) {
 	}
 
 	CheckValidNameRange(t, 'A', 'Z', int('@'), int('['))
-	CheckValidNameRange(t, '_', '_', xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 'a', 'z', xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0xC0, 0xD6, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0xD8, 0xF6, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0xF8, 0x2FF, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0x370, 0x37D, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0x37F, 0x1FFF, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0x200C, 0x200D, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0x2070, 0x218F, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0x2C00, 0x2FEF, xutils.EOF, xutils.EOF)
+	CheckValidNameRange(t, '_', '_', xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 'a', 'z', xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0xC0, 0xD6, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0xD8, 0xF6, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0xF8, 0x2FF, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0x370, 0x37D, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0x37F, 0x1FFF, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0x200C, 0x200D, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0x2070, 0x218F, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0x2C00, 0x2FEF, xutils.ERR, xutils.ERR)
 
 	// The range D800 - DFFF are not valid unicode characters.
 	// This range is used for "surrogate pairs" which allow one to
@@ -415,11 +415,11 @@ func TestAllValidNameCharacters(t *testing.T) {
 	//
 	// This may explain why D800 - DFFF are coming out as NAMETEST tokens
 	// rather than not being recognised.  Haven't worked out why yet ...
-	CheckValidNameRange(t, 0x3001, 0xD7FF, xutils.EOF, NAMETEST)
+	CheckValidNameRange(t, 0x3001, 0xD7FF, xutils.ERR, NAMETEST)
 
-	CheckValidNameRange(t, 0xF900, 0xFDCF, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0xFDF0, 0xFFFD, xutils.EOF, xutils.EOF)
-	CheckValidNameRange(t, 0x10000, 0xEFFFF, xutils.EOF, xutils.EOF)
+	CheckValidNameRange(t, 0xF900, 0xFDCF, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0xFDF0, 0xFFFD, xutils.ERR, xutils.ERR)
+	CheckValidNameRange(t, 0x10000, 0xEFFFF, xutils.ERR, xutils.ERR)
 }
 
 func TestLexNodeType(t *testing.T) {
