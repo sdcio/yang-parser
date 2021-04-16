@@ -26,7 +26,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"strconv"
-	"strings"
 	"unicode/utf8"
 
 	"github.com/danos/yang/xpath/xutils"
@@ -712,31 +711,43 @@ func next(line []byte) (rune, []byte) {
 	return c, line
 }
 
-// Won't handle string containing whitespace.  For now we only need this
-// to match '(', '::', ':' and '*'.  Function is not pretty, and probably
-// has holes in it, but it is sufficient for current parsing requirements.
+// Won't handle string containing whitespace.
+// For now we only need this to match '(', '::', ':' and '*'.
+// This assumes the passed in string consists of ASCII bytes
 func (x *CommonLex) NextNonWhitespaceStringIs(expr string) bool {
-	add := func(b *bytes.Buffer, c rune) {
-		if _, err := b.WriteRune(c); err != nil {
-			x.SetError(fmt.Errorf("WriteRune: %s", err))
-		}
-	}
 
-	var b bytes.Buffer
-
-	// First check peek and if not 'xutils.EOF' or whitespace, store value
+	// First check peek (if in use) and if not whitespace, compare.
+	// The ASCII assumption is here, it could be written using
+	// utf8.RuneLen(), but that is not necessary.
 	if (x.peek != xutils.EOF) && !x.isWhitespace(x.peek) {
-		add(&b, x.peek)
-	}
-
-	// Next, find any (further) non-whitespace
-	for c, line := next(x.line); c != xutils.EOF && !x.isWhitespace(c); {
-		if c == xutils.ERR {
+		if len(expr) == 0 {
+			return true
+		}
+		if x.peek != rune(expr[0]) {
 			return false
 		}
-		add(&b, c)
-		c, line = next(line)
+		if len(expr) == 1 {
+			return true
+		}
+		expr = expr[1:]
 	}
 
-	return strings.HasPrefix(b.String(), expr)
+	// Next, skip any whitespace
+	lc, line := next(x.line)
+	for x.isWhitespace(lc) {
+		lc, line = next(line)
+	}
+
+	// Now compare the rest of the string against the input
+	for _, ec := range expr {
+		if lc == xutils.EOF || lc == xutils.ERR {
+			return false
+		}
+		if ec != lc {
+			return false
+		}
+		lc, line = next(line)
+	}
+
+	return true
 }

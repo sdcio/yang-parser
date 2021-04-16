@@ -540,6 +540,45 @@ func TestLexNameTestUnterminated(t *testing.T) {
 	CheckUnlexableToken(t, lexLine, "Name requires local part")
 }
 
+// Test invalid UTF-8 sequences
+func TestLexBadUTF(t *testing.T) {
+	// Good, directly followed by bad UTF-8
+	lexLine := NewExprLex("1+2"+badUTF8, nil, nil)
+
+	CheckNumToken(t, lexLine, 1)
+	CheckToken(t, lexLine, int('+'))
+	CheckNumToken(t, lexLine, 2)
+	CheckUnlexableToken(t, lexLine, "Invalid UTF-8 input")
+
+	// Good, space, bad UTF-8
+	lexLine = NewExprLex("1-2 "+badUTF8, nil, nil)
+
+	CheckNumToken(t, lexLine, 1)
+	CheckToken(t, lexLine, int('-'))
+	CheckNumToken(t, lexLine, 2)
+	CheckUnlexableToken(t, lexLine, "Invalid UTF-8 input")
+
+	// Good, bad UTF-8, good token
+	lexLine = NewExprLex("1"+badUTF8+"+2", nil, nil)
+
+	CheckNumToken(t, lexLine, 1)
+	CheckUnlexableToken(t, lexLine, "Invalid UTF-8 input")
+
+	// Good axis, name, bad UTF-8
+	lexLine = NewExprLex("attribute :: x"+badUTF8, nil, nil)
+
+	CheckAxisNameToken(t, lexLine, "attribute")
+	CheckToken(t, lexLine, DBLCOLON)
+	CheckNameTestToken(t, lexLine, xml.Name{Local: "x"})
+	CheckUnlexableToken(t, lexLine, "Invalid UTF-8 input")
+
+	// Good prefixed name, bad UTF-8
+	lexLine = NewExprLex("fred : x"+badUTF8, nil, lexerTestMapFn)
+
+	CheckNameTestToken(t, lexLine, xml.Name{Space: "fred", Local: "x"})
+	CheckUnlexableToken(t, lexLine, "Invalid UTF-8 input")
+}
+
 // Rules for disambiguating:
 //
 // (a) If there is a preceding token, and said token is none of '@', '::',
