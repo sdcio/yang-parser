@@ -42,7 +42,7 @@ type XpathLexer interface {
 	Parse()
 
 	Next() rune
-	SaveTokenType(tokenType int) int
+	SaveTokenType(tokenType int)
 	IsNameChar(c rune) bool
 	IsNameStartChar(c rune) bool
 	MapTokenValToCommon(tokenType int) int
@@ -187,16 +187,20 @@ func (x *CommonLex) Error(s string) {
 
 // Some parsing will produce different tokens depending on what came before
 // so we need to keep track of this.
-func (x *CommonLex) SaveTokenType(tokenType int) int {
-	x.precToken = tokenType
-	return tokenType
+func (x *CommonLex) SaveTokenType(tokenType int) {
+	if tokenType != xutils.EOF && tokenType != xutils.ERR {
+		x.precToken = tokenType
+	}
 }
 
 // The parser calls this method to get each new token.
 //
 // We store the token value so it is available as the preceding token
 // value when parsing the next token.
-func LexCommon(x XpathLexer, yylval *CommonSymType) int {
+func LexCommon(x XpathLexer, yylval *CommonSymType) (tokType int) {
+	defer func() {
+		x.SaveTokenType(tokType)
+	}()
 	for {
 		c := x.Next()
 		switch c {
@@ -208,28 +212,28 @@ func LexCommon(x XpathLexer, yylval *CommonSymType) int {
 			return xutils.ERR
 
 		case '"', '\'':
-			return x.SaveTokenType(x.LexLiteral(yylval, c))
+			return x.LexLiteral(yylval, c)
 
 		case '.':
-			return x.SaveTokenType(x.LexDot(c, yylval))
+			return x.LexDot(c, yylval)
 
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			return x.SaveTokenType(x.LexNum(c, yylval))
+			return x.LexNum(c, yylval)
 
 		case '/':
-			return x.SaveTokenType(x.LexSlash())
+			return x.LexSlash()
 
 		case ':':
-			return x.SaveTokenType(x.LexColon())
+			return x.LexColon()
 
 		case '*':
-			return x.SaveTokenType(x.LexAsterisk(yylval))
+			return x.LexAsterisk(yylval)
 
 		case '+', '-', '(', ')', '@', ',', '[', ']', '|':
-			return x.SaveTokenType(x.LexPunctuation(c))
+			return x.LexPunctuation(c)
 
 		case '=', '>', '<', '!':
-			return x.SaveTokenType(x.LexRelationalOperator(c))
+			return x.LexRelationalOperator(c)
 
 		case ' ', '\t', '\n', '\r':
 			// Deal with whitespace by ignoring it
@@ -239,7 +243,7 @@ func LexCommon(x XpathLexer, yylval *CommonSymType) int {
 		// Names of some form or another ... NameTest, NodeType,
 		// OperatorName, FunctionName, or AxisName
 		if x.IsNameStartChar(c) {
-			return x.SaveTokenType(x.LexName(c, yylval))
+			return x.LexName(c, yylval)
 		}
 
 		x.SetError(fmt.Errorf("unrecognised character %q", c))
