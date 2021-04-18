@@ -30,6 +30,8 @@ func checkTokenInternal(
 	expErrMsg string,
 	tokenCheckFn tokenCheckFnType,
 ) {
+	t.Helper()
+
 	var lexVal xpath.CommonSymType
 
 	line := lexer.GetLine()
@@ -83,11 +85,17 @@ func checkTokenInternal(
 // Check token types where there is no associated value - eg single
 // character symbols.
 func CheckToken(t *testing.T, lexer xpath.XpathLexer, tokenType int) {
+	t.Helper()
+
 	checkTokenInternal(t, lexer, tokenType, true, NoErrMsg, nil)
 }
 
 func CheckNumToken(t *testing.T, lexer xpath.XpathLexer, tokenVal float64) {
+	t.Helper()
+
 	checkNum := func(t *testing.T, lexVal xpath.CommonSymType) {
+		t.Helper()
+
 		if tokenVal != lexVal.GetVal() {
 			t.Fatalf("Wrong token value.  Exp %v, got %v", tokenVal,
 				lexVal.GetVal())
@@ -97,7 +105,11 @@ func CheckNumToken(t *testing.T, lexer xpath.XpathLexer, tokenVal float64) {
 }
 
 func CheckFuncToken(t *testing.T, lexer xpath.XpathLexer, funcName string) {
+	t.Helper()
+
 	checkFunc := func(t *testing.T, lexVal xpath.CommonSymType) {
+		t.Helper()
+
 		if funcName != lexVal.GetSym().GetName() {
 			t.Fatalf("Wrong function name.  Exp '%s', got '%s'", funcName,
 				lexVal.GetSym().GetName())
@@ -112,7 +124,11 @@ func CheckStringToken(
 	tokenType int,
 	name string,
 ) {
+	t.Helper()
+
 	checkString := func(t *testing.T, lexVal xpath.CommonSymType) {
+		t.Helper()
+
 		if name != lexVal.GetName() {
 			t.Fatalf("Wrong %s name.  Exp '%s', got '%s'",
 				xutils.GetTokenName(tokenType), name, lexVal.GetName())
@@ -122,14 +138,20 @@ func CheckStringToken(
 }
 
 func CheckLiteralToken(t *testing.T, lexer xpath.XpathLexer, literal string) {
+	t.Helper()
+
 	CheckStringToken(t, lexer, xutils.LITERAL, literal)
 }
 
 func CheckNodeTypeToken(t *testing.T, lexer xpath.XpathLexer, nodeType string) {
+	t.Helper()
+
 	CheckStringToken(t, lexer, xutils.NODETYPE, nodeType)
 }
 
 func CheckAxisNameToken(t *testing.T, lexer xpath.XpathLexer, axisName string) {
+	t.Helper()
+
 	CheckStringToken(t, lexer, xutils.AXISNAME, axisName)
 }
 
@@ -138,7 +160,10 @@ func CheckNameTestToken(
 	lexer xpath.XpathLexer,
 	xmlname xml.Name,
 ) {
+	t.Helper()
+
 	checkNameTest := func(t *testing.T, lexVal xpath.CommonSymType) {
+		t.Helper()
 
 		if xmlname.Space != lexVal.GetXmlName().Space {
 			t.Fatalf("Wrong NameTest namespace.  Exp '%s', got '%s'",
@@ -156,6 +181,9 @@ func CheckNameTestToken(
 func CheckUnlexableToken(
 	t *testing.T,
 	lexer xpath.XpathLexer,
-	expErrMsg string) {
+	expErrMsg string,
+) {
+	t.Helper()
+
 	checkTokenInternal(t, lexer, xutils.ERR, false, expErrMsg, nil)
 }
