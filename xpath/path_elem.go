@@ -1,4 +1,5 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019,2021, AT&T Intellectual Property.
+// All rights reserved.
 //
 // Copyright (c) 2015,2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -78,7 +79,8 @@ func (nt nameTestElem) applyToNode(
 	if !matchPrefix {
 		revisedNT.Space = ""
 	}
-	return xNode.XChildren(xutils.NewXFilter(revisedNT, filter)), ""
+	return xNode.XChildren(
+		xutils.NewXFilter(revisedNT, filter), xutils.Sorted), ""
 }
 
 func (nt nameTestElem) String() string {

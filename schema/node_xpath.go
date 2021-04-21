@@ -1,4 +1,5 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2018-2019,2021, AT&T Intellectual Property.
+// All rights reserved.
 //
 // Copyright (c) 2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -11,8 +12,9 @@ package schema
 
 import (
 	"encoding/xml"
-	"github.com/danos/yang/xpath/xutils"
 	"reflect"
+
+	"github.com/danos/yang/xpath/xutils"
 )
 
 type XNode struct {
@@ -34,7 +36,10 @@ func (xn *XNode) XParent() xutils.XpathNode {
 	return xn.parent
 }
 
-func (xn *XNode) XChildren(filter xutils.XFilter) []xutils.XpathNode {
+func (xn *XNode) XChildren(
+	filter xutils.XFilter,
+	sortSpec xutils.SortSpec,
+) []xutils.XpathNode {
 	xChildren := make([]xutils.XpathNode, 0, len(xn.Children()))
 
 	// For valid nodes, add all children that match the filter to the list

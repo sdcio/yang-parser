@@ -180,7 +180,7 @@ func getUnconfiguredNPContainerChildren(c xnode) map[string]Node {
 
 	// Remove configured children from the list of all non-presence container
 	// children.
-	configuredChildren := c.children()
+	configuredChildren := c.children(xutils.Sorted)
 	for key, _ := range npContChildNodes {
 		for _, n := range configuredChildren {
 			if key == n.YangDataName() {
@@ -328,7 +328,7 @@ func validateLeafSchema(
 		return outs, append(errs, err), false
 	}
 
-	children := c.children()
+	children := c.children(xutils.Sorted)
 	for _, child := range children {
 		checkWhenAndMustsFn := func() ([]*exec.Output, []error, bool) {
 			return checkWhenAndMusts(
@@ -446,7 +446,7 @@ func checkMandatory(c xnode, valType ValidationType,
 		}
 	}
 
-	children := c.children()
+	children := c.children(xutils.Sorted)
 	cfgCh := make(map[string]xnode, 0)
 	for _, n := range children {
 		cfgCh[n.YangDataName()] = n
@@ -546,7 +546,7 @@ func resolveDescendant(c xnode, path []xml.Name) string {
 		return ""
 	}
 	hd, tl := path[0], path[1:]
-	for _, ch := range c.children() {
+	for _, ch := range c.children(xutils.Sorted) {
 		if ch.YangDataName() != hd.Local {
 			continue
 		}
@@ -647,7 +647,7 @@ func checkUnique(c xnode, valType ValidationType,
 	sch := c.schema().(List)
 	for _, u := range sch.Uniques() {
 		m := make(map[string][]xnode)
-		for _, key := range c.children() {
+		for _, key := range c.children(xutils.Sorted) {
 			k := getUniqueKey(key, u)
 			if k == "" {
 				// We skip entries that don't have all the nodes present
@@ -689,7 +689,7 @@ func validateListSchema(
 	valType ValidationType,
 ) ([]*exec.Output, []error, bool) {
 
-	children := c.children()
+	children := c.children(xutils.Sorted)
 	outs, errs := make([]*exec.Output, 0), make([]error, 0)
 
 	err := c.schema().CheckCardinality(c.XPath(), len(children))
@@ -745,7 +745,7 @@ func validateSchemaWithLog(
 	outs, errs, _ := checkMandatory(c, valType)
 	outs, errs, _ = exec.AppendOutput(checkWhenAndMustsFn, outs, errs)
 
-	for _, n := range c.children() {
+	for _, n := range c.children(xutils.Sorted) {
 		validateSchemaFn := func() ([]*exec.Output, []error, bool) {
 			return validateSchemaWithLog(
 				n, debugCtx, valType)

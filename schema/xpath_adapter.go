@@ -1,4 +1,5 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2018-2019,2021, AT&T Intellectual Property.
+// All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -12,8 +13,9 @@ package schema
 
 import (
 	"encoding/xml"
-	"github.com/danos/utils/natsort"
 	"sort"
+
+	"github.com/danos/utils/natsort"
 
 	"github.com/danos/yang/data/datanode"
 	"github.com/danos/yang/xpath/xutils"
@@ -127,7 +129,7 @@ type xnode interface {
 	datanode.DataNode
 	xutils.XpathNode
 
-	children() []xnode
+	children(sortSpec xutils.SortSpec) []xnode
 	schema() Node
 	path() []string
 }
@@ -297,8 +299,10 @@ func (n *xdatanode) path() []string {
 	return append(n.parent.path(), n.YangDataName())
 }
 
-func (n *xdatanode) XChildren(filter xutils.XFilter) []xutils.XpathNode {
-	xChildren := make([]xutils.XpathNode, 0)
+func (n *xdatanode) XChildren(
+	filter xutils.XFilter,
+	sortSpec xutils.SortSpec,
+) []xutils.XpathNode {
 
 	// Return early for nodes we know need no processing.
 	switch n.sch.(type) {
@@ -308,6 +312,8 @@ func (n *xdatanode) XChildren(filter xutils.XFilter) []xutils.XpathNode {
 		return nil
 	}
 
+	xChildren := make([]xutils.XpathNode, 0)
+
 	// For valid nodes, add all children that match the filter to the list
 	// of returned nodes.
 	//
@@ -315,7 +321,7 @@ func (n *xdatanode) XChildren(filter xutils.XFilter) []xutils.XpathNode {
 	// filter.  That is because we need to get the same index for the same
 	// child with different filters to be able to remove duplicate nodes from
 	// a nodeset.
-	children := n.children()
+	children := n.children(sortSpec)
 	for _, child := range children {
 		targetType := xutils.NotConfigOrOpdTarget
 		if child.schema().Config() {
@@ -337,7 +343,7 @@ func (n *xdatanode) XChildren(filter xutils.XFilter) []xutils.XpathNode {
 					xml.Name{Space: child.schema().Namespace(),
 						Local: child.XName()},
 					targetType)) {
-				innerChildren := child.children()
+				innerChildren := child.children(sortSpec)
 				for _, innerChild := range innerChildren {
 					if !filter.MatchConfigOnly() ||
 						innerChild.schema().Config() {
@@ -374,7 +380,7 @@ func (b bySystemValue) Less(i, j int) bool {
 	return natsort.Less(b[i].XValue(), b[j].XValue())
 }
 
-func (n *xdatanode) children() []xnode {
+func (n *xdatanode) children(sortSpec xutils.SortSpec) []xnode {
 
 	children := []xnode{}
 
@@ -400,6 +406,10 @@ func (n *xdatanode) children() []xnode {
 			csn := n.sch.Child(child.YangDataName())
 			children = append(children, createXNode(child, csn, n))
 		}
+	}
+
+	if sortSpec == xutils.Unsorted {
+		return children
 	}
 
 	switch n.sch.(type) {
@@ -434,8 +444,8 @@ func createValueNode(value string, sch Node, parent *xdatanode) *xvaluenode {
 	return &xvaluenode{value, sch, parent}
 }
 
-func (n *xvaluenode) children() []xnode { return nil }
-func (n *xvaluenode) schema() Node      { return n.sch }
+func (n *xvaluenode) children(sortSpec xutils.SortSpec) []xnode { return nil }
+func (n *xvaluenode) schema() Node                              { return n.sch }
 
 func (n *xvaluenode) path() []string {
 	if n.parent != nil && n.parent.isKey() {
@@ -457,7 +467,9 @@ func (n *xvaluenode) YangDataValuesNoSorting() []string {
 	return nil
 }
 
-func (n *xvaluenode) XChildren(filter xutils.XFilter) []xutils.XpathNode {
+func (n *xvaluenode) XChildren(
+	filter xutils.XFilter,
+	sortSpec xutils.SortSpec) []xutils.XpathNode {
 	return nil
 }
 

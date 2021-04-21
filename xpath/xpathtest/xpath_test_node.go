@@ -1,4 +1,5 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2018-2019,2021, AT&T Intellectual Property.
+// All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -122,7 +123,10 @@ func (testnode *TNode) XParent() xutils.XpathNode {
 	return testnode.parent
 }
 
-func (testnode *TNode) XChildren(filter xutils.XFilter) []xutils.XpathNode {
+func (testnode *TNode) XChildren(
+	filter xutils.XFilter,
+	sortSpec xutils.SortSpec,
+) []xutils.XpathNode {
 	var filteredChildren []xutils.XpathNode
 
 	// First add key entries

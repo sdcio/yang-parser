@@ -1,4 +1,5 @@
-// Copyright (c) 2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2019,2021, AT&T Intellectual Property.
+// All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -232,7 +233,7 @@ func checkAllChildren(
 	actual xutils.XpathNode,
 	expectedChildren []*xChecker,
 ) {
-	for i, xcn := range actual.XChildren(filter) {
+	for i, xcn := range actual.XChildren(filter, xutils.Sorted) {
 		if i >= len(expectedChildren) {
 			t.Errorf("Unexpected child found: %s\n", xcn.XName())
 			continue

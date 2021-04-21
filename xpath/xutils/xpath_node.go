@@ -1,4 +1,5 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property. All rights reserved.
+// Copyright (c) 2018-2019,2021, AT&T Intellectual Property.
+// All rights reserved.
 //
 // Copyright (c) 2015-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -17,6 +18,13 @@ import (
 	"strings"
 )
 
+type SortSpec bool
+
+const (
+	Unsorted SortSpec = false
+	Sorted            = true
+)
+
 // To isolate us from node types we may want to work with, we have our own
 // interface.  To avoid any namespace collisions with other interfaces, all
 // methods are prefixed with 'X'.
@@ -24,10 +32,12 @@ type XpathNode interface {
 	// Return parent node
 	XParent() XpathNode
 
-	// Return all children, including list keys, in deterministic order.
+	// Return all children, including list keys.
+	// Specify 'Sorted' to get returned nodes in deterministic order.
 	// Xpath uses 'document' order, so for YANG, our system sorts in natural
 	// sorting order, unless ordered-by-user is specified.
-	XChildren(filter XFilter) []XpathNode
+	// 'Unsorted' should be used when order doesn't matter as it is much faster.
+	XChildren(filter XFilter, sortSpec SortSpec) []XpathNode
 
 	// Should return {"/"} for root node.  Returns XPATH-compliant path
 	// where tagnodes and other list elements are treated as siblings.
@@ -180,7 +190,7 @@ func GetStringValue(nodes []XpathNode) string {
 }
 
 func constructStringValue(node XpathNode, stringValue string) string {
-	children := node.XChildren(AllChildren)
+	children := node.XChildren(AllChildren, Sorted)
 	if children == nil {
 		return stringValue + node.XValue()
 	}
@@ -259,7 +269,7 @@ func ValidateTree(root XpathNode) error {
 		}
 
 		// Children checks
-		children := node.XChildren(AllChildren)
+		children := node.XChildren(AllChildren, Sorted)
 		pathIndexMap := make(map[string]bool, len(children))
 		for _, child := range children {
 			if err := NodesEqual(root, child.XRoot()); err != nil {
@@ -298,7 +308,7 @@ func WalkTree(
 		return node, done, err
 	}
 
-	for index, child := range node.XChildren(AllChildren) {
+	for index, child := range node.XChildren(AllChildren, Sorted) {
 		retNode, done, err := WalkTree(child, workFn, index)
 		if done || err != nil {
 			return retNode, done, err
