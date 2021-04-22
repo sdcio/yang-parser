@@ -38,7 +38,6 @@ type XpathLexer interface {
 	SetError(err error)
 	GetProgBldr() *ProgBuilder
 	GetLine() []byte
-	GetLexParams() *CommonSymType
 	Parse()
 
 	Next() rune
@@ -47,57 +46,26 @@ type XpathLexer interface {
 	IsNameStartChar(c rune) bool
 	MapTokenValToCommon(tokenType int) int
 
-	LexLiteral(yylval *CommonSymType, quote rune) int
-	LexDot(c rune, yylval *CommonSymType) int
-	LexNum(c rune, yylval *CommonSymType) int
-	LexSlash() int
-	LexColon() int
-	LexAsterisk(yylval *CommonSymType) int
-	LexRelationalOperator(c rune) int
-	LexName(c rune, yylval *CommonSymType) int
-	LexPunctuation(c rune) int
+	LexLiteral(quote rune) (int, TokVal)
+	LexDot(c rune) (int, TokVal)
+	LexNum(c rune) (int, TokVal)
+	LexSlash() (int, TokVal)
+	LexColon() (int, TokVal)
+	LexAsterisk() (int, TokVal)
+	LexRelationalOperator(c rune) (int, TokVal)
+	LexName(c rune) (int, TokVal)
+	LexPunctuation(c rune) (int, TokVal)
 }
 
-// COMMONSYMTYPE
-type CommonSymType struct {
-	sym     *Symbol  /* Symbol table entry */
-	val     float64  /* Numeric value */
-	name    string   /* NodeType or AxisName */
-	xmlname xml.Name /* For NameTest */
-}
-
-func (cst *CommonSymType) GetSym() *Symbol {
-	return cst.sym
-}
-
-func (cst *CommonSymType) SetSym(sym *Symbol) {
-	cst.sym = sym
-}
-
-func (cst *CommonSymType) GetVal() float64 {
-	return cst.val
-}
-
-func (cst *CommonSymType) GetName() string {
-	return cst.name
-}
-
-func (cst *CommonSymType) SetXmlName(name xml.Name) {
-	cst.xmlname = name
-}
-
-func (cst *CommonSymType) GetXmlName() xml.Name {
-	return cst.xmlname
-}
+type TokVal interface{}
 
 // COMMONLEX
 type CommonLex struct {
 	// Exported via accessors.
-	line      []byte
-	err       error
-	mapFn     PfxMapFn
-	progBldr  *ProgBuilder // Used to build the program to be run later.
-	lexParams CommonSymType
+	line     []byte
+	err      error
+	mapFn    PfxMapFn
+	progBldr *ProgBuilder // Used to build the program to be run later.
 
 	// Internal use only
 	peek           rune
@@ -162,10 +130,6 @@ func (lexer *CommonLex) GetProgBldr() *ProgBuilder {
 	return lexer.progBldr
 }
 
-func (lexer *CommonLex) GetLexParams() *CommonSymType {
-	return &lexer.lexParams
-}
-
 func (lexer *CommonLex) GetLine() []byte { return lexer.line }
 
 func (lexer *CommonLex) GetMapFn() PfxMapFn { return lexer.mapFn }
@@ -197,7 +161,7 @@ func (x *CommonLex) SaveTokenType(tokenType int) {
 //
 // We store the token value so it is available as the preceding token
 // value when parsing the next token.
-func LexCommon(x XpathLexer, yylval *CommonSymType) (tokType int) {
+func LexCommon(x XpathLexer) (tokType int, tokVal TokVal) {
 	defer func() {
 		x.SaveTokenType(tokType)
 	}()
@@ -205,20 +169,20 @@ func LexCommon(x XpathLexer, yylval *CommonSymType) (tokType int) {
 		c := x.Next()
 		switch c {
 		case xutils.EOF:
-			return xutils.EOF
+			return xutils.EOF, nil
 
 		case xutils.ERR:
 			x.SetError(fmt.Errorf("Invalid UTF-8 input"))
-			return xutils.ERR
+			return xutils.ERR, nil
 
 		case '"', '\'':
-			return x.LexLiteral(yylval, c)
+			return x.LexLiteral(c)
 
 		case '.':
-			return x.LexDot(c, yylval)
+			return x.LexDot(c)
 
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			return x.LexNum(c, yylval)
+			return x.LexNum(c)
 
 		case '/':
 			return x.LexSlash()
@@ -227,7 +191,7 @@ func LexCommon(x XpathLexer, yylval *CommonSymType) (tokType int) {
 			return x.LexColon()
 
 		case '*':
-			return x.LexAsterisk(yylval)
+			return x.LexAsterisk()
 
 		case '+', '-', '(', ')', '@', ',', '[', ']', '|':
 			return x.LexPunctuation(c)
@@ -243,99 +207,98 @@ func LexCommon(x XpathLexer, yylval *CommonSymType) (tokType int) {
 		// Names of some form or another ... NameTest, NodeType,
 		// OperatorName, FunctionName, or AxisName
 		if x.IsNameStartChar(c) {
-			return x.LexName(c, yylval)
+			return x.LexName(c)
 		}
 
 		x.SetError(fmt.Errorf("unrecognised character %q", c))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
 }
 
 // Separated out to allow us to override it.
-func (x *CommonLex) LexPunctuation(c rune) int {
-	return int(c)
+func (x *CommonLex) LexPunctuation(c rune) (int, TokVal) {
+	return int(c), nil
 }
 
-func (x *CommonLex) LexDot(c rune, yylval *CommonSymType) int {
+func (x *CommonLex) LexDot(c rune) (int, TokVal) {
 	// Could be '.', '..', or number
 	next := x.Next()
 	switch next {
 	case '.':
-		return xutils.DOTDOT
+		return xutils.DOTDOT, nil
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		x.peek = next
-		return x.LexNum(c, yylval)
+		return x.LexNum(c)
 	default:
 		x.peek = next
-		return '.'
+		return '.', nil
 	}
 }
 
-func (x *CommonLex) LexSlash() int {
+func (x *CommonLex) LexSlash() (int, TokVal) {
 	// Could be '/' or '//'.  NB - this is not 'divide', ever.
 	next := x.Next()
 	if next == '/' {
-		return xutils.DBLSLASH
+		return xutils.DBLSLASH, nil
 	}
 	x.peek = next
-	return '/'
+	return '/', nil
 }
 
-func (x *CommonLex) LexColon() int {
+func (x *CommonLex) LexColon() (int, TokVal) {
 	// Should be '::' as single colons are only allowed within QNames and
 	// are not detected in main lexer loop.
 	next := x.Next()
 	if next == ':' {
-		return xutils.DBLCOLON
+		return xutils.DBLCOLON, nil
 	}
 	// Part of a name, should have been detected elsewhere.
 	x.peek = next
 	x.SetError(fmt.Errorf("':' only supported in QNames"))
-	return xutils.ERR
+	return xutils.ERR, nil
 }
 
-func (x *CommonLex) LexAsterisk(yylval *CommonSymType) int {
+func (x *CommonLex) LexAsterisk() (int, TokVal) {
 	if x.tokenCanBeOperator() {
-		return '*'
+		return '*', nil
 	}
 
 	// This is the global wildcard representing all child nodes, regardless
 	// of module.
-	yylval.xmlname = xutils.AllChildren.Name()
-	return xutils.NAMETEST
+	return xutils.NAMETEST, xutils.AllChildren.Name()
 }
 
-func (x *CommonLex) LexRelationalOperator(c rune) int {
+func (x *CommonLex) LexRelationalOperator(c rune) (int, TokVal) {
 	switch c {
 	case '=':
-		return xutils.EQ
+		return xutils.EQ, nil
 	case '>':
 		next := x.Next()
 		if next == '=' {
-			return xutils.GE
+			return xutils.GE, nil
 		}
 		x.peek = next
-		return xutils.GT
+		return xutils.GT, nil
 
 	case '<':
 		next := x.Next()
 		if next == '=' {
-			return xutils.LE
+			return xutils.LE, nil
 		}
 		x.peek = next
-		return xutils.LT
+		return xutils.LT, nil
 
 	case '!':
 		next := x.Next()
 		if next == '=' {
-			return xutils.NE
+			return xutils.NE, nil
 		}
 		x.peek = next
 		x.SetError(fmt.Errorf("'!' only valid when followed by '='"))
-		return xutils.ERR
+		return xutils.ERR, nil
 	default:
 		x.SetError(fmt.Errorf("Invalid relational operator"))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
 }
 
@@ -357,7 +320,7 @@ func (x *CommonLex) LexRelationalOperator(c rune) int {
 // (d) In all other cases, the token must NOT be recognised as a Multiply
 //     Operator, OperatorName, NodeType, FunctionName, or AxisName
 //
-func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
+func (x *CommonLex) LexName(c rune) (int, TokVal) {
 	nameMatcher := func(c rune) bool {
 		if x.IsNameChar(c) {
 			return true
@@ -371,37 +334,34 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 	// If there's a preceding token, and it's not '@', '::', '(', '[', ',' or
 	// an Operator then NCName is an OperatorName
 	if x.tokenCanBeOperator() {
-		return x.getOperatorName(name.String())
+		return x.getOperatorName(name.String()), nil
 	}
 
 	// If next non-whitespace character is '(' then this must be a NodeType
 	// or a FunctionName
 	if x.NextNonWhitespaceStringIs("(") {
 		if x.nameIsNodeType(name.String()) {
-			yylval.name = name.String()
-			return xutils.NODETYPE
+			return xutils.NODETYPE, name.String()
 		}
 		fn, ok := LookupXpathFunction(
 			name.String(),
 			x.allowCustomFns,
 			x.userFnChecker)
 		if ok {
-			yylval.sym = fn
-			return xutils.FUNC
+			return xutils.FUNC, fn
 		}
 		x.SetError(fmt.Errorf("Unknown function or node type: '%s'",
 			name.String()))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
 
 	// If next non-whitespace token is '::', NCName is an AxisName.
 	if x.NextNonWhitespaceStringIs("::") {
 		if x.nameIsAxisName(name.String()) {
-			yylval.name = name.String()
-			return xutils.AXISNAME
+			return xutils.AXISNAME, name.String()
 		}
 		x.SetError(fmt.Errorf("Unknown axis name: '%s'", name.String()))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
 
 	// If none of the above applies, it's a NameTest token.  Question is
@@ -415,7 +375,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 		if c := x.NextNonWhitespace(); c != ':' {
 			x.SetError(fmt.Errorf(
 				"Badly formatted QName (exp ':', got '%c'", c))
-			return xutils.ERR
+			return xutils.ERR, nil
 		}
 
 		// Now we need the local part - or wildcard (*).  Note that in the
@@ -425,7 +385,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 			// Next token had better be a '*' when formally extracted ...
 			if c := x.NextNonWhitespace(); c != '*' {
 				x.SetError(fmt.Errorf("Badly formatted QName (*)."))
-				return xutils.ERR
+				return xutils.ERR, nil
 			}
 			prefix = name.String()
 			localPart = "*"
@@ -434,7 +394,7 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 			c := x.NextNonWhitespace()
 			if c == xutils.EOF {
 				x.err = fmt.Errorf("Name requires local part.")
-				return xutils.ERR
+				return xutils.ERR, nil
 			}
 			localPartBuf := x.ConstructToken(c, nameMatcher, "NAME")
 			localPart = localPartBuf.String()
@@ -452,17 +412,15 @@ func (x *CommonLex) LexName(c rune, yylval *CommonSymType) int {
 		namespace, err = x.mapFn(prefix)
 		if err != nil {
 			x.SetError(err)
-			return xutils.ERR
+			return xutils.ERR, nil
 		}
 	}
 
-	yylval.xmlname = xml.Name{Space: namespace, Local: localPart}
-
-	return xutils.NAMETEST
+	return xutils.NAMETEST, xml.Name{Space: namespace, Local: localPart}
 }
 
 // Lex 'literal' string contained in single or double quotes
-func (x *CommonLex) LexLiteral(yylval *CommonSymType, quote rune) int {
+func (x *CommonLex) LexLiteral(quote rune) (int, TokVal) {
 	literalMatcher := func(c rune) bool {
 		if c != quote {
 			return true
@@ -481,15 +439,14 @@ func (x *CommonLex) LexLiteral(yylval *CommonSymType, quote rune) int {
 		x.Next()
 	}
 
-	yylval.name = b.String()
 	if x.err != nil {
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
-	return xutils.LITERAL
+	return xutils.LITERAL, b.String()
 }
 
 // Lex a number.
-func (x *CommonLex) LexNum(c rune, yylval *CommonSymType) int {
+func (x *CommonLex) LexNum(c rune) (int, TokVal) {
 	numMatcher := func(c rune) bool {
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', 'e', 'E':
@@ -500,12 +457,11 @@ func (x *CommonLex) LexNum(c rune, yylval *CommonSymType) int {
 	b := x.ConstructToken(c, numMatcher, xutils.GetTokenName(xutils.NUM))
 	val, err := strconv.ParseFloat(b.String(), 10)
 
-	yylval.val = val
 	if err != nil {
 		x.SetError(fmt.Errorf("bad number %q", b.String()))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
-	return xutils.NUM
+	return xutils.NUM, val
 }
 
 // An operator cannot follow a specific set of other tokens, which include

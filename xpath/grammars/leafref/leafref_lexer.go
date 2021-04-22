@@ -48,16 +48,24 @@ func getProgBldr(lexer leafrefLexer) *xpath.ProgBuilder {
 	return lexer.(*leafrefLex).GetProgBldr()
 }
 
-// Wrapper around CommonLex to map between leafrefSymType and the common
-// lexParams.
+// Wrapper around CommonLex to map to leafrefSymType fields
 func (x *leafrefLex) Lex(yylval *leafrefSymType) int {
-	lexParams := x.GetLexParams()
+	tok, val := xpath.LexCommon(x)
 
-	retval := xpath.LexCommon(x, lexParams)
-	yylval.sym = lexParams.GetSym()
-	yylval.val = lexParams.GetVal()
-	yylval.xmlname = lexParams.GetXmlName()
-	return mapCommonTokenValToLeafref(retval)
+	switch v := val.(type) {
+	case nil:
+		/* No value */
+	case float64:
+		yylval.val = v
+	case *xpath.Symbol:
+		yylval.sym = v
+	case xml.Name:
+		yylval.xmlname = v
+	default:
+		tok = xutils.ERR
+	}
+
+	return mapCommonTokenValToLeafref(tok)
 }
 
 const EOF = 0
@@ -133,34 +141,34 @@ func startsWithXML(name string) bool {
 	return false
 }
 
-func (x *leafrefLex) LexPunctuation(c rune) int {
+func (x *leafrefLex) LexPunctuation(c rune) (int, xpath.TokVal) {
 	switch c {
 	case '[', ']', '(', ')':
-		return int(c)
+		return int(c), nil
 	default:
 		x.SetError(fmt.Errorf("'%c' is not a valid token.", c))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
 }
 
 // '..' is only valid token that starts with a dot.
-func (x *leafrefLex) LexDot(c rune, yylval *xpath.CommonSymType) int {
+func (x *leafrefLex) LexDot(c rune) (int, xpath.TokVal) {
 	next := x.Next()
 	switch next {
 	case '.':
-		return xutils.DOTDOT
+		return xutils.DOTDOT, nil
 	default:
 		x.SetError(fmt.Errorf("'.' is not a valid token."))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
 }
 
-func (x *leafrefLex) LexNum(c rune, yylval *xpath.CommonSymType) int {
+func (x *leafrefLex) LexNum(c rune) (int, xpath.TokVal) {
 	x.SetError(fmt.Errorf("Numbers are not valid tokens."))
-	return xutils.ERR
+	return xutils.ERR, nil
 }
 
-func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
+func (x *leafrefLex) LexName(c rune) (int, xpath.TokVal) {
 	nameMatcher := func(c rune) bool {
 		if x.IsNameChar(c) {
 			return true
@@ -176,17 +184,16 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 		if name.String() != "current" {
 			x.SetError(fmt.Errorf("Function '%s' is not valid here.",
 				name.String()))
-			return xutils.ERR
+			return xutils.ERR, nil
 		}
 		fn, ok := xpath.LookupXpathFunction(name.String(),
 			false, /* no custom functions allowed here */
 			nil /* no user-provided checker fn */)
 		if ok {
-			yylval.SetSym(fn)
-			return xutils.FUNC
+			return xutils.FUNC, fn
 		}
 		x.SetError(fmt.Errorf("Unable to resolve 'current' function."))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
 
 	// OK, it's a NameTest token.  Question is whether it's a Prefixed or
@@ -199,19 +206,19 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 		if c := x.NextNonWhitespace(); c != ':' {
 			x.SetError(fmt.Errorf(
 				"Badly formatted QName (exp ':', got '%c'", c))
-			return xutils.ERR
+			return xutils.ERR, nil
 		}
 
 		// Now we need the local part.  No wildcards here
 		c := x.NextNonWhitespace()
 		if c == xutils.EOF {
 			x.SetError(fmt.Errorf("Name requires local part."))
-			return xutils.ERR
+			return xutils.ERR, nil
 		}
 		if !x.IsNameStartChar(c) {
 			x.SetError(fmt.Errorf(
 				"Illegal local part start character: '%c'", c))
-			return xutils.ERR
+			return xutils.ERR, nil
 		}
 		localPartBuf := x.ConstructToken(c, nameMatcher, "NAME")
 		localPart = localPartBuf.String()
@@ -226,7 +233,7 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 		x.SetError(fmt.Errorf(
 			"Neither part of name may begin with XML: '%s:%s'",
 			prefix, localPart))
-		return xutils.ERR
+		return xutils.ERR, nil
 	}
 
 	// If we have a mapping function, map the locally-scoped (within namespace)
@@ -237,13 +244,11 @@ func (x *leafrefLex) LexName(c rune, yylval *xpath.CommonSymType) int {
 		namespace, err = x.GetMapFn()(prefix)
 		if err != nil {
 			x.SetError(err)
-			return xutils.ERR
+			return xutils.ERR, nil
 		}
 	}
 
-	yylval.SetXmlName(xml.Name{Space: namespace, Local: localPart})
-
-	return xutils.NAMETEST
+	return xutils.NAMETEST, xml.Name{Space: namespace, Local: localPart}
 }
 
 // Create a machine that can run the full XLEAFREF grammar for 'when' and

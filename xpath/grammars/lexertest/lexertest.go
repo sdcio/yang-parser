@@ -20,7 +20,7 @@ import (
 
 const NoErrMsg = ""
 
-type tokenCheckFnType func(*testing.T, xpath.CommonSymType)
+type tokenCheckFnType func(*testing.T, xpath.TokVal)
 
 func checkTokenInternal(
 	t *testing.T,
@@ -32,10 +32,8 @@ func checkTokenInternal(
 ) {
 	t.Helper()
 
-	var lexVal xpath.CommonSymType
-
 	line := lexer.GetLine()
-	lexType := xpath.LexCommon(lexer, &lexVal)
+	lexType, lexVal := xpath.LexCommon(lexer)
 	tokenType = lexer.MapTokenValToCommon(tokenType)
 
 	// Pass or fail, we expect a token type (EOF if fail / end).
@@ -93,12 +91,12 @@ func CheckToken(t *testing.T, lexer xpath.XpathLexer, tokenType int) {
 func CheckNumToken(t *testing.T, lexer xpath.XpathLexer, tokenVal float64) {
 	t.Helper()
 
-	checkNum := func(t *testing.T, lexVal xpath.CommonSymType) {
+	checkNum := func(t *testing.T, lexVal xpath.TokVal) {
 		t.Helper()
 
-		if tokenVal != lexVal.GetVal() {
+		if tokenVal != lexVal.(float64) {
 			t.Fatalf("Wrong token value.  Exp %v, got %v", tokenVal,
-				lexVal.GetVal())
+				lexVal.(float64))
 		}
 	}
 	checkTokenInternal(t, lexer, xutils.NUM, true, NoErrMsg, checkNum)
@@ -107,12 +105,12 @@ func CheckNumToken(t *testing.T, lexer xpath.XpathLexer, tokenVal float64) {
 func CheckFuncToken(t *testing.T, lexer xpath.XpathLexer, funcName string) {
 	t.Helper()
 
-	checkFunc := func(t *testing.T, lexVal xpath.CommonSymType) {
+	checkFunc := func(t *testing.T, lexVal xpath.TokVal) {
 		t.Helper()
 
-		if funcName != lexVal.GetSym().GetName() {
+		if funcName != lexVal.(*xpath.Symbol).GetName() {
 			t.Fatalf("Wrong function name.  Exp '%s', got '%s'", funcName,
-				lexVal.GetSym().GetName())
+				lexVal.(*xpath.Symbol).GetName())
 		}
 	}
 	checkTokenInternal(t, lexer, xutils.FUNC, true, NoErrMsg, checkFunc)
@@ -126,12 +124,12 @@ func CheckStringToken(
 ) {
 	t.Helper()
 
-	checkString := func(t *testing.T, lexVal xpath.CommonSymType) {
+	checkString := func(t *testing.T, lexVal xpath.TokVal) {
 		t.Helper()
 
-		if name != lexVal.GetName() {
+		if name != lexVal.(string) {
 			t.Fatalf("Wrong %s name.  Exp '%s', got '%s'",
-				xutils.GetTokenName(tokenType), name, lexVal.GetName())
+				xutils.GetTokenName(tokenType), name, lexVal.(string))
 		}
 	}
 	checkTokenInternal(t, lexer, tokenType, true, NoErrMsg, checkString)
@@ -162,16 +160,16 @@ func CheckNameTestToken(
 ) {
 	t.Helper()
 
-	checkNameTest := func(t *testing.T, lexVal xpath.CommonSymType) {
+	checkNameTest := func(t *testing.T, lexVal xpath.TokVal) {
 		t.Helper()
 
-		if xmlname.Space != lexVal.GetXmlName().Space {
+		if xmlname.Space != lexVal.(xml.Name).Space {
 			t.Fatalf("Wrong NameTest namespace.  Exp '%s', got '%s'",
-				xmlname.Space, lexVal.GetXmlName().Space)
+				xmlname.Space, lexVal.(xml.Name).Space)
 		}
-		if xmlname.Local != lexVal.GetXmlName().Local {
+		if xmlname.Local != lexVal.(xml.Name).Local {
 			t.Fatalf("Wrong NameTest Local.  Exp '%s', got '%s'",
-				xmlname.Local, lexVal.GetXmlName().Local)
+				xmlname.Local, lexVal.(xml.Name).Local)
 		}
 	}
 	checkTokenInternal(t, lexer, xutils.NAMETEST, true,

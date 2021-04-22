@@ -16,6 +16,7 @@
 package expr
 
 import (
+	"encoding/xml"
 	"fmt"
 
 	"github.com/danos/yang/xpath"
@@ -47,17 +48,26 @@ func getProgBldr(lexer exprLexer) *xpath.ProgBuilder {
 	return lexer.(*exprLex).GetProgBldr()
 }
 
-// Wrapper around CommonLex to map between exprSymType and the common
-// lexParams.
+// Wrapper around CommonLex to map to exprSymType fields
 func (x *exprLex) Lex(yylval *exprSymType) int {
-	lexParams := x.GetLexParams()
+	tok, val := xpath.LexCommon(x)
 
-	retval := xpath.LexCommon(x, lexParams)
-	yylval.sym = lexParams.GetSym()
-	yylval.val = lexParams.GetVal()
-	yylval.name = lexParams.GetName()
-	yylval.xmlname = lexParams.GetXmlName()
-	return mapCommonTokenValToExpr(retval)
+	switch v := val.(type) {
+	case nil:
+		/* No value */
+	case float64:
+		yylval.val = v
+	case string:
+		yylval.name = v
+	case *xpath.Symbol:
+		yylval.sym = v
+	case xml.Name:
+		yylval.xmlname = v
+	default:
+		tok = xutils.ERR
+	}
+
+	return mapCommonTokenValToExpr(tok)
 }
 
 const EOF = 0

@@ -13,6 +13,7 @@
 package path_eval
 
 import (
+	"encoding/xml"
 	"fmt"
 
 	"github.com/danos/yang/xpath"
@@ -44,17 +45,26 @@ func getProgBldr(lexer pathEvalLexer) *xpath.ProgBuilder {
 	return lexer.(*pathEvalLex).GetProgBldr()
 }
 
-// Wrapper around CommonLex to map between pathEvalSymType and the common
-// lexParams.
+// Wrapper around CommonLex to map to pathEvalSymType fields
 func (x *pathEvalLex) Lex(yylval *pathEvalSymType) int {
-	lexParams := x.GetLexParams()
+	tok, val := xpath.LexCommon(x)
 
-	retval := xpath.LexCommon(x, lexParams)
-	yylval.sym = lexParams.GetSym()
-	yylval.val = lexParams.GetVal()
-	yylval.name = lexParams.GetName()
-	yylval.xmlname = lexParams.GetXmlName()
-	return mapCommonTokenValToPathEval(retval)
+	switch v := val.(type) {
+	case nil:
+		/* No value */
+	case float64:
+		yylval.val = v
+	case string:
+		yylval.name = v
+	case *xpath.Symbol:
+		yylval.sym = v
+	case xml.Name:
+		yylval.xmlname = v
+	default:
+		tok = xutils.ERR
+	}
+
+	return mapCommonTokenValToPathEval(tok)
 }
 
 const EOF = 0
