@@ -198,6 +198,7 @@ func checkLeafref(
 	lref Leafref,
 	debugCtx *yangValDebugContext,
 	valType ValidationType,
+	leafrefMap map[string][]string,
 ) ([]*exec.Output, []error, bool) {
 
 	if skipCheck(c, valType) {
@@ -206,14 +207,39 @@ func checkLeafref(
 
 	outs, errs := make([]*exec.Output, 0), make([]error, 0)
 
-	if allowedValues, err := lref.AllowedValues(
-		c, debugCtx.debugEnabled()); err != nil {
-		return outs, append(errs, err), false
-	} else {
-		for _, value := range allowedValues {
-			if c.XValue() == value {
-				return outs, errs, true
+	var ok bool
+	var err error
+	var allowedValues []string
+
+	// If we have previously done a leafref check for this path during this
+	// validation session, and the leafref path has no predicates in it, we
+	// know we would get the same set of allowed values and can use a cached
+	// version.
+	//
+	// NB: assumes there can only be a single leafref statement for a single
+	//     YANG node which is valid as YANG 1.0 does not support leafrefs
+	//     in a union type. As and when we do support later versions of YANG
+	//     that allow this, we will need to rewrite this function anyway, so
+	//     needn't worry about it now.
+	if allowedValues, ok = leafrefMap[c.XPath().String()]; !ok {
+		if allowedValues, err = lref.AllowedValues(
+			c, debugCtx.debugEnabled()); err != nil {
+			return outs, append(errs, err), false
+		} else {
+			// So long as the leafref is not filtered with a predicate, we
+			// can save it for reuse.
+			if !strings.Contains(lref.Mach().GetExpr(), "[") {
+				leafrefMap[c.XPath().String()] = allowedValues
 			}
+		}
+	}
+
+	// While you might think making allowedValues a map would make this much
+	// faster, tests show that it essentially makes no difference, or is
+	// possibly marginally slower.
+	for _, value := range allowedValues {
+		if c.XValue() == value {
+			return outs, errs, true
 		}
 	}
 
@@ -318,6 +344,7 @@ func validateLeafSchema(
 	c xnode,
 	debugCtx *yangValDebugContext,
 	valType ValidationType,
+	leafrefMap map[string][]string,
 ) ([]*exec.Output, []error, bool) {
 
 	vals := c.YangDataValuesNoSorting()
@@ -338,7 +365,7 @@ func validateLeafSchema(
 
 		if lref, ok := child.schema().Type().(Leafref); ok {
 			checkLeafrefFn := func() ([]*exec.Output, []error, bool) {
-				return checkLeafref(child, lref, debugCtx, valType)
+				return checkLeafref(child, lref, debugCtx, valType, leafrefMap)
 			}
 			outs, errs, _ = exec.AppendOutput(checkLeafrefFn, outs, errs)
 		}
@@ -687,6 +714,7 @@ func validateListSchema(
 	c xnode,
 	debugCtx *yangValDebugContext,
 	valType ValidationType,
+	leafrefMap map[string][]string,
 ) ([]*exec.Output, []error, bool) {
 
 	children := c.children(xutils.Sorted)
@@ -702,7 +730,7 @@ func validateListSchema(
 	outs, errs, _ = exec.AppendOutput(checkUniqueFn, outs, errs)
 	for _, n := range children {
 		validateSchemaFn := func() ([]*exec.Output, []error, bool) {
-			return validateSchemaWithLog(n, debugCtx, valType)
+			return validateSchemaWithLog(n, debugCtx, valType, leafrefMap)
 		}
 		outs, errs, _ = exec.AppendOutput(validateSchemaFn, outs, errs)
 	}
@@ -721,22 +749,28 @@ func ValidateSchemaWithLog(
 	sn Node, c datanode.DataNode, options ...YangDebugOption,
 ) ([]*exec.Output, []error, bool) {
 
+	// Used to cache any sets of allowed values extracted for leafref validation
+	// for the duration of the validation session. Note we can only cache where
+	// the leafref path has no predicate (filtering).
+	leafrefMap := make(map[string][]string)
+
 	xnode := createXNode(c, sn, nil)
 	return validateSchemaWithLog(
-		xnode, newYangValDbgCtxt(options...), ValidateAll)
+		xnode, newYangValDbgCtxt(options...), ValidateAll, leafrefMap)
 }
 
 func validateSchemaWithLog(
 	c xnode,
 	debugCtx *yangValDebugContext,
 	valType ValidationType,
+	leafrefMap map[string][]string,
 ) ([]*exec.Output, []error, bool) {
 
 	switch c.schema().(type) {
 	case Leaf, LeafList:
-		return validateLeafSchema(c, debugCtx, valType)
+		return validateLeafSchema(c, debugCtx, valType, leafrefMap)
 	case List:
-		return validateListSchema(c, debugCtx, valType)
+		return validateListSchema(c, debugCtx, valType, leafrefMap)
 	}
 
 	checkWhenAndMustsFn := func() ([]*exec.Output, []error, bool) {
@@ -748,7 +782,7 @@ func validateSchemaWithLog(
 	for _, n := range c.children(xutils.Sorted) {
 		validateSchemaFn := func() ([]*exec.Output, []error, bool) {
 			return validateSchemaWithLog(
-				n, debugCtx, valType)
+				n, debugCtx, valType, leafrefMap)
 		}
 		outs, errs, _ = exec.AppendOutput(validateSchemaFn, outs, errs)
 	}
@@ -788,8 +822,10 @@ func (sv *SchemaValidator) SetValidation(
 }
 
 func (sv *SchemaValidator) Validate() ([]*exec.Output, []error, bool) {
+	leafrefMap := make(map[string][]string)
+
 	return validateSchemaWithLog(
-		sv.xn, sv.debugCtx, sv.valType)
+		sv.xn, sv.debugCtx, sv.valType, leafrefMap)
 }
 
 // yangValDebugContext - debug parameters for YANG validation
