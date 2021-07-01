@@ -1,3 +1,41 @@
+golang-github-danos-yang (2.12) unstable; urgency=medium
+
+  [ William Ivory ]
+  * Fix go vet for Bullseye build
+  * Rever to compat level 10
+
+  [ Paul Carson ]
+  * YANG: Support choice (Closes: VRVDR-6224)
+
+  [ Derek Fawcus ]
+  * Remove stale comments regarding exprLex
+  * Correct a comment within the machine abstraction
+  * Update some stale lexer comments
+  * Remove obsolete and unused fields and an accessor.
+  * XPATH: Apply gofmt adjustments to the code
+  * XPATH: Allow parser to complete and return status
+  * XPATH: Remove unused arg from CheckUnlexableToken()
+  * XPATH: Use iota for token definitions
+  * XPATH: Upon a lexer error, return ERR token not EOF
+  * XPATH: Remove post parse lexer check for EOF
+  * XPATH: Allow EOF as an expected result in expr lexer test
+  * XPATH: Fix lexer test with surrogate boundary rune
+  * XPATH: Make the lexer reject invalid UTF-8 input
+  * XPATH: Rewrite NextNonWhitespaceStringIs()
+  * XPATH: Improve lexer test error reports
+
+  [ William Ivory ]
+  * Make sort optional in XChildren() method.
+
+  [ Derek Fawcus ]
+  * XPATH: Use defer in common lexer to save token
+  * XPATH: Eliminate xpath.CommonSymType
+
+  [ William Ivory ]
+  * Cache leafref allowed values.
+
+ -- Paul Carson <paul.carson@intl.att.com>  Thu, 01 Jul 2021 14:00:54 +0100
+
 golang-github-danos-yang (2.11) unstable; urgency=medium
 
   [ John Southworth ]
