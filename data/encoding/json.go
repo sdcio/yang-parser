@@ -138,6 +138,10 @@ func UnmarshalRFC7951(sn schema.Node, json_input []byte) (datanode.DataNode, err
 	return unmarshalJSONInternal(sn, json_input, schema.ValidateAll, RFC7951)
 }
 
+func UnmarshalRFC7951WithoutValidation(sn schema.Node, json_input []byte) (datanode.DataNode, error) {
+	return unmarshalJSONInternal(sn, json_input, schema.DontValidate, RFC7951)
+}
+
 func UnmarshalJSON(sn schema.Node, json_input []byte) (datanode.DataNode, error) {
 	return unmarshalJSONInternal(sn, json_input, schema.ValidateAll, JSON)
 }
