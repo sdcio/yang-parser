@@ -193,6 +193,24 @@ func getUnconfiguredNPContainerChildren(c xnode) map[string]Node {
 	return npContChildNodes
 }
 
+func leafrefIsCacheable(lrefExpr string) bool {
+	// Not worth trying to parse the predicate to work out if we can cache it
+	// so don't bother.
+	if strings.Contains(lrefExpr, "[") {
+		return false
+	}
+
+	// If the leafref contains a relative path, then if the path is wholly
+	// within a higher level list, we may cache values for one higher-level list
+	// entry, then use that when doing a lookup for another entry, leading to
+	// the wrong values being allowed.
+	if strings.Contains(lrefExpr, "..") {
+		return false
+	}
+
+	return true
+}
+
 func checkLeafref(
 	c xnode,
 	lref Leafref,
@@ -226,9 +244,7 @@ func checkLeafref(
 			c, debugCtx.debugEnabled()); err != nil {
 			return outs, append(errs, err), false
 		} else {
-			// So long as the leafref is not filtered with a predicate, we
-			// can save it for reuse.
-			if !strings.Contains(lref.Mach().GetExpr(), "[") {
+			if leafrefIsCacheable(lref.Mach().GetExpr()) {
 				leafrefMap[c.XPath().String()] = allowedValues
 			}
 		}
