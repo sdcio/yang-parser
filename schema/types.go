@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020, AT&T Intellectual Property. All rights reserved
+// Copyright (c) 2017-2021, AT&T Intellectual Property. All rights reserved
 //
 // Copyright (c) 2014-2017 by Brocade Communications Systems, Inc.
 // All rights reserved.
@@ -21,6 +21,7 @@ import (
 	"github.com/danos/utils/pathutil"
 	"github.com/danos/yang/xpath"
 	"github.com/danos/yang/xpath/xutils"
+	"github.com/danos/yang/yangutils"
 )
 
 /*
@@ -313,6 +314,11 @@ func (d *decimal64) Validate(ctx ValidateCtx, path []string, s string) error {
 		goto out
 	}
 
+	err = yangutils.ValidateDecimal64String(s, int(d.fd))
+	if err != nil {
+		goto out
+	}
+
 	if len(d.rbs) == 0 {
 		rb, ok := fdtab[d.fd]
 		if ok {
@@ -343,6 +349,8 @@ out:
 				fmt.Sprintf("%s is not a decimal64", s), d.appTag)
 		}
 		return newInvalidValueErrorWithAppTag(path, genErrorString(d), d.appTag)
+	case *yangutils.ValidateDecimal64Error:
+		return newInvalidValueErrorWithAppTag(path, err.Error(), d.appTag)
 	default:
 		return newInvalidValueErrorWithAppTag(path, genErrorString(d), d.appTag)
 	}
