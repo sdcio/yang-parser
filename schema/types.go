@@ -21,7 +21,6 @@ import (
 	"github.com/danos/utils/pathutil"
 	"github.com/danos/yang/xpath"
 	"github.com/danos/yang/xpath/xutils"
-	"github.com/danos/yang/yangutils"
 )
 
 /*
@@ -305,6 +304,7 @@ func NewDecimal64(
 		rbs:    rbs,
 		msg:    msg,
 		appTag: appTag,
+		fd:     fd,
 	}
 }
 
@@ -314,7 +314,7 @@ func (d *decimal64) Validate(ctx ValidateCtx, path []string, s string) error {
 		goto out
 	}
 
-	err = yangutils.ValidateDecimal64String(s, int(d.fd))
+	err = ValidateDecimal64String(s, int(d.fd))
 	if err != nil {
 		goto out
 	}
@@ -349,7 +349,7 @@ out:
 				fmt.Sprintf("%s is not a decimal64", s), d.appTag)
 		}
 		return newInvalidValueErrorWithAppTag(path, genErrorString(d), d.appTag)
-	case *yangutils.ValidateDecimal64Error:
+	case *ValidateDecimal64Error:
 		return newInvalidValueErrorWithAppTag(path, err.Error(), d.appTag)
 	default:
 		return newInvalidValueErrorWithAppTag(path, genErrorString(d), d.appTag)

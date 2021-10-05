@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-package yangutils_test
+package schema_test
 
 import (
 	"testing"

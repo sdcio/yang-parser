@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-package yangutils
+package schema
 
 import (
 	"fmt"
@@ -14,12 +14,14 @@ import (
 const maxDecimal64 = math.MaxInt64
 const minDecimal64 = math.MinInt64
 
-const ErrorStringNullInput = "Decimal64 must contain at least one decimal digit"
-const ErrorStringSign = "Invalid input: Decimal64 values must begin with +/- or a decimal digit"
-const ErrorStringExcessDecimalPoint = "Invalid input: More than one `.` rune was found"
-const ErrorStringFractionDigitMismatch = "Number of fractional digits in input string is greater than int parameter"
-const ErrorStringValueAboveMaximum = "Value is greater than maximum decimal64"
-const ErrorStringValueBelowMinimum = "Value is less than minimum decimal64"
+const (
+	ErrorStringNullInput             = "Decimal64 must contain at least one decimal digit"
+	ErrorStringSign                  = "Invalid input: Decimal64 values must begin with +/- or a decimal digit"
+	ErrorStringExcessDecimalPoint    = "Invalid input: More than one `.` rune was found"
+	ErrorStringFractionDigitMismatch = "Number of fractional digits in input string is greater than int parameter"
+	ErrorStringValueAboveMaximum     = "Value is greater than maximum decimal64"
+	ErrorStringValueBelowMinimum     = "Value is less than minimum decimal64"
+)
 
 type ValidateDecimal64Error struct {
 	err string
@@ -43,7 +45,7 @@ func pow10Int64(exponent int) int64 {
 }
 
 // Implement validation for decimal64 values according to RFC6020: 9.3
-func ValidateDecimal64String(s string, fractionDigitsExpected int) error {
+func ValidateDecimal64String(s string, fractionDigitsAllowed int) error {
 	if len(s) == 0 {
 		return NewValidateDecimal64Error(ErrorStringNullInput)
 	}
@@ -65,8 +67,7 @@ func ValidateDecimal64String(s string, fractionDigitsExpected int) error {
 	}
 
 	fractionDigitsActual := len(sSplit[1])
-	// fractionDigitsExpected = 0 disables this check
-	if fractionDigitsExpected != 0 && fractionDigitsActual > fractionDigitsExpected {
+	if fractionDigitsActual > fractionDigitsExpected {
 		return NewValidateDecimal64Error(ErrorStringFractionDigitMismatch)
 	}
 
