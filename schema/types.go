@@ -349,7 +349,7 @@ out:
 				fmt.Sprintf("%s is not a decimal64", s), d.appTag)
 		}
 		return newInvalidValueErrorWithAppTag(path, genErrorString(d), d.appTag)
-	case *ValidateDecimal64Error:
+	case *validateDecimal64Error:
 		return newInvalidValueErrorWithAppTag(path, err.Error(), d.appTag)
 	default:
 		return newInvalidValueErrorWithAppTag(path, genErrorString(d), d.appTag)
