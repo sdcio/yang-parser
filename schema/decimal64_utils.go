@@ -51,7 +51,7 @@ func newValidateDecimal64Error(s string) error {
 }
 
 // Implement validation for decimal64 values according to RFC6020: 9.3
-func ValidateDecimal64String(s string, fractionDigitsAllowed int) error {
+func validateDecimal64String(s string, fractionDigitsAllowed int) error {
 	if fractionDigitsAllowed < minFractionalDigits ||
 		fractionDigitsAllowed > maxFractionalDigits {
 

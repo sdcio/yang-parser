@@ -2,23 +2,21 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-package schema_test
+package schema
 
 import (
 	"testing"
-
-	"github.com/danos/yang/schema"
 )
 
 func runValidateDecimal64StringAndCheckFails(t *testing.T, s string, fractionalDigits int) {
-	err := schema.ValidateDecimal64String(s, fractionalDigits)
+	err := validateDecimal64String(s, fractionalDigits)
 	if err == nil {
 		t.Errorf("Input: %q failed to produce error where expected", s)
 	}
 }
 
 func runValidateDecimal64StringAndCheckPasses(t *testing.T, s string, fractionalDigits int) {
-	err := schema.ValidateDecimal64String(s, fractionalDigits)
+	err := validateDecimal64String(s, fractionalDigits)
 	if err != nil {
 		t.Errorf("Input: %q produced unexpected error: %s", s, err)
 	}

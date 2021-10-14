@@ -314,7 +314,7 @@ func (d *decimal64) Validate(ctx ValidateCtx, path []string, s string) error {
 		goto out
 	}
 
-	err = ValidateDecimal64String(s, int(d.fd))
+	err = validateDecimal64String(s, int(d.fd))
 	if err != nil {
 		goto out
 	}
