@@ -5,8 +5,6 @@ github.com/danos/mgmterror v0.0.0-20210701125710-6fcf751e367d h1:7cEcI1PYDQG0qY3
 github.com/danos/mgmterror v0.0.0-20210701125710-6fcf751e367d/go.mod h1:N+DyxRMzbAR6O0BJ5o0wS8comsoDrQK8Aq4uVQGdJ9k=
 github.com/danos/utils v0.0.0-20210701125856-7935e3348d7c h1:K8sh1ijWG/vJys/+jIMALn+pPXEFT5OIymDokhogUFo=
 github.com/danos/utils v0.0.0-20210701125856-7935e3348d7c/go.mod h1:x9ZL5/MYIZ7FWFrsDqYbCD+KiOsNrxc4p/l+oXuAzBI=
-github.com/danos/yang v0.0.0-20211014141500-17f832489be9 h1:7VGrUhCMI/TZL6LVqC70WPSVfTYRHtKSmsUhnW/PYW8=
-github.com/danos/yang v0.0.0-20211014141500-17f832489be9/go.mod h1:VorVOYVsJdcOms2FLlY2zxkSWjpVj6oH7GFt7BX80ac=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
