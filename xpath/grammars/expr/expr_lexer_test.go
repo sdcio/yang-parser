@@ -18,8 +18,8 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	. "github.com/danos/yang/xpath/grammars/lexertest"
-	"github.com/danos/yang/xpath/xutils"
+	. "github.com/steiler/yang-parser/xpath/grammars/lexertest"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // The UTF-8 encoding for 0xD800, which is invalid in a UTF-8 stream,
@@ -582,19 +582,22 @@ func TestLexBadUTF(t *testing.T) {
 // Rules for disambiguating:
 //
 // (a) If there is a preceding token, and said token is none of '@', '::',
-//     '(', '[', ',' or an Operator, then '*' is the MultiplyOperator and
-//     NCName must be recognised as an OperatorName
+//
+//	'(', '[', ',' or an Operator, then '*' is the MultiplyOperator and
+//	NCName must be recognised as an OperatorName
 //
 // (b) If the character following an NCName (possibly after intervening
-//     whitespace) is '(', then the token must be recognized as a NodeType
-//     or FunctionName
+//
+//	whitespace) is '(', then the token must be recognized as a NodeType
+//	or FunctionName
 //
 // (c) If an NCName is followed by '::' (possibly with intervening whitespace)
-//     then the NCName must be recognised as an AxisName
+//
+//	then the NCName must be recognised as an AxisName
 //
 // (d) In all other cases, the token must NOT be recognised as a Multiply
-//     Operator, OperatorName, NodeType, FunctionName, or AxisName
 //
+//	Operator, OperatorName, NodeType, FunctionName, or AxisName
 func TestLexDisambiguation(t *testing.T) {
 	t.Skipf("Implemented elsewhere, at least in part.")
 	// Look at the must / must not and verify each one if not done elsewhere

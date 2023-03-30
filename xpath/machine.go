@@ -12,7 +12,8 @@ package xpath
 
 import (
 	"fmt"
-	"github.com/danos/yang/xpath/xutils"
+
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // RESULT

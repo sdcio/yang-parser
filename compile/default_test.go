@@ -14,8 +14,8 @@ import (
 	"testing"
 
 	"github.com/danos/mgmterror/errtest"
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 // Single typedef statement validation (Passing testcases) for ranged values
@@ -431,7 +431,8 @@ func TestEmptyDefault(t *testing.T) {
 // mandatory values.
 //
 // NB: The recursive tests use Leaves so some test cases are either duplicated
-//     or not done here.
+//
+//	or not done here.
 func TestLeafDefaultTest(t *testing.T) {
 	var LeafDefaultTests = []testutils.TestCase{
 		{
@@ -492,7 +493,7 @@ func TestLeafDefaultTest(t *testing.T) {
 			ExpResult: true,
 			NodesToValidate: []schema.NodeSpec{
 				{
-					Path: []string{"testContainer", "topLeaf"},
+					Path:                  []string{"testContainer", "topLeaf"},
 					DefaultPropNotPresent: true,
 					Statement: schema.NodeSubSpec{
 						Type: "leaf",

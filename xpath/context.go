@@ -13,7 +13,8 @@ package xpath
 import (
 	"bytes"
 	"fmt"
-	"github.com/danos/yang/xpath/xutils"
+
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // CONTEXT
@@ -74,7 +75,6 @@ type context struct {
 //
 // Use for creating context for top-level machine - machines for nested
 // predicates etc need fine-tuning.
-//
 func NewCtxFromMach(mach *Machine, ctxNode xutils.XpathNode) *context {
 	return &context{
 		res:          NewResult(),
@@ -386,7 +386,6 @@ func (ctx *context) compareNodesetsAndPush(
 // Nodeset case is called out to a separate function.  If neither operand
 // is a nodeset, then both are converted to a single common type, based on
 // the precedence of boolean wins over number wins over string.
-//
 func (ctx *context) popCompareEqualityAndPush(
 	boolCompare datumCompFn,
 	litCompare datumCompFn,
@@ -457,7 +456,6 @@ func (ctx *context) popCompareRelationalAndPush(
 //
 // If at least one element in the nodeset passes the relevant compare
 // function then we push TRUE, otherwise we push FALSE.
-//
 func (ctx *context) compareWorker(ops1, ops2 []Datum, compareFn datumCompFn) {
 	for _, op1 := range ops1 {
 		for _, op2 := range ops2 {

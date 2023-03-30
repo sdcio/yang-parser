@@ -16,9 +16,10 @@
 package expr
 
 import (
-	"github.com/danos/yang/xpath"
 	"math"
 	"testing"
+
+	"github.com/steiler/yang-parser/xpath"
 )
 
 // Test Cases

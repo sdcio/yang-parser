@@ -17,10 +17,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danos/yang/compile"
-	"github.com/danos/yang/parse"
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/compile"
+	"github.com/steiler/yang-parser/parse"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // Generic Test Case description allowing for cases where expected result
@@ -32,18 +32,19 @@ import (
 // Schemas can be provided in 2 different ways:
 //
 // (a) Single schema + associated 'template'.  Useful when testing a small
-//     snippet of schema in a single module context where you don't want
-//     to keep duplicating YANG across multiple tests.
 //
-//     => Use Schema + Template fields
+//	snippet of schema in a single module context where you don't want
+//	to keep duplicating YANG across multiple tests.
+//
+//	=> Use Schema + Template fields
 //
 // (b) Multiple schemas.  Useful for testing multiple modules.  Each
-//     TestSchema needs to provide enough YANG to be pasted into a
-//     generic template that contains a module, prefix and imports, but
-//     nothing else.
 //
-//     => Use Schemas
+//	TestSchema needs to provide enough YANG to be pasted into a
+//	generic template that contains a module, prefix and imports, but
+//	nothing else.
 //
+//	=> Use Schemas
 type TestCase struct {
 	Description     string            // What we are testing
 	Template        string            // Template for schema

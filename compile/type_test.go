@@ -11,9 +11,10 @@
 package compile_test
 
 import (
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/testutils"
 	"testing"
+
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 // Subsets of error strings that we use to match on actual error reported.
@@ -341,10 +342,10 @@ var IntPasses = []testutils.TestCase{
 }
 
 // Int:
-// - MAY have range
-// - NB: We mostly test int32 as most handling is common.  The only parts
-//       we test all ints for are the extreme bounds of ranges, and out of
-//       bounds values.
+//   - MAY have range
+//   - NB: We mostly test int32 as most handling is common.  The only parts
+//     we test all ints for are the extreme bounds of ranges, and out of
+//     bounds values.
 func TestIntPass(t *testing.T) {
 	runTestCases(t, IntPasses)
 }
@@ -856,7 +857,8 @@ func TestStringRangeExceptions(t *testing.T) {
 }
 
 // TypedefTemplate has:
-//   "1 .. 10 | 11 .. 11 | 12 | 13 .. 20 | 31 .. 40 | 51 .. 60"
+//
+//	"1 .. 10 | 11 .. 11 | 12 | 13 .. 20 | 31 .. 40 | 51 .. 60"
 var TypedefPass = []testutils.TestCase{
 	{
 		Description: "Typedef: decimal64 restrictive range, no overlap",

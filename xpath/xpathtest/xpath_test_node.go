@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 const (
@@ -390,7 +390,6 @@ func (testnode *TNode) FindFirstNode(path xutils.PathType) *TNode {
 // - LeafList 	   : string@value
 // - Leaf     	   : string+value
 // - EmptyLeaf	   : string%
-//
 func CreateTree(t *testing.T, partialNodes []xutils.PathType) *TNode {
 	tree := TNode{
 		path:   xutils.PathType([]string{"/"}),

@@ -11,10 +11,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/danos/yang/data/datanode"
-	"github.com/danos/yang/data/encoding"
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/data/datanode"
+	"github.com/steiler/yang-parser/data/encoding"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 //

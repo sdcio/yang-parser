@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danos/yang/data/datanode"
-	"github.com/danos/yang/data/encoding"
-	"github.com/danos/yang/schema"
+	"github.com/steiler/yang-parser/data/datanode"
+	"github.com/steiler/yang-parser/data/encoding"
+	"github.com/steiler/yang-parser/schema"
 )
 
 //
@@ -31,9 +31,7 @@ func getDataTreeWithFilterAsJSON(
 	return string(encoding.ToJSON(sn, filtered_tree))
 }
 
-//
-//  FILTER TESTS
-//
+// FILTER TESTS
 var filter = func(s schema.Node, d datanode.DataNode, children []datanode.DataNode) bool {
 	if len(children) != 0 {
 		return true

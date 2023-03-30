@@ -8,7 +8,7 @@ package compile
 import (
 	"fmt"
 
-	"github.com/danos/yang/parse"
+	"github.com/steiler/yang-parser/parse"
 )
 
 type deviateProcessor interface {
@@ -61,7 +61,6 @@ func (c *Compiler) getExtCardinality() extCard {
 // deviateNotSupported
 //
 // Nothing allowed as a sub-statement except unknown extensions
-//
 type deviateNotSupported struct {
 	deviateBase
 }
@@ -85,11 +84,11 @@ func (n *deviateNotSupported) finalAction(target, property parse.Node) error {
 //
 // Properties which can be deleted are:
 //
-//   units
-//   must
-//   unique
-//   default
-//   known extensions
+//	units
+//	must
+//	unique
+//	default
+//	known extensions
 //
 // A property can only be deleted from a node using deviate
 // if the property appears exactly as specified
@@ -127,25 +126,24 @@ func (n *deviateDelete) propertyAction(target, property parse.Node) error {
 //
 // Properties which can be added are:
 //
-//   must
-//   unique
+//	must
+//	unique
 //
 // Only if not already present:
 //
-//   units
-//   default
-//   config
-//   mandatory
-//   min-elements
-//   max-elements
+//	units
+//	default
+//	config
+//	mandatory
+//	min-elements
+//	max-elements
 //
 // Additionally:
 //
-//   Known extensions if cardinality allows
+//	Known extensions if cardinality allows
 //
 // A property can only be added to a node if the property does not already exist
 // or has a cardinality greater than 1
-//
 type deviateAdd struct {
 	deviateBase
 }
@@ -191,16 +189,15 @@ func (n *deviateAdd) propertyAction(target, property parse.Node) error {
 //
 // Properties which can be replaced are:
 //
-//  type
-//  units
-//  default
-//  config
-//  mandatory
-//  min-elements
-//  max-elements
+//	type
+//	units
+//	default
+//	config
+//	mandatory
+//	min-elements
+//	max-elements
 //
 // A property being replaced must already be present on the node
-//
 type deviateReplace struct {
 	deviateBase
 }

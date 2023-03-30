@@ -14,8 +14,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danos/yang/xpath"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 const NoErrMsg = ""

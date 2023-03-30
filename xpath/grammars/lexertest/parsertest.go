@@ -16,10 +16,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danos/yang/testutils/assert"
-	"github.com/danos/yang/xpath"
-	"github.com/danos/yang/xpath/xpathtest"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/testutils/assert"
+	"github.com/steiler/yang-parser/xpath"
+	"github.com/steiler/yang-parser/xpath/xpathtest"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 func CheckNumResult(t *testing.T, mach *xpath.Machine, expResult float64) {
@@ -326,15 +326,15 @@ func checkNodeSetResultInternal(
 // If your expected output now diverges, you'll get something
 // like the following, making it way easier to see what's up!
 //
-//  	--- FAIL: TestStackPrint (0.00s)
-//  	parsertest.go:350: Unexpected output.
-//  		Got:
-//  		Run	'substring('3456',1,2) + ../serial/name' on:
-//  			/interface/dataplane###[name=dp0s
-//  		Exp at ###:
-//  		' [name=dp0 ...'
-//  FAIL
-//  FAIL	yang/xpath/grammars/expr	0.099s
+//		--- FAIL: TestStackPrint (0.00s)
+//		parsertest.go:350: Unexpected output.
+//			Got:
+//			Run	'substring('3456',1,2) + ../serial/name' on:
+//				/interface/dataplane###[name=dp0s
+//			Exp at ###:
+//			' [name=dp0 ...'
+//	FAIL
+//	FAIL	yang/xpath/grammars/expr	0.099s
 func checkDebugDivergence(
 	t *testing.T,
 	dbg bool,

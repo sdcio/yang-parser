@@ -14,10 +14,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/danos/yang/xpath"
-	. "github.com/danos/yang/xpath/grammars/lexertest"
-	"github.com/danos/yang/xpath/xpathtest"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath"
+	. "github.com/steiler/yang-parser/xpath/grammars/lexertest"
+	"github.com/steiler/yang-parser/xpath/xpathtest"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // For non-predicate tests, we can reuse the same 'config' which gives us
@@ -89,16 +89,19 @@ func checkParseErrorWithMap(
 // Absolute path: 1*("/" (node-identifier *path-predicate))
 //
 // AbsolutePath:Root NodeIdentifier PathPredicate1Plus AbsolutePathStep
-// 		|		Root NodeIdentifier PathPredicate1Plus
-// 		|		Root NodeIdentifier AbsolutePathStep
-// 		|		Root NodeIdentifier
-// 		;
+//
+//	|		Root NodeIdentifier PathPredicate1Plus
+//	|		Root NodeIdentifier AbsolutePathStep
+//	|		Root NodeIdentifier
+//	;
+//
 // AbsolutePathStep:
-// 				'/' NodeIdentifier PathPredicate1Plus AbsolutePathStep
-// 		|		'/' NodeIdentifier PathPredicate1Plus
-// 		|		'/' NodeIdentifier AbsolutePathStep
-// 		|		'/' NodeIdentifier
-// 		;
+//
+//			'/' NodeIdentifier PathPredicate1Plus AbsolutePathStep
+//	|		'/' NodeIdentifier PathPredicate1Plus
+//	|		'/' NodeIdentifier AbsolutePathStep
+//	|		'/' NodeIdentifier
+//	;
 //
 // The following 5 expressions test the last 2 lines in each production and
 // cover the different node types as well.
@@ -108,7 +111,6 @@ func checkParseErrorWithMap(
 // /interface/dataplane/address [leaf-list]
 // /interface/dataplane/name    [keynode]
 // /protocols/mpls/min-label    [leaf]
-//
 func TestParseAbsolutePathContainer(t *testing.T) {
 	checkLeafrefNodeSetResult(t, "/interface", nil,
 		getTestCfgTree(t), xutils.PathType([]string{"/", "protocols", "mpls"}),
@@ -310,50 +312,50 @@ func TestParseUnknownPrefix(t *testing.T) {
 //
 // We use the predicate part here.
 //
-//   container interfaces {
-//     list interface {
-//       key "name";
-//       leaf name {
-//         type string;
-//       }
-//       list address {
-//         key "ip";
-//         leaf ip {
-//           type yang:ip-address;
-//         }
-//         leaf protocol {
-//           type string;
-//         }
-//       }
-//       leaf notKey { # Dummy, just for test.
-//         type string;
-//       }
-//     }
-//     leaf mgmt-interface { # Not used for this test.
-//       type leafref {
-//         path "../interface/name";
-//       }
-//     }
+//	container interfaces {
+//	  list interface {
+//	    key "name";
+//	    leaf name {
+//	      type string;
+//	    }
+//	    list address {
+//	      key "ip";
+//	      leaf ip {
+//	        type yang:ip-address;
+//	      }
+//	      leaf protocol {
+//	        type string;
+//	      }
+//	    }
+//	    leaf notKey { # Dummy, just for test.
+//	      type string;
+//	    }
+//	  }
+//	  leaf mgmt-interface { # Not used for this test.
+//	    type leafref {
+//	      path "../interface/name";
+//	    }
+//	  }
 //
-//     container default-address {
-//       leaf ifname {
-//         type leafref {
-//           path "../../interface/name";
-//         }
-//       }
-//       leaf protocol {
-//         type leafref {
-//           path "../../interface/address/protocols";
-//         }
-//       }
-//       leaf address {
-//         type leafref {
-//           path "../../interface[name = current()/../ifname]"
-//              + "/address/ip";
-//         }
-//       }
-//     }
-//   }
+//	  container default-address {
+//	    leaf ifname {
+//	      type leafref {
+//	        path "../../interface/name";
+//	      }
+//	    }
+//	    leaf protocol {
+//	      type leafref {
+//	        path "../../interface/address/protocols";
+//	      }
+//	    }
+//	    leaf address {
+//	      type leafref {
+//	        path "../../interface[name = current()/../ifname]"
+//	           + "/address/ip";
+//	      }
+//	    }
+//	  }
+//	}
 func getPredicateTestCfgTree(t *testing.T) *xpathtest.TNode {
 	return xpathtest.CreateTree(t,
 		[]xutils.PathType{

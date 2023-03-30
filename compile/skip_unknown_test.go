@@ -11,8 +11,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 func TestSkipUnknownTypes(t *testing.T) {

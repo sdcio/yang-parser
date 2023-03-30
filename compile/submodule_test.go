@@ -12,7 +12,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 func TestSubmoduleSimple(t *testing.T) {

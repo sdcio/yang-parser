@@ -13,7 +13,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 type bltinFn func(*context, []Datum) Datum
@@ -82,6 +82,8 @@ var xpathFunctionTable = symbolTable{
 	"concat": NewFnSym("concat", concat,
 		[]DatumTypeChecker{TypeIsLiteral, TypeIsLiteral}, TypeIsLiteral),
 	"contains": NewFnSym("contains", contains,
+		[]DatumTypeChecker{TypeIsLiteral, TypeIsLiteral}, TypeIsBool),
+	"re-match": NewFnSym("re-match", re_match,
 		[]DatumTypeChecker{TypeIsLiteral, TypeIsLiteral}, TypeIsBool),
 	"count": NewFnSym("count", count,
 		[]DatumTypeChecker{TypeIsNodeset}, TypeIsNumber),
@@ -252,6 +254,18 @@ func contains(ctx *context, args []Datum) (retBool Datum) {
 	return NewBoolDatum(strings.Contains(lit0, lit1))
 }
 
+func re_match(ctx *context, args []Datum) (retBool Datum) {
+	ctx.verifyArgNumAndTypes("contains",
+		args, []DatumTypeChecker{TypeIsLiteral, TypeIsLiteral})
+
+	// TODO figure out literals and adjust accordingly
+
+	lit0 := args[0].Literal("contains()")
+	lit1 := args[1].Literal("contains()")
+
+	return NewBoolDatum(strings.Contains(lit0, lit1))
+}
+
 func count(ctx *context, args []Datum) (retNum Datum) {
 	ctx.verifyArgNumAndTypes("count",
 		args, []DatumTypeChecker{TypeIsNodeset})
@@ -377,7 +391,6 @@ func stringLength(ctx *context, args []Datum) (retNum Datum) {
 // Returns substring of arg[0] starting with the character at position arg[1],
 // and of length arg[2].  If arg[2] isn't specified, return remainder of
 // string.
-//
 func substring(ctx *context, args []Datum) (retLit Datum) {
 	ctx.verifyArgNumAndTypes("substring",
 		args, []DatumTypeChecker{TypeIsLiteral, TypeIsNumber, TypeIsNumber})

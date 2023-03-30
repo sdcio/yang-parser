@@ -15,8 +15,8 @@ import (
 	"sort"
 
 	"github.com/danos/mgmterror"
-	"github.com/danos/yang/xpath"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 func cardinalityInRange(p xutils.PathType, min, max uint, len int) error {
@@ -597,7 +597,6 @@ func addToChildrenExcluding(exclude nodeFilter) addAction {
 
 // addChildrenWithActionChain performs the given actions in the order provided until
 // one of the actions returns halt, at which point all other actions are ignored.
-//
 func (n *node) addChildrenWithActionChain(children []Node, actions ...addAction) error {
 	for _, ch := range children {
 		for _, action := range actions {

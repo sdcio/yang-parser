@@ -15,10 +15,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/schema/schematests"
-	"github.com/danos/yang/testutils"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/schema/schematests"
+	"github.com/steiler/yang-parser/testutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 const SchemaNamespace = "urn:vyatta.com:test:yang-compile"
@@ -230,9 +230,7 @@ grouping target {
 }
 %s`
 
-//
-//  Helper Functions
-//
+// Helper Functions
 func buildSchema(t *testing.T, schema_snippet string) schema.ModelSet {
 
 	schema_text := bytes.NewBufferString(fmt.Sprintf(
@@ -477,9 +475,7 @@ func assertSuccess(t *testing.T, text string, err error) {
 	}
 }
 
-//
-//  Helper Functions
-//
+// Helper Functions
 func assertLeafMatches(
 	t *testing.T, st schema.ModelSet, node_name, node_type string, checks ...checkFn) {
 

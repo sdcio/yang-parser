@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/schema/schematests"
-	. "github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/schema/schematests"
+	. "github.com/steiler/yang-parser/testutils"
 )
 
 func verifyConfigStatement(

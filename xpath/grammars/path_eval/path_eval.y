@@ -30,8 +30,8 @@ package path_eval
 import (
     "encoding/xml"
 
-    "github.com/danos/yang/xpath"
-    "github.com/danos/yang/xpath/xutils"
+    "github.com/steiler/yang-parser/xpath"
+    "github.com/steiler/yang-parser/xpath/xutils"
 )
 
 %}

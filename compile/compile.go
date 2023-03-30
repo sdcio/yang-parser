@@ -20,21 +20,21 @@ import (
 	"strings"
 
 	"github.com/danos/utils/tsort"
-	"github.com/danos/yang/parse"
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/xpath"
-	"github.com/danos/yang/xpath/grammars/expr"
-	"github.com/danos/yang/xpath/grammars/leafref"
-	"github.com/danos/yang/xpath/grammars/path_eval"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/parse"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/xpath"
+	"github.com/steiler/yang-parser/xpath/grammars/expr"
+	"github.com/steiler/yang-parser/xpath/grammars/leafref"
+	"github.com/steiler/yang-parser/xpath/grammars/path_eval"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 const DefaultCapsLocation = "/config/features"
 
-//TODO: We should make this able to be configured.
-//We are currently under a crunch, so doing this for now.
-//This location is non-user changeable so only non-shipped features
-//can be toggled.
+// TODO: We should make this able to be configured.
+// We are currently under a crunch, so doing this for now.
+// This location is non-user changeable so only non-shipped features
+// can be toggled.
 const SystemCapsLocation = "/opt/vyatta/etc/features"
 
 const emptyDefault = ""
@@ -1131,7 +1131,8 @@ func (c *Compiler) CheckIfFeature(n parse.Node, parentStatus schema.Status) bool
 // Takes a parse.Node ErrorContext for a must / when node and extracts
 // the file and line number.  Initial string is of the following format:
 // '/tmp/tmpvy9n_g8i/yang/vyatta-protocols-ospfv3-v1.yang:1464:5:
-//    must not(../../../if-loopback:tagnode) or (current() = 'point-to-point')'
+//
+//	must not(../../../if-loopback:tagnode) or (current() = 'point-to-point')'
 func extractFileAndLineFromErrorContext(mustOrWhen parse.Node) string {
 	fullLocStr, _ := mustOrWhen.ErrorContext()
 	filePlusLine := strings.Join(strings.Split(fullLocStr, ":")[:2], ":")

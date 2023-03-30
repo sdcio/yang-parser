@@ -9,8 +9,8 @@
 package compile
 
 import (
-	"github.com/danos/yang/parse"
-	"github.com/danos/yang/schema"
+	"github.com/steiler/yang-parser/parse"
+	"github.com/steiler/yang-parser/schema"
 )
 
 /*

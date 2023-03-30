@@ -18,7 +18,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 type Prog []Inst
@@ -243,9 +243,8 @@ func (progBldr *ProgBuilder) CodeEvalLocPathExists() {
 }
 
 // Code:
-//  - encode EvalLocPath
-//  - start new (child) program
-//
+//   - encode EvalLocPath
+//   - start new (child) program
 func (progBldr *ProgBuilder) CodePredStart() {
 	progBldr.CodeFn(progBldr.EvalLocPath, "evalLocPath(PredStart)")
 	progBldr.progs.Push(Prog{})
@@ -295,12 +294,12 @@ func predicateIsTrue(
 }
 
 // Code:
-//  - encapsulate current program in 'parent' as EvalSubMachine() function
-//  - remove this program from stack so next instruction goes on parent
-//    machine.
+//   - encapsulate current program in 'parent' as EvalSubMachine() function
+//   - remove this program from stack so next instruction goes on parent
+//     machine.
 //
 // Run:
-//  - EvalSubMachine()
+//   - EvalSubMachine()
 func (progBldr *ProgBuilder) CodePredEnd() {
 
 	// Must explicitly append request to store result

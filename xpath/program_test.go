@@ -19,7 +19,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // Helper functions

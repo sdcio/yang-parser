@@ -11,10 +11,10 @@ package schema_test
 import (
 	"testing"
 
-	"github.com/danos/yang/data/encoding"
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/testutils"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/data/encoding"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/testutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 func TestBasicDecodedJSON(t *testing.T) {

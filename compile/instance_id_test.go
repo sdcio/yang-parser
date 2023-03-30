@@ -10,7 +10,7 @@ package compile_test
 import (
 	"testing"
 
-	"github.com/danos/yang/schema"
+	"github.com/steiler/yang-parser/schema"
 )
 
 // This returns a standard checker function that can be used from NodeChecker
@@ -26,9 +26,7 @@ func checkReqInst(expected_val bool) checkFn {
 	}
 }
 
-//
-//  Test Cases
-//
+// Test Cases
 func TestInstanceIdAccepted(t *testing.T) {
 
 	schema_snippet := `

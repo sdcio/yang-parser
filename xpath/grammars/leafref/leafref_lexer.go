@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/danos/yang/xpath"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // The parser uses the type <prefix>Lex as a lexer.  It must provide

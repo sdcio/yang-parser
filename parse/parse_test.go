@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/danos/yang/parse"
+	. "github.com/steiler/yang-parser/parse"
 )
 
 func getYangModuleText(yang_subtree string) string {

@@ -13,9 +13,10 @@ import (
 	"testing"
 
 	"fmt"
-	"github.com/danos/yang/testutils"
-	"github.com/danos/yang/xpath/xpathtest"
-	"github.com/danos/yang/xpath/xutils"
+
+	"github.com/steiler/yang-parser/testutils"
+	"github.com/steiler/yang-parser/xpath/xpathtest"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 const (

@@ -17,8 +17,8 @@ import (
 
 	"github.com/danos/utils/natsort"
 
-	"github.com/danos/yang/data/datanode"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/data/datanode"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // XPath Support
@@ -27,54 +27,56 @@ import (
 // child / parent operations return the expected set of nodes.  If we take
 // the following configuration:
 //
-//   interface {
-//   	dataplane dp0s1 {
-//   		address 1234
-//   		address 1235
-//   		address 4444
-//   	}
-//   	dataplane dp0s2
-//   	loopback lo2
-//   	serial s1 {
-//   		address 1234
-//   	}
-//   }
-//   protocols {
-//   	mpls {
-//   		min-label 16
-//   	}
-//   }
+//	interface {
+//		dataplane dp0s1 {
+//			address 1234
+//			address 1235
+//			address 4444
+//		}
+//		dataplane dp0s2
+//		loopback lo2
+//		serial s1 {
+//			address 1234
+//		}
+//	}
+//	protocols {
+//		mpls {
+//			min-label 16
+//		}
+//	}
 //
 // ... then the diffNode structure looks like this (number on LHS is 'depth'):
 //
-//   0: 'root'                     schema.Tree
-//   1:     'interface'                *schema.Container
-//   2:         'dataplane'                *schema.List
-//   3:             'dp0s1'                    schema.ListEntry
-//   4:                 'address'                  schema.LeafList
-//   5: 				    '1234'                     schema.LeafValue
-//   5: 				    '1235'                     schema.LeafValue
-//   5: 				    '4444'                     schema.LeafValue
-//   3:             'dp0s2'                    schema.ListEntry
-//   2:         'loopback'                 *schema.List
-//   3:             'lo2'                      schema.ListEntry
-//   2:         'serial'                   *schema.List
-//   3:             's1'                       schema.ListEntry
-//   4:                 'address'                  schema.LeafList
-//   5:                     '1234'                     schema.LeafValue
-//   1:     'protocols'                *schema.Container
-//   2:         'mpls'                     *schema.Container
-//   3:             'min-label'                schema.Leaf
-//   4:                 '16'                       schema.LeafValue
+//	0: 'root'                     schema.Tree
+//	1:     'interface'                *schema.Container
+//	2:         'dataplane'                *schema.List
+//	3:             'dp0s1'                    schema.ListEntry
+//	4:                 'address'                  schema.LeafList
+//	5: 				    '1234'                     schema.LeafValue
+//	5: 				    '1235'                     schema.LeafValue
+//	5: 				    '4444'                     schema.LeafValue
+//	3:             'dp0s2'                    schema.ListEntry
+//	2:         'loopback'                 *schema.List
+//	3:             'lo2'                      schema.ListEntry
+//	2:         'serial'                   *schema.List
+//	3:             's1'                       schema.ListEntry
+//	4:                 'address'                  schema.LeafList
+//	5:                     '1234'                     schema.LeafValue
+//	1:     'protocols'                *schema.Container
+//	2:         'mpls'                     *schema.Container
+//	3:             'min-label'                schema.Leaf
+//	4:                 '16'                       schema.LeafValue
 //
 // This has two problems:
 //
 // (a) Lists exist at 2 levels (list, and key/tagnode) whereas
-//     we want a single set of list entry nodes that contain the keys, and then
-//     keys also appear as distinct children.
+//
+//	we want a single set of list entry nodes that contain the keys, and then
+//	keys also appear as distinct children.
 //
 // (b) Leaves / Leaf-lists exist at 2 levels (name, value(s)) whereas we want
-//     a single level of nodes representing each {name, value} pair.
+//
+//	a single level of nodes representing each {name, value} pair.
 //
 // Making these transforms converts above structure into that below.  We
 // now go from depth of 0 - 3 below, versus 0 - 5 above.  One might note the
@@ -82,49 +84,53 @@ import (
 // is now explicitly shown as a child of the list.  One might also note that
 // going from single to multiple key support will be interesting here ...
 //
-//   0: 'root'                           schema.Tree
-//   1:     'interface'                      *schema.Container
-//   2:         'dataplane' {name, dp0s1}        schema.ListEntry
-//   3:             name: 'dp0s1'                    Diff.XpathListKeyNode
-//   3:             address: '1234'                  schema.LeafValue
-//   3: 		    address: '1235'                  schema.LeafValue
-//   3: 			address: '4444'                  schema.LeafValue
-//   2:         'dataplane' {name, dp0s2}        schema.ListEntry
-//   3:             name: 'dp0s2'                    Diff.XpathListKeyNode
-//   2:         'loopback' {name, lo2}           schema.ListEntry
-//   3:             name: 'lo2'                      Diff.XpathListKeyNode
-//   2:         'serial', {name, s1}             schema.ListEntry
-//   3:             name: 's1'                       Diff.XpathListKeyNode
-//   3:             address: '1234'                  schema.LeafValue
-//   1:     'protocols'                          *schema.Container
-//   2:         'mpls'                           *schema.Container
-//   3:             min-label: '16'                  schema.LeafValue
+//	0: 'root'                           schema.Tree
+//	1:     'interface'                      *schema.Container
+//	2:         'dataplane' {name, dp0s1}        schema.ListEntry
+//	3:             name: 'dp0s1'                    Diff.XpathListKeyNode
+//	3:             address: '1234'                  schema.LeafValue
+//	3: 		    address: '1235'                  schema.LeafValue
+//	3: 			address: '4444'                  schema.LeafValue
+//	2:         'dataplane' {name, dp0s2}        schema.ListEntry
+//	3:             name: 'dp0s2'                    Diff.XpathListKeyNode
+//	2:         'loopback' {name, lo2}           schema.ListEntry
+//	3:             name: 'lo2'                      Diff.XpathListKeyNode
+//	2:         'serial', {name, s1}             schema.ListEntry
+//	3:             name: 's1'                       Diff.XpathListKeyNode
+//	3:             address: '1234'                  schema.LeafValue
+//	1:     'protocols'                          *schema.Container
+//	2:         'mpls'                           *schema.Container
+//	3:             min-label: '16'                  schema.LeafValue
 //
 // To implement the transforms, we need to do the following when navigating
 // the diff / schema tree:
 //
 // (a) When we get a List as a child, we replace with ALL ListEntry children
-//     as we need one child per ListEntry.  A 'List' node doesn't represent
-//     an XPath-addressable node.
+//
+//	as we need one child per ListEntry.  A 'List' node doesn't represent
+//	an XPath-addressable node.
 //
 // (b) ListEntry has Name() of parent node. Value() is not relevant as we
-//     only need to provide a Value() for leaves.  It should however be able
-//     to interpret key values when we introduce predicates.
+//
+//	only need to provide a Value() for leaves.  It should however be able
+//	to interpret key values when we introduce predicates.
 //
 // (c) Parent of a ListEntry is actually its grandparent, as we skip the List
-//     node.  Taking (a) and (c) together means you can never get a List node
-//     returned by XChildren() or Parent().
+//
+//	node.  Taking (a) and (c) together means you can never get a List node
+//	returned by XChildren() or Parent().
 //
 // (d) When we generate the children of a ListEntry, we must generate a
-//     node representing each key.  To handle all these we create a virtual
-//     node, a DiffXpathListKeyNode, that is essentially a Diff Node but which
-//     overrides various functions so the node appears at the child level
-//     in the tree relative to the Diff.Node it is derived from.
+//
+//	node representing each key.  To handle all these we create a virtual
+//	node, a DiffXpathListKeyNode, that is essentially a Diff Node but which
+//	overrides various functions so the node appears at the child level
+//	in the tree relative to the Diff.Node it is derived from.
 //
 // (e) LeafLists are similar to lists in that we have to return the children
-//     instead of the LeafList.  It is simplest to treat Leaves as single
-//     element LeafLists.
 //
+//	instead of the LeafList.  It is simplest to treat Leaves as single
+//	element LeafLists.
 type xnode interface {
 	datanode.DataNode
 	xutils.XpathNode

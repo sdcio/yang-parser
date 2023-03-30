@@ -12,10 +12,10 @@ package expr
 import (
 	"testing"
 
-	"github.com/danos/yang/xpath"
-	. "github.com/danos/yang/xpath/grammars/lexertest"
-	"github.com/danos/yang/xpath/xpathtest"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath"
+	. "github.com/steiler/yang-parser/xpath/grammars/lexertest"
+	"github.com/steiler/yang-parser/xpath/xpathtest"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // Standard models examples for possible testing ...
@@ -341,11 +341,13 @@ func TestPredicateConsecutiveSecondEmpty(t *testing.T) {
 // Order of consecutive predicates matters
 //
 // dataplane[2][address = '2222']
-//   -> selects dp0s2 (single node), address matches, so result is 1 node
-// dataplane[address = '2222'][2]
-//   -> selects dp0s2 (single node) via address match, only one node in set
-//      so [2] doesn't match anything.
 //
+//	-> selects dp0s2 (single node), address matches, so result is 1 node
+//
+// dataplane[address = '2222'][2]
+//
+//	-> selects dp0s2 (single node) via address match, only one node in set
+//	   so [2] doesn't match anything.
 func TestPredicateConsecutiveOrderMatters(t *testing.T) {
 	checkNodeSetResult(t, "../interface/dataplane[2][address='2222']", nil,
 		getConfigTree(t), xutils.PathType([]string{"/", "protocols"}),

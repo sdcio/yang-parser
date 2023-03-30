@@ -8,7 +8,7 @@ package compile_test
 import (
 	"testing"
 
-	"github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 const deviationSchema = `

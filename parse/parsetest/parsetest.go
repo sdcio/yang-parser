@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/danos/yang/parse"
-	"github.com/danos/yang/testutils"
+	. "github.com/steiler/yang-parser/parse"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 // Parse a yang schema file

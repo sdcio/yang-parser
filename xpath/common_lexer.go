@@ -28,7 +28,7 @@ import (
 	"strconv"
 	"unicode/utf8"
 
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // Allow for different grammars to be compiled and run using Machine,
@@ -307,19 +307,22 @@ func (x *CommonLex) LexRelationalOperator(c rune) (int, TokVal) {
 // Rules for disambiguating:
 //
 // (a) If there is a preceding token, and said token is none of '@', '::',
-//     '(', '[', ',' or an Operator, then '*' is the MultiplyOperator and
-//     NCName must be recognised as an OperatorName
+//
+//	'(', '[', ',' or an Operator, then '*' is the MultiplyOperator and
+//	NCName must be recognised as an OperatorName
 //
 // (b) If the character following an NCName (possibly after intervening
-//     whitespace) is '(', then the token must be recognized as a NodeType
-//     or FunctionName
+//
+//	whitespace) is '(', then the token must be recognized as a NodeType
+//	or FunctionName
 //
 // (c) If an NCName is followed by '::' (possibly with intervening whitespace)
-//     then the NCName must be recognised as an AxisName
+//
+//	then the NCName must be recognised as an AxisName
 //
 // (d) In all other cases, the token must NOT be recognised as a Multiply
-//     Operator, OperatorName, NodeType, FunctionName, or AxisName
 //
+//	Operator, OperatorName, NodeType, FunctionName, or AxisName
 func (x *CommonLex) LexName(c rune) (int, TokVal) {
 	nameMatcher := func(c rune) bool {
 		if x.IsNameChar(c) {
@@ -621,8 +624,7 @@ func (x *CommonLex) nameIsAxisName(name string) bool {
 // needed to look ahead but then didn't consume the character.  In other
 // words, what remains to be parsed when we call Next() is:
 //
-//   x.peek (if not EOF) + x.line
-//
+//	x.peek (if not EOF) + x.line
 func (x *CommonLex) Next() rune {
 	if x.peek != xutils.EOF {
 		r := x.peek

@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 var GroupingPass = []testutils.TestCase{
@@ -215,13 +215,13 @@ var RefinePass = []testutils.TestCase{
 // Uses
 //
 // Substatements
-//  - augment
-//  - description
-//  - if-feature
-//  - refine
-//  - reference
-//  - status
-//  - when
+//   - augment
+//   - description
+//   - if-feature
+//   - refine
+//   - reference
+//   - status
+//   - when
 func TestUsesSubstatements(t *testing.T) {
 	t.Skipf("Substatements and cardinality for 'uses'.")
 }
@@ -231,14 +231,14 @@ func TestUsesSubstatements(t *testing.T) {
 // - container, list, leaf, list-leaf, choice
 //
 // Substatements
-//  - leaf/choice may get default (or replacement one)
-//  - any node may get specialised description
-//  - any node may get specialised reference
-//  - any node may get different config statement
-//  - leaf/anyxml/choice node may get different mandatory statement
-//  - container node may get presence statement
-//  - leaf/leaf-list/list/container/anyxml may get additional must expressions
-//  - leaf-list/list may get different min-/max-elements statement
+//   - leaf/choice may get default (or replacement one)
+//   - any node may get specialised description
+//   - any node may get specialised reference
+//   - any node may get different config statement
+//   - leaf/anyxml/choice node may get different mandatory statement
+//   - container node may get presence statement
+//   - leaf/leaf-list/list/container/anyxml may get additional must expressions
+//   - leaf-list/list may get different min-/max-elements statement
 func TestRefineSubstatements(t *testing.T) {
 	t.Skipf("Substatements and cardinality for 'refine'.")
 }

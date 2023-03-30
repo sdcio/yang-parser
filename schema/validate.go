@@ -18,9 +18,9 @@ import (
 	"github.com/danos/mgmterror"
 	"github.com/danos/utils/exec"
 	"github.com/danos/utils/pathutil"
-	"github.com/danos/yang/data/datanode"
-	"github.com/danos/yang/xpath"
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/data/datanode"
+	"github.com/steiler/yang-parser/xpath"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 func init() {

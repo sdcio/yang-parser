@@ -135,14 +135,15 @@ func FilterNodeset(
 // leaf-list value if the node is of those types.
 //
 // NB: This function is used to determine if 2 nodes are identical, not
-//     just for pretty-printing.  If in any doubt that changes may impact
-//     performance, try out TestFWPerformance in configd/session directory
-//     with a large number of rules and compare old and new times.
+//
+//	just for pretty-printing.  If in any doubt that changes may impact
+//	performance, try out TestFWPerformance in configd/session directory
+//	with a large number of rules and compare old and new times.
 //
 // NB: This is NOT string-value, which is not unique to a specific node,
-//     and which can vary for a single node depending on what is configured
-//     under it!
 //
+//	and which can vary for a single node depending on what is configured
+//	under it!
 func NodeString(xNode XpathNode) string {
 	if xNode.XIsLeaf() || xNode.XIsLeafList() {
 		return getNodeRef(xNode).String() + fmt.Sprintf(" (%s)",
@@ -178,7 +179,6 @@ func GetStringValues(nodes []XpathNode, addEmptyStr bool) []string {
 // unique to a node (imagine a chain of node -> child -> grandchild -> leaf
 // which, in the absence of any defaults, or multiple nodes at any level,
 // would all have the same value).
-//
 func GetStringValue(nodes []XpathNode) string {
 	if len(nodes) == 0 {
 		return ""
@@ -213,7 +213,6 @@ func constructStringValue(node XpathNode, stringValue string) string {
 //
 // NodeString is guaranteed unique for different nodes as it combines both
 // path and (where siblings with the same path exist) value.
-//
 func RemoveDuplicateNodes(nodes []XpathNode) []XpathNode {
 	var retNodes = make([]XpathNode, 0)
 	var nodeMap = make(map[string]struct{}, len(nodes))

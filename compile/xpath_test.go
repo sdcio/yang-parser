@@ -17,8 +17,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/danos/yang/schema"
-	"github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/schema"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 const defaultMustAppTag = ""

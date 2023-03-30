@@ -9,7 +9,7 @@
 package schema
 
 import (
-	"github.com/danos/yang/data/datanode"
+	"github.com/steiler/yang-parser/data/datanode"
 )
 
 type addDefaults struct {
@@ -58,13 +58,13 @@ func hasCfg(seen map[string]struct{}, sch Node) bool {
 // IsActiveDefault - Check default nodes and determine if they are active
 // defaults that should be instantiated.
 //
-// A node is an active default in one of the given circumstances
+// # A node is an active default in one of the given circumstances
 //
-// - The node is under a choice but there is no active configuration under the choice,
-//   any nodes under the default case, if it is defined, become active defaults.
-// - There is config under one of the cases in a choice, any other node in that case
-//   will be an active default.
-// - The node is not under a choice and has a default
+//   - The node is under a choice but there is no active configuration under the choice,
+//     any nodes under the default case, if it is defined, become active defaults.
+//   - There is config under one of the cases in a choice, any other node in that case
+//     will be an active default.
+//   - The node is not under a choice and has a default
 //
 // isActiveDefault() and isActiveDefaultCase() are called recursively to traverse
 // down a choice/case

@@ -11,7 +11,7 @@ import (
 	"encoding/xml"
 	"testing"
 
-	. "github.com/danos/yang/xpath/grammars/lexertest"
+	. "github.com/steiler/yang-parser/xpath/grammars/lexertest"
 )
 
 // Test basic characters

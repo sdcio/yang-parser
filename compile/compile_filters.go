@@ -8,10 +8,9 @@
 package compile
 
 import (
-	"github.com/danos/yang/schema"
+	"github.com/steiler/yang-parser/schema"
 )
 
-//
 type SchemaFilter func(sn schema.Node) bool
 
 // Filter configuration nodes

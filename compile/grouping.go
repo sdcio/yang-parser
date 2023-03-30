@@ -11,8 +11,8 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/danos/yang/parse"
-	"github.com/danos/yang/schema"
+	"github.com/steiler/yang-parser/parse"
+	"github.com/steiler/yang-parser/schema"
 )
 
 func (c *Compiler) validateModuleGroupings(m parse.Node) error {

@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/testutils"
 )
 
 func buildRestrictionSchema(typeType string, restriction RestType) []byte {

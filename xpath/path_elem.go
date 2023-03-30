@@ -15,7 +15,7 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // pathElem - constituent parts of a path in Xpath

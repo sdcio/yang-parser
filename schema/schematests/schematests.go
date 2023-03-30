@@ -17,8 +17,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danos/yang/schema"
-	. "github.com/danos/yang/testutils"
+	"github.com/steiler/yang-parser/schema"
+	. "github.com/steiler/yang-parser/testutils"
 )
 
 // Only enable logging once the self-test has been done.
@@ -330,11 +330,11 @@ var schemaSelfTests = []TestCase{
 //
 // Test cases (repeated for DATA and STATEMENT)
 //
-// - PASS when property should not be present and is not present
-// - FAIL when property should not be present, non-zero value given
-//        (to avoid any confusion - if value is specified, then caller
-//         might not be clear what they are testing!)
-// - FAIL when property should not be present but is present
+//   - PASS when property should not be present and is not present
+//   - FAIL when property should not be present, non-zero value given
+//     (to avoid any confusion - if value is specified, then caller
+//     might not be clear what they are testing!)
+//   - FAIL when property should not be present but is present
 var propNotPresentTests = []TestCase{
 	{
 		Description: "Node found, specified data prop NOT present, " +

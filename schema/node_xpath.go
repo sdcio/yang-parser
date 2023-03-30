@@ -14,7 +14,7 @@ import (
 	"encoding/xml"
 	"reflect"
 
-	"github.com/danos/yang/xpath/xutils"
+	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 type XNode struct {

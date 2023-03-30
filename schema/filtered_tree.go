@@ -8,7 +8,7 @@
 package schema
 
 import (
-	"github.com/danos/yang/data/datanode"
+	"github.com/steiler/yang-parser/data/datanode"
 )
 
 type Filter func(Node, datanode.DataNode, []datanode.DataNode) bool
