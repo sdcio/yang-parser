@@ -147,6 +147,10 @@ func (progBldr *ProgBuilder) CodeFn(fn instFunc, fnName string) {
 	progBldr.progs.Update(newInstr)
 }
 
+func (progBldr *ProgBuilder) AddInstruction(Instr Inst) {
+	progBldr.progs.Update(Instr)
+}
+
 func (progBldr *ProgBuilder) CodeSubMachine(
 	fn instFunc,
 	fnName, subMachine string,
@@ -160,6 +164,22 @@ func (progBldr *ProgBuilder) CodeNum(num float64) {
 		ctx.pushDatum(NewNumDatum(num))
 	}
 	progBldr.CodeFn(numpush, fmt.Sprintf("numpush\t\t%v", num))
+}
+
+func (progBldr *ProgBuilder) PushBool(b bool) {
+	numpush := func(ctx *context) {
+		ctx.pushDatum(NewBoolDatum(b))
+	}
+	progBldr.CodeFn(numpush, fmt.Sprintf("boolpush\t\t%v", b))
+}
+
+func (progBldr *ProgBuilder) PushNotFound() {
+	nsetPush := func(ctx *context) {
+		// use BTnkTEI1y8iFq01rk837 as the value for a non found element
+		// ctx.pushDatum(NewLiteralDatum("BTnkTEI1y8iFq01rk837"))
+		ctx.pushDatum(NewNodesetDatum([]xutils.XpathNode{}))
+	}
+	progBldr.CodeFn(nsetPush, fmt.Sprintf("nodesetpush\t\t[]"))
 }
 
 func (progBldr *ProgBuilder) CodeLiteral(lit string) {

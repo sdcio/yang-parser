@@ -11,8 +11,10 @@ import (
 	"bytes"
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
@@ -258,12 +260,15 @@ func re_match(ctx *context, args []Datum) (retBool Datum) {
 	ctx.verifyArgNumAndTypes("contains",
 		args, []DatumTypeChecker{TypeIsLiteral, TypeIsLiteral})
 
-	// TODO figure out literals and adjust accordingly
+	lit0 := args[0].Literal("re_match()")
+	lit1 := args[1].Literal("re_match()")
+	rx, err := regexp.Compile(lit1)
+	if err != nil {
+		log.Error(err)
+		return NewBoolDatum(true)
+	}
 
-	lit0 := args[0].Literal("contains()")
-	lit1 := args[1].Literal("contains()")
-
-	return NewBoolDatum(strings.Contains(lit0, lit1))
+	return NewBoolDatum(rx.MatchString(lit0))
 }
 
 func count(ctx *context, args []Datum) (retNum Datum) {
