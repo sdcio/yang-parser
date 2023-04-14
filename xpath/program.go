@@ -18,6 +18,9 @@ import (
 	"math"
 	"strings"
 
+	schemapb "github.com/iptecharch/schema-server/protos/schema_server"
+	"github.com/iptecharch/schema-server/utils"
+
 	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
@@ -194,12 +197,31 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 		return
 	}
 
-	pathOperPush := func(ctx *context) {
-		ctx.pathOperPushes++
-		ctx.pushPathElem(newPathOperElem(elem))
+	var pathOperPush func(ctx *context)
+
+	switch elem {
+	case '.':
+		// noop
+	case xutils.DOTDOT:
+		pathOperPush = func(ctx *context) {
+			ctx.ActualPathPopElem()
+		}
+	case xutils.DBLSLASH:
+		// not implemented
+	case '/':
+		pathOperPush = func(ctx *context) {
+			ctx.ActualPathPopAll()
+		}
+	default:
+		// unknown
 	}
-	progBldr.CodeFn(pathOperPush,
-		fmt.Sprintf("pathOperPush\t%s", xutils.GetTokenName(elem)))
+
+	if pathOperPush != nil {
+		progBldr.CodeFn(pathOperPush,
+			fmt.Sprintf("MypathOperPush\t%s", xutils.GetTokenName(elem)))
+	} else {
+		fmt.Printf("skipped %s token", xutils.GetTokenName(elem))
+	}
 }
 
 func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
@@ -208,11 +230,13 @@ func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
 	}
 
 	nameTestPush := func(ctx *context) {
-		ctx.pathOperPushes++
-		ctx.pushPathElem(newNameTestElem(name))
+
+		//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
+		ctx.ActualPathPushElem(&schemapb.PathElem{Name: name.Local})
+		//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
 	}
 	progBldr.CodeFn(nameTestPush,
-		fmt.Sprintf("nameTestPush\t%s", name))
+		fmt.Sprintf("MyNameTestPush\t%s", name))
 }
 
 func (progBldr *ProgBuilder) CodeBltin(sym *Symbol, numArgs int) {
@@ -266,13 +290,14 @@ func (progBldr *ProgBuilder) CodeEvalLocPathExists() {
 //   - encode EvalLocPath
 //   - start new (child) program
 func (progBldr *ProgBuilder) CodePredStart() {
-	progBldr.CodeFn(progBldr.EvalLocPath, "evalLocPath(PredStart)")
-	progBldr.progs.Push(Prog{})
-	progBldr.preds++
+	// progBldr.CodeFn(progBldr.EvalLocPath, "evalLocPath(PredStart)")
+	// progBldr.progs.Push(Prog{})
+	// progBldr.preds++
 
-	if progBldr.progs.Count() > 2 {
-		progBldr.parseErr = fmt.Errorf("Nested predicates not yet supported.")
-	}
+	// if progBldr.progs.Count() > 2 {
+	// 	progBldr.parseErr = fmt.Errorf("Nested predicates not yet supported.")
+	// }
+	progBldr.CodeFn(progBldr.Store, "PREDSTART")
 }
 
 func (progBldr *ProgBuilder) CodePredStartIgnore() {
@@ -323,46 +348,46 @@ func predicateIsTrue(
 func (progBldr *ProgBuilder) CodePredEnd() {
 
 	// Must explicitly append request to store result
-	progBldr.CodeFn(progBldr.Store, "store")
-	prog := progBldr.progs.Pop()
-	preds := progBldr.preds
+	progBldr.CodeFn(progBldr.Store, "PREDEND")
+	// prog := progBldr.progs.Pop()
+	// preds := progBldr.preds
 
-	evalSubMachine := func(ctx *context) {
-		inputNodeset := ctx.popNodeSet("evalSubMachine")
-		var outputNodeset []xutils.XpathNode
+	// evalSubMachine := func(ctx *context) {
+	// 	inputNodeset := ctx.popNodeSet("evalSubMachine")
+	// 	var outputNodeset []xutils.XpathNode
 
-		ctx.addDebug(ctx.pfx + "\t----\n")
-		size := len(inputNodeset)
+	// 	ctx.addDebug(ctx.pfx + "\t----\n")
+	// 	size := len(inputNodeset)
 
-		for pos, node := range inputNodeset {
-			expr := GetSubExpr(progBldr.refExpr, preds)
-			res := newCtx(
-				prog, node, ctx.node,
-				pos+1, size, progBldr.progs.Count(),
-				expr, ctx.xpathStmtLoc).
-				SetDebug(ctx.debug).
-				SetAccessibleTree(ctx.filter).
-				Run()
-			ctx.addDebug(res.output)
-			if err := res.GetError(); err != nil {
-				ctx.execError(err.Error(), "")
-				return
-			}
-			if predicateIsTrue(res, ctx, pos) {
-				outputNodeset = append(outputNodeset, node)
-				ctx.addDebug("\tPred:\tMATCH\n")
-				ctx.addDebug("\t----\n")
-			} else {
-				ctx.addDebug("\tPred:\tNo Match\n")
-				ctx.addDebug("\t----\n")
-			}
-		}
-		ctx.pushDatum(NewNodesetDatum(outputNodeset))
-		ctx.stackedNodesets++
-	}
+	// 	for pos, node := range inputNodeset {
+	// 		expr := GetSubExpr(progBldr.refExpr, preds)
+	// 		res := newCtx(
+	// 			prog, node, ctx.node,
+	// 			pos+1, size, progBldr.progs.Count(),
+	// 			expr, ctx.xpathStmtLoc).
+	// 			SetDebug(ctx.debug).
+	// 			SetAccessibleTree(ctx.filter).
+	// 			Run()
+	// 		ctx.addDebug(res.output)
+	// 		if err := res.GetError(); err != nil {
+	// 			ctx.execError(err.Error(), "")
+	// 			return
+	// 		}
+	// 		if predicateIsTrue(res, ctx, pos) {
+	// 			outputNodeset = append(outputNodeset, node)
+	// 			ctx.addDebug("\tPred:\tMATCH\n")
+	// 			ctx.addDebug("\t----\n")
+	// 		} else {
+	// 			ctx.addDebug("\tPred:\tNo Match\n")
+	// 			ctx.addDebug("\t----\n")
+	// 		}
+	// 	}
+	// 	ctx.pushDatum(NewNodesetDatum(outputNodeset))
+	// 	ctx.stackedNodesets++
+	// }
 
-	progBldr.CodeSubMachine(evalSubMachine, "evalSubMachine",
-		GetProgListing(prog, progBldr.progs.Count()))
+	// progBldr.CodeSubMachine(evalSubMachine, "evalSubMachine",
+	// 	GetProgListing(prog, progBldr.progs.Count()))
 }
 
 func (progBldr *ProgBuilder) Store(ctx *context) {
@@ -399,17 +424,89 @@ func (progBldr *ProgBuilder) StorePathEval(ctx *context) {
 // are additional) operating directly on the stack.
 
 func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
-	if (ctx.pathOperPushes == 0) && (ctx.stackedNodesets == 0) {
-		ctx.execError("Cannot evaluate zero length path.", "")
+
+	fmt.Printf("EvalLocPath: stacksize -> Pre: %d", len(ctx.stack))
+
+	apathElems := ctx.actualPathStack.Get()
+
+	parentSchema, err := ctx.schemaClient.GetSchema(ctx.goctx,
+		&schemapb.GetSchemaRequest{
+			Path:   &schemapb.Path{Elem: apathElems[:len(apathElems)-1]},
+			Schema: copySchema(ctx.schema),
+		})
+	if err != nil {
+		ctx.res.runErr = err
 		return
 	}
 
-	var locPathElems = make([]pathElem, ctx.pathOperPushes)
-	for ; ctx.pathOperPushes > 0; ctx.pathOperPushes-- {
-		locPathElems[ctx.pathOperPushes-1] = ctx.popPathElem()
+	isKey := false
+	keyVal := ""
+	if parentSchema != nil {
+		for _, k := range parentSchema.GetContainer().Keys {
+			if apathElems[len(apathElems)-1].Name == k.Name {
+				apathElems = apathElems[:len(apathElems)-1]
+				isKey = true
+				keyVal = apathElems[len(apathElems)-1].Key[k.Name]
+			}
+		}
 	}
 
-	ctx.pushDatum(NewNodesetDatum(ctx.createNodeSet(locPathElems)))
+	completePath, err := utils.CompletePath(nil, &schemapb.Path{Elem: apathElems})
+	if err != nil {
+		ctx.res.runErr = err
+		return
+	}
+
+	if isKey {
+		fmt.Println("RESOLVED: " + keyVal)
+		ctx.pushDatum(NewLiteralDatum(keyVal))
+	} else {
+		actualPathSchema, err := ctx.schemaClient.GetSchema(ctx.goctx,
+			&schemapb.GetSchemaRequest{
+				Path:   &schemapb.Path{Elem: apathElems},
+				Schema: copySchema(ctx.schema),
+			})
+		if err != nil {
+			ctx.res.runErr = err
+			return
+		}
+		_, actualIsContainer := actualPathSchema.Schema.(*schemapb.GetSchemaResponse_Container)
+		if actualIsContainer {
+			// if it is a container, it is some sort of existence check
+			foo := ctx.headTree.Get(completePath)
+			if foo == nil {
+				// so if it does not exist, push false
+				ctx.pushDatum(NewBoolDatum(false))
+			} else {
+				// so if it does exist, push true
+				ctx.pushDatum(NewBoolDatum(true))
+			}
+		} else {
+			// if it is a Leaf, resolve to the actual value
+			lv := ctx.headTree.GetLeafValue(completePath)
+			var foo *schemapb.TypedValue = nil
+			if lv != nil {
+				foo = ctx.headTree.GetLeafValue(completePath).(*schemapb.TypedValue)
+			}
+			if foo == nil {
+				ctx.pushDatum(NewNodesetDatum([]xutils.XpathNode{}))
+			} else {
+				fmt.Println("RESOLVED: " + foo.GetStringVal())
+				ctx.pushDatum(NewLiteralDatum(foo.GetStringVal()))
+			}
+		}
+	}
+	fmt.Printf(" Post: %d\n", len(ctx.stack))
+	// rest actual path
+	ctx.ActualPathReset()
+}
+
+func copySchema(s *schemapb.Schema) *schemapb.Schema {
+	return &schemapb.Schema{
+		Name:    s.Name,
+		Version: s.Version,
+		Vendor:  s.Vendor,
+	}
 }
 
 func (progBldr *ProgBuilder) EvalLocPathExists(ctx *context) {

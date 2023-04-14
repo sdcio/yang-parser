@@ -13,7 +13,12 @@ package xpath
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
+	gocontext "context"
+
+	"github.com/iptecharch/schema-server/datastore/ctree"
+	schemapb "github.com/iptecharch/schema-server/protos/schema_server"
 	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
@@ -62,6 +67,158 @@ type context struct {
 	pfx          string // Prefix when printing
 	refExpr      string // Expression being evaluated
 	xpathStmtLoc string // Module:line of original xpath statement.
+
+	headTree *ctree.Tree
+
+	schema       *schemapb.Schema
+	schemaClient schemapb.SchemaServerClient
+
+	current         []*schemapb.PathElem
+	actualPathStack *PathElemStack
+
+	goctx gocontext.Context
+}
+
+func (c *context) GetActualPath() []*schemapb.PathElem {
+	return c.actualPathStack.Get()
+}
+
+func (c *context) ActualPathReset() {
+	c.ActualPathPop()
+	x := copyPathElems(c.current)
+	c.ActualPathPush(x)
+}
+
+func (c *context) ActualPathPopElem() *schemapb.PathElem {
+	ap := c.ActualPathPop()
+	// extract last elem for return
+	lastElem := ap[len(ap)-1]
+	// store path without last elem
+	ap = ap[:len(ap)-1]
+	c.ActualPathPush(ap)
+	return lastElem
+}
+func (c *context) ActualPathPop() []*schemapb.PathElem {
+	return c.actualPathStack.Pop()
+}
+
+func (c *context) ActualPathPush(pe []*schemapb.PathElem) {
+	c.actualPathStack.Push(pe)
+}
+
+func (c *context) ActualPathPushElem(pe *schemapb.PathElem) {
+	ap := c.ActualPathPop()
+	ap = append(ap, pe)
+	c.ActualPathPush(ap)
+}
+
+func (c *context) ActualPathPopAll() []*schemapb.PathElem {
+	ap := c.actualPathStack.Get()
+	oldPathElems := ap
+	ap = []*schemapb.PathElem{}
+	return oldPathElems
+}
+
+type PathElemStack struct {
+	stack [][]*schemapb.PathElem
+}
+
+func (ps *PathElemStack) Pop() []*schemapb.PathElem {
+	if len(ps.stack) > 0 {
+		p := ps.stack[len(ps.stack)-1]
+		ps.stack = ps.stack[:len(ps.stack)-1]
+		return p
+	}
+	return nil
+}
+
+func (ps *PathElemStack) Get() []*schemapb.PathElem {
+	return ps.stack[len(ps.stack)-1]
+}
+
+func (ps *PathElemStack) Push(p []*schemapb.PathElem) {
+	ps.stack = append(ps.stack, p)
+}
+
+func (ps *PathElemStack) Len() int {
+	return len(ps.stack)
+}
+
+type Path struct {
+	Elems []*PathElem
+}
+
+func (p *Path) String() string {
+	e := []string{}
+	for _, pe := range p.Elems {
+		e = append(e, pe.String())
+	}
+	return strings.Join(e, "/")
+}
+
+func (p *Path) Push(pe *PathElem) {
+	p.Elems = append(p.Elems, pe)
+}
+
+func (p *Path) Pop() *PathElem {
+	last := p.Elems[len(p.Elems)-1]
+	p.Elems = p.Elems[:len(p.Elems)-1]
+	return last
+}
+
+func (p *Path) PopAll() {
+	p.Elems = []*PathElem{}
+}
+
+type PathElem struct {
+	Name string
+	Key  map[string]string
+}
+
+func (pe *PathElem) String() string {
+	keys := []string{}
+	for k, v := range pe.Key {
+		keys = append(keys, fmt.Sprintf("%s=%s", k, v))
+	}
+	return fmt.Sprintf("%s[%s]", pe.Name, strings.Join(keys, ","))
+}
+
+func NewCtxFromCurrent(mach *Machine, pe []*schemapb.PathElem, t *ctree.Tree, schema *schemapb.Schema, schemaClient schemapb.SchemaServerClient, goctx gocontext.Context) *context {
+	c := &context{
+		res:          NewResult(),
+		validate:     false,
+		debug:        false,
+		filter:       xutils.FullTree,
+		pos:          1,
+		size:         1,
+		level:        0,
+		refExpr:      mach.refExpr,
+		prog:         mach.prog,
+		xpathStmtLoc: mach.location,
+		current:      pe,
+		actualPathStack: &PathElemStack{
+			stack: [][]*schemapb.PathElem{},
+		},
+		headTree:     t,
+		schema:       schema,
+		schemaClient: schemaClient,
+		goctx:        goctx,
+	}
+
+	c.actualPathStack.Push(copyPathElems(pe))
+	return c
+}
+
+func copyPathElems(pe []*schemapb.PathElem) []*schemapb.PathElem {
+	npe := make([]*schemapb.PathElem, len(pe))
+
+	for i, p := range pe {
+		npe[i] = &schemapb.PathElem{
+			Name: p.Name,
+			Key:  p.Key,
+		}
+	}
+	return npe
 }
 
 // As well as the initial context created when we start to evaluate an Xpath
