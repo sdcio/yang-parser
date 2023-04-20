@@ -76,6 +76,10 @@ type context struct {
 	current         []*schemapb.PathElem
 	actualPathStack *PathElemStack
 
+	predicateCount    int // if >0 we're inside a predicate
+	predicateEvalPath int
+	predKey           string
+
 	goctx gocontext.Context
 }
 
@@ -113,9 +117,9 @@ func (c *context) ActualPathPushElem(pe *schemapb.PathElem) {
 }
 
 func (c *context) ActualPathPopAll() []*schemapb.PathElem {
-	ap := c.actualPathStack.Get()
+	ap := c.ActualPathPop()
 	oldPathElems := ap
-	ap = []*schemapb.PathElem{}
+	c.ActualPathPush([]*schemapb.PathElem{})
 	return oldPathElems
 }
 
@@ -836,10 +840,14 @@ func (ctx *context) Run() (res *Result) {
 
 	ctx.addDebugProgHeader(ctx.refExpr)
 
-	for _, instr := range ctx.prog {
+	for x, instr := range ctx.prog {
 		ctx.addDebugInstrAndStack(instr.fnName)
 		instr.fn(ctx)
+		if instr.fnName == "bltin\t\tcurrent()" {
+			ctx.stack = ctx.stack[:len(ctx.stack)-1]
+		}
 		ctx.addDebug(ctx.pfx + "----\n")
+		_ = x
 	}
 
 	return ctx.res

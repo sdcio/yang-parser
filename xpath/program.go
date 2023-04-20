@@ -225,15 +225,15 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 }
 
 func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
-	if progBldr.ignoreInsidePred > 0 {
-		return
-	}
 
 	nameTestPush := func(ctx *context) {
-
-		//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
-		ctx.ActualPathPushElem(&schemapb.PathElem{Name: name.Local})
-		//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
+		if ctx.predicateCount > 0 && ctx.predicateEvalPath%2 == 0 {
+			ctx.pushDatum(NewLiteralDatum(name.Local))
+		} else {
+			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
+			ctx.ActualPathPushElem(&schemapb.PathElem{Name: name.Local})
+			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
+		}
 	}
 	progBldr.CodeFn(nameTestPush,
 		fmt.Sprintf("MyNameTestPush\t%s", name))
@@ -297,7 +297,23 @@ func (progBldr *ProgBuilder) CodePredStart() {
 	// if progBldr.progs.Count() > 2 {
 	// 	progBldr.parseErr = fmt.Errorf("Nested predicates not yet supported.")
 	// }
-	progBldr.CodeFn(progBldr.Store, "PREDSTART")
+	instFn := func(ctx *context) {
+		progBldr.NewPathStackFromActual()(ctx)
+		ctx.predicateCount += 1
+	}
+
+	progBldr.CodeFn(instFn, "PREDSTART")
+
+	//progBldr.CodeFn(progBldr.NewPathStackFromActual(), "PREDSTART - NewPathStackFromActual")
+	// progBldr.CodeFn(progBldr.Store, "PREDSTART")
+}
+
+func (progBldr *ProgBuilder) NewPathStackFromActual() instFunc {
+	return func(ctx *context) {
+		spe := ctx.ActualPathPop()
+		ctx.ActualPathPush(spe)
+		ctx.ActualPathPush(copyPathElems(spe))
+	}
 }
 
 func (progBldr *ProgBuilder) CodePredStartIgnore() {
@@ -348,7 +364,16 @@ func predicateIsTrue(
 func (progBldr *ProgBuilder) CodePredEnd() {
 
 	// Must explicitly append request to store result
-	progBldr.CodeFn(progBldr.Store, "PREDEND")
+	//progBldr.CodeFn(progBldr.Store, "PREDEND")
+
+	cFn := func(ctx *context) {
+		//progBldr.Store(ctx)
+		ctx.predicateCount -= 1
+		ctx.predicateEvalPath = 0
+		ctx.ActualPathPop()
+	}
+
+	progBldr.CodeFn(cFn, "PREDEND")
 	// prog := progBldr.progs.Pop()
 	// preds := progBldr.preds
 
@@ -424,6 +449,13 @@ func (progBldr *ProgBuilder) StorePathEval(ctx *context) {
 // are additional) operating directly on the stack.
 
 func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
+	if ctx.predicateCount > 0 {
+		if ctx.predicateEvalPath%2 == 0 {
+			ctx.predicateEvalPath += 1
+			return
+		}
+		ctx.predicateEvalPath += 1
+	}
 
 	fmt.Printf("EvalLocPath: stacksize -> Pre: %d", len(ctx.stack))
 
@@ -530,16 +562,19 @@ func (progBldr *ProgBuilder) EvalLocPathExists(ctx *context) {
 // and increment stackedNodesets so subsequent path construction operations
 // take this nodeset into account.
 func (progBldr *ProgBuilder) FilterExprEnd(ctx *context) {
-	d := ctx.popDatum()
 
-	ns, ok := d.(nodesetDatum)
-	if !ok {
-		ctx.execError("Filter Expression must evaluate to a nodeset.", "")
-		return
-	}
+	// // // NOOP
 
-	ctx.pushDatum(ns)
-	ctx.stackedNodesets++
+	// d := ctx.popDatum()
+
+	// ns, ok := d.(nodesetDatum)
+	// if !ok {
+	// 	ctx.execError("Filter Expression must evaluate to a nodeset.", "")
+	// 	return
+	// }
+
+	// ctx.pushDatum(ns)
+	// ctx.stackedNodesets++
 }
 
 func (progBldr *ProgBuilder) LRefEquals(ctx *context) {
@@ -654,20 +689,38 @@ func (progBldr *ProgBuilder) Or(ctx *context) {
 }
 
 func (progBldr *ProgBuilder) Eq(ctx *context) {
-	boolFn := func(d1, d2 Datum) bool {
-		return d1.Boolean("eq(bool1)") == d2.Boolean("eq(bool2)")
+	switch {
+	// being out of predicate, this is an equality check
+	case ctx.predicateCount == 0:
+		boolFn := func(d1, d2 Datum) bool {
+			return d1.Boolean("eq(bool1)") == d2.Boolean("eq(bool2)")
+		}
+		litFn := func(d1, d2 Datum) bool {
+			return d1.Literal("eq(lit1)") == d2.Literal("eq(lit2)")
+		}
+		numFn := func(d1, d2 Datum) bool {
+			// Some values of NaN are more equal than others, but if either
+			// n1 or n2 is NaN, then n1 != n2.
+			n1 := d1.Number("eq(num1)")
+			n2 := d2.Number("eq(num2)")
+			return (n1 == n2) && !math.IsNaN(n1) && !math.IsNaN(n2)
+		}
+		ctx.popCompareEqualityAndPush(boolFn, litFn, numFn, "=")
+	case ctx.predicateCount > 0:
+		// being within a predicate this is an assignment
+
+		d1 := ctx.popDatum()
+		d2 := ctx.popDatum()
+
+		predPath := ctx.ActualPathPop()
+		// retrieve the previouse path on the stack
+		pes := ctx.GetActualPath()
+		ctx.ActualPathPush(predPath)
+		if pes[len(pes)-1].Key == nil {
+			pes[len(pes)-1].Key = map[string]string{}
+		}
+		pes[len(pes)-1].Key[d2.Literal("")] = d1.Literal("")
 	}
-	litFn := func(d1, d2 Datum) bool {
-		return d1.Literal("eq(lit1)") == d2.Literal("eq(lit2)")
-	}
-	numFn := func(d1, d2 Datum) bool {
-		// Some values of NaN are more equal than others, but if either
-		// n1 or n2 is NaN, then n1 != n2.
-		n1 := d1.Number("eq(num1)")
-		n2 := d2.Number("eq(num2)")
-		return (n1 == n2) && !math.IsNaN(n1) && !math.IsNaN(n2)
-	}
-	ctx.popCompareEqualityAndPush(boolFn, litFn, numFn, "=")
 }
 
 func (progBldr *ProgBuilder) Ne(ctx *context) {

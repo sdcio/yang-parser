@@ -25,7 +25,28 @@ func (s *stats) String() string {
 }
 
 func main() {
+	Other("/srl_nokia-if:interface[srl_nokia-if:name=substring-before(current(), '.')]/srl_nokia-if:subinterface[srl_nokia-if:index=substring-after(current(), '.')]")
+}
 
+func Other(exprStr string) error {
+	prgbuilder := xpath.NewProgBuilder(exprStr)
+	lexer := expr.NewExprLex(exprStr, prgbuilder, nil)
+
+	lexer.Parse()
+	prog, err := lexer.CreateProgram(exprStr)
+	if err != nil {
+		return err
+	}
+
+	xpm := xpath.NewMachine(exprStr, prog, "exprMachine")
+
+	xpm.PrintMachine()
+
+	return nil
+
+}
+
+func ProcessFileMain() {
 	s := &stats{}
 
 	processor := func(x string) {

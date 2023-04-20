@@ -279,16 +279,9 @@ func count(ctx *context, args []Datum) (retNum Datum) {
 }
 
 func current(ctx *context, args []Datum) (retNodeSet Datum) {
-	ctx.verifyArgNumAndTypes("current",
-		args, []DatumTypeChecker{})
-
-	// When evaluating musts on unconfigured NP containers, our initNode
-	// does not actually exist.
-	if ctx.initNode.XIsEphemeral() {
-		return NewNodesetDatum([]xutils.XpathNode{})
-	}
-
-	return NewNodesetDatum([]xutils.XpathNode{ctx.initNode})
+	// reset the path to the current path
+	ctx.ActualPathReset()
+	return NewNodesetDatum([]xutils.XpathNode{})
 }
 
 // Round DOWN to nearest integer
@@ -522,10 +515,9 @@ func translate(ctx *context, args []Datum) (retLit Datum) {
 	return NewLiteralDatum(src)
 }
 
-func xBoolean(ctx *context, args []Datum) (retBool Datum) {
+func xBoolean(ctx *context, args []Datum) Datum {
 	ctx.verifyArgNumAndTypes("boolean",
 		args, []DatumTypeChecker{TypeIsObject})
-
 	return NewBoolDatum(args[0].Boolean("boolean()"))
 }
 
