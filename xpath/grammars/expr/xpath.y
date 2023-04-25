@@ -64,6 +64,9 @@ top:
 		;
 Expr:
 				OrExpr
+				{
+					getProgBldr(exprlex).CurrentFix();
+				}
 		;
 OrExpr:
 				AndExpr

@@ -70,7 +70,7 @@ state 4
 	AndExpr:  AndExpr.AND EqualityExpr 
 
 	AND  shift 41
-	.  reduce 3 (src line 68)
+	.  reduce 3 (src line 71)
 
 
 state 5
@@ -80,7 +80,7 @@ state 5
 
 	NE  shift 43
 	EQ  shift 42
-	.  reduce 5 (src line 76)
+	.  reduce 5 (src line 79)
 
 
 state 6
@@ -94,7 +94,7 @@ state 6
 	GE  shift 47
 	LT  shift 44
 	LE  shift 46
-	.  reduce 7 (src line 84)
+	.  reduce 7 (src line 87)
 
 
 state 7
@@ -104,7 +104,7 @@ state 7
 
 	'+'  shift 48
 	'-'  shift 49
-	.  reduce 10 (src line 97)
+	.  reduce 10 (src line 100)
 
 
 state 8
@@ -116,13 +116,13 @@ state 8
 	'*'  shift 50
 	DIV  shift 51
 	MOD  shift 52
-	.  reduce 15 (src line 120)
+	.  reduce 15 (src line 123)
 
 
 state 9
 	MultiplicativeExpr:  UnaryExpr.    (18)
 
-	.  reduce 18 (src line 133)
+	.  reduce 18 (src line 136)
 
 
 state 10
@@ -130,7 +130,7 @@ state 10
 	UnionExpr:  UnionExpr.'|' PathExpr 
 
 	'|'  shift 53
-	.  reduce 22 (src line 151)
+	.  reduce 22 (src line 154)
 
 
 state 11
@@ -173,13 +173,13 @@ state 11
 state 12
 	UnionExpr:  PathExpr.    (24)
 
-	.  reduce 24 (src line 159)
+	.  reduce 24 (src line 162)
 
 
 state 13
 	PathExpr:  LocationPath.    (26)
 
-	.  reduce 26 (src line 167)
+	.  reduce 26 (src line 170)
 
 
 state 14
@@ -187,10 +187,10 @@ state 14
 	CompoundFilterExpr:  FilterExpr.    (30)
 	FilterExpr:  FilterExpr.Predicate 
 
-	DBLSLASH  reduce 30 (src line 188)
-	'/'  reduce 30 (src line 188)
+	DBLSLASH  reduce 30 (src line 191)
+	'/'  reduce 30 (src line 191)
 	'['  shift 57
-	.  reduce 27 (src line 173)
+	.  reduce 27 (src line 176)
 
 	Predicate  goto 55
 	PredicateStart  goto 56
@@ -212,32 +212,32 @@ state 16
 
 	DBLSLASH  shift 38
 	'/'  shift 60
-	.  reduce 41 (src line 230)
+	.  reduce 41 (src line 233)
 
 	DoubleSlash  goto 61
 
 state 17
 	LocationPath:  AbsoluteLocationPath.    (42)
 
-	.  reduce 42 (src line 232)
+	.  reduce 42 (src line 235)
 
 
 state 18
 	FilterExpr:  PrimaryExpr.    (31)
 
-	.  reduce 31 (src line 195)
+	.  reduce 31 (src line 198)
 
 
 state 19
 	RelativeLocationPath:  Step.    (47)
 
-	.  reduce 47 (src line 251)
+	.  reduce 47 (src line 254)
 
 
 state 20
 	RelativeLocationPath:  AbbreviatedRelativeLocationPath.    (49)
 
-	.  reduce 49 (src line 254)
+	.  reduce 49 (src line 257)
 
 
 state 21
@@ -249,7 +249,7 @@ state 21
 	NAMETEST  shift 35
 	'.'  shift 36
 	'@'  shift 39
-	.  reduce 43 (src line 234)
+	.  reduce 43 (src line 237)
 
 	RelativeLocationPath  goto 62
 	Step  goto 19
@@ -262,7 +262,7 @@ state 21
 state 22
 	AbsoluteLocationPath:  AbbreviatedAbsoluteLocationPath.    (45)
 
-	.  reduce 45 (src line 237)
+	.  reduce 45 (src line 240)
 
 
 state 23
@@ -312,13 +312,13 @@ state 23
 state 24
 	PrimaryExpr:  LITERAL.    (34)
 
-	.  reduce 34 (src line 201)
+	.  reduce 34 (src line 204)
 
 
 state 25
 	PrimaryExpr:  NUM.    (35)
 
-	.  reduce 35 (src line 205)
+	.  reduce 35 (src line 208)
 
 
 state 26
@@ -334,7 +334,7 @@ state 26
 state 27
 	PrimaryExpr:  NODETYPE.    (40)
 
-	.  reduce 40 (src line 225)
+	.  reduce 40 (src line 228)
 
 
 state 28
@@ -351,7 +351,7 @@ state 29
 	Step:  NodeTest.    (53)
 
 	'['  shift 57
-	.  reduce 53 (src line 267)
+	.  reduce 53 (src line 270)
 
 	Predicate  goto 67
 	PredicateSet  goto 66
@@ -360,13 +360,13 @@ state 29
 state 30
 	Step:  AbbreviatedStep.    (54)
 
-	.  reduce 54 (src line 268)
+	.  reduce 54 (src line 271)
 
 
 state 31
 	Root:  '/'.    (46)
 
-	.  reduce 46 (src line 245)
+	.  reduce 46 (src line 248)
 
 
 state 32
@@ -397,37 +397,37 @@ state 33
 state 34
 	AxisSpecifier:  AbbreviatedAxisSpecifier.    (56)
 
-	.  reduce 56 (src line 275)
+	.  reduce 56 (src line 278)
 
 
 state 35
 	NodeTest:  NAMETEST.    (57)
 
-	.  reduce 57 (src line 277)
+	.  reduce 57 (src line 280)
 
 
 state 36
 	AbbreviatedStep:  '.'.    (66)
 
-	.  reduce 66 (src line 308)
+	.  reduce 66 (src line 311)
 
 
 state 37
 	AbbreviatedStep:  DOTDOT.    (67)
 
-	.  reduce 67 (src line 313)
+	.  reduce 67 (src line 316)
 
 
 state 38
 	DoubleSlash:  DBLSLASH.    (69)
 
-	.  reduce 69 (src line 325)
+	.  reduce 69 (src line 328)
 
 
 state 39
 	AbbreviatedAxisSpecifier:  '@'.    (68)
 
-	.  reduce 68 (src line 318)
+	.  reduce 68 (src line 321)
 
 
 state 40
@@ -973,13 +973,13 @@ state 53
 state 54
 	UnaryExpr:  '-' UnaryExpr.    (23)
 
-	.  reduce 23 (src line 153)
+	.  reduce 23 (src line 156)
 
 
 state 55
 	FilterExpr:  FilterExpr Predicate.    (32)
 
-	.  reduce 32 (src line 197)
+	.  reduce 32 (src line 200)
 
 
 state 56
@@ -1030,7 +1030,7 @@ state 56
 state 57
 	PredicateStart:  '['.    (61)
 
-	.  reduce 61 (src line 289)
+	.  reduce 61 (src line 292)
 
 
 state 58
@@ -1108,7 +1108,7 @@ state 62
 
 	DBLSLASH  shift 38
 	'/'  shift 60
-	.  reduce 44 (src line 236)
+	.  reduce 44 (src line 239)
 
 	DoubleSlash  goto 61
 
@@ -1172,7 +1172,7 @@ state 65
 	Step:  AxisSpecifier NodeTest.    (51)
 
 	'['  shift 57
-	.  reduce 51 (src line 265)
+	.  reduce 51 (src line 268)
 
 	Predicate  goto 67
 	PredicateSet  goto 93
@@ -1183,7 +1183,7 @@ state 66
 	PredicateSet:  PredicateSet.Predicate 
 
 	'['  shift 57
-	.  reduce 52 (src line 266)
+	.  reduce 52 (src line 269)
 
 	Predicate  goto 94
 	PredicateStart  goto 56
@@ -1191,7 +1191,7 @@ state 66
 state 67
 	PredicateSet:  Predicate.    (58)
 
-	.  reduce 58 (src line 282)
+	.  reduce 58 (src line 285)
 
 
 state 68
@@ -1201,14 +1201,14 @@ state 68
 
 	DBLSLASH  shift 38
 	'/'  shift 60
-	.  reduce 64 (src line 302)
+	.  reduce 64 (src line 305)
 
 	DoubleSlash  goto 61
 
 state 69
 	AxisSpecifier:  AXISNAME DBLCOLON.    (55)
 
-	.  reduce 55 (src line 270)
+	.  reduce 55 (src line 273)
 
 
 state 70
@@ -1216,7 +1216,7 @@ state 70
 	AndExpr:  AndExpr.AND EqualityExpr 
 
 	AND  shift 41
-	.  reduce 4 (src line 70)
+	.  reduce 4 (src line 73)
 
 
 state 71
@@ -1226,7 +1226,7 @@ state 71
 
 	NE  shift 43
 	EQ  shift 42
-	.  reduce 6 (src line 78)
+	.  reduce 6 (src line 81)
 
 
 state 72
@@ -1240,7 +1240,7 @@ state 72
 	GE  shift 47
 	LT  shift 44
 	LE  shift 46
-	.  reduce 8 (src line 86)
+	.  reduce 8 (src line 89)
 
 
 state 73
@@ -1254,7 +1254,7 @@ state 73
 	GE  shift 47
 	LT  shift 44
 	LE  shift 46
-	.  reduce 9 (src line 91)
+	.  reduce 9 (src line 94)
 
 
 state 74
@@ -1264,7 +1264,7 @@ state 74
 
 	'+'  shift 48
 	'-'  shift 49
-	.  reduce 11 (src line 99)
+	.  reduce 11 (src line 102)
 
 
 state 75
@@ -1274,7 +1274,7 @@ state 75
 
 	'+'  shift 48
 	'-'  shift 49
-	.  reduce 12 (src line 104)
+	.  reduce 12 (src line 107)
 
 
 state 76
@@ -1284,7 +1284,7 @@ state 76
 
 	'+'  shift 48
 	'-'  shift 49
-	.  reduce 13 (src line 109)
+	.  reduce 13 (src line 112)
 
 
 state 77
@@ -1294,7 +1294,7 @@ state 77
 
 	'+'  shift 48
 	'-'  shift 49
-	.  reduce 14 (src line 114)
+	.  reduce 14 (src line 117)
 
 
 state 78
@@ -1306,7 +1306,7 @@ state 78
 	'*'  shift 50
 	DIV  shift 51
 	MOD  shift 52
-	.  reduce 16 (src line 122)
+	.  reduce 16 (src line 125)
 
 
 state 79
@@ -1318,31 +1318,31 @@ state 79
 	'*'  shift 50
 	DIV  shift 51
 	MOD  shift 52
-	.  reduce 17 (src line 127)
+	.  reduce 17 (src line 130)
 
 
 state 80
 	MultiplicativeExpr:  MultiplicativeExpr '*' UnaryExpr.    (19)
 
-	.  reduce 19 (src line 135)
+	.  reduce 19 (src line 138)
 
 
 state 81
 	MultiplicativeExpr:  MultiplicativeExpr DIV UnaryExpr.    (20)
 
-	.  reduce 20 (src line 140)
+	.  reduce 20 (src line 143)
 
 
 state 82
 	MultiplicativeExpr:  MultiplicativeExpr MOD UnaryExpr.    (21)
 
-	.  reduce 21 (src line 145)
+	.  reduce 21 (src line 148)
 
 
 state 83
 	UnionExpr:  UnionExpr '|' PathExpr.    (25)
 
-	.  reduce 25 (src line 161)
+	.  reduce 25 (src line 164)
 
 
 state 84
@@ -1356,7 +1356,7 @@ state 84
 state 85
 	PredicateExpr:  Expr.    (62)
 
-	.  reduce 62 (src line 294)
+	.  reduce 62 (src line 297)
 
 
 state 86
@@ -1366,7 +1366,7 @@ state 86
 
 	DBLSLASH  shift 38
 	'/'  shift 60
-	.  reduce 28 (src line 174)
+	.  reduce 28 (src line 177)
 
 	DoubleSlash  goto 61
 
@@ -1377,32 +1377,32 @@ state 87
 
 	DBLSLASH  shift 38
 	'/'  shift 60
-	.  reduce 29 (src line 179)
+	.  reduce 29 (src line 182)
 
 	DoubleSlash  goto 61
 
 state 88
 	RelativeLocationPath:  RelativeLocationPath '/' Step.    (48)
 
-	.  reduce 48 (src line 253)
+	.  reduce 48 (src line 256)
 
 
 state 89
 	AbbreviatedRelativeLocationPath:  RelativeLocationPath DoubleSlash Step.    (65)
 
-	.  reduce 65 (src line 305)
+	.  reduce 65 (src line 308)
 
 
 state 90
 	PrimaryExpr:  '(' Expr ')'.    (33)
 
-	.  reduce 33 (src line 199)
+	.  reduce 33 (src line 202)
 
 
 state 91
 	PrimaryExpr:  FUNC '(' ')'.    (36)
 
-	.  reduce 36 (src line 209)
+	.  reduce 36 (src line 212)
 
 
 state 92
@@ -1420,7 +1420,7 @@ state 93
 	PredicateSet:  PredicateSet.Predicate 
 
 	'['  shift 57
-	.  reduce 50 (src line 256)
+	.  reduce 50 (src line 259)
 
 	Predicate  goto 94
 	PredicateStart  goto 56
@@ -1428,25 +1428,25 @@ state 93
 state 94
 	PredicateSet:  PredicateSet Predicate.    (59)
 
-	.  reduce 59 (src line 284)
+	.  reduce 59 (src line 287)
 
 
 state 95
 	Predicate:  PredicateStart PredicateExpr PredicateEnd.    (60)
 
-	.  reduce 60 (src line 286)
+	.  reduce 60 (src line 289)
 
 
 state 96
 	PredicateEnd:  ']'.    (63)
 
-	.  reduce 63 (src line 297)
+	.  reduce 63 (src line 300)
 
 
 state 97
 	PrimaryExpr:  FUNC '(' Expr ')'.    (37)
 
-	.  reduce 37 (src line 213)
+	.  reduce 37 (src line 216)
 
 
 state 98
@@ -1506,7 +1506,7 @@ state 99
 state 100
 	PrimaryExpr:  FUNC '(' Expr ',' Expr ')'.    (38)
 
-	.  reduce 38 (src line 217)
+	.  reduce 38 (src line 220)
 
 
 state 101
@@ -1563,7 +1563,7 @@ state 102
 state 103
 	PrimaryExpr:  FUNC '(' Expr ',' Expr ',' Expr ')'.    (39)
 
-	.  reduce 39 (src line 221)
+	.  reduce 39 (src line 224)
 
 
 36 terminals, 32 nonterminals

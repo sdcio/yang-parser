@@ -75,6 +75,13 @@ func NewProgBuilder(refExpr string) *ProgBuilder {
 	return progBldr
 }
 
+func (progBldr *ProgBuilder) CurrentFix() {
+	strNamePrevFunc := progBldr.progs[0][len(progBldr.progs[0])-1].String()
+	if strings.Contains(strNamePrevFunc, "current()") {
+		progBldr.CodeFn(progBldr.EvalLocPath, "evalLocPath(afterCurrent)")
+	}
+}
+
 // Extract relevant predicate from expression - 'preds' indicates which '['
 // is the starting point.
 func GetSubExpr(expr string, preds int) (retStr string) {
@@ -148,10 +155,6 @@ func (progBldr *ProgBuilder) UnsupportedName(tokenType int, token string) {
 func (progBldr *ProgBuilder) CodeFn(fn instFunc, fnName string) {
 	newInstr := newInst(fn, fnName)
 	progBldr.progs.Update(newInstr)
-}
-
-func (progBldr *ProgBuilder) AddInstruction(Instr Inst) {
-	progBldr.progs.Update(Instr)
 }
 
 func (progBldr *ProgBuilder) CodeSubMachine(

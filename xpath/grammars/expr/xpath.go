@@ -91,7 +91,7 @@ const exprEofCode = 1
 const exprErrCode = 2
 const exprInitialStackSize = 16
 
-//line xpath.y:332
+//line xpath.y:335
 
 /* Code is in .go files so we get the benefit of gofmt etc.
  * What's above is formatted as best as emacs Bison-mode will allow,
@@ -574,233 +574,239 @@ exprdefault:
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Store, "store")
 		}
+	case 2:
+		exprDollar = exprS[exprpt-1 : exprpt+1]
+//line xpath.y:67
+		{
+			getProgBldr(exprlex).CurrentFix()
+		}
 	case 4:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:71
+//line xpath.y:74
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Or, "or")
 		}
 	case 6:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:79
+//line xpath.y:82
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).And, "and")
 		}
 	case 8:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:87
+//line xpath.y:90
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Eq, "eq")
 		}
 	case 9:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:92
+//line xpath.y:95
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Ne, "ne")
 		}
 	case 11:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:100
+//line xpath.y:103
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Lt, "lt")
 		}
 	case 12:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:105
+//line xpath.y:108
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Gt, "gt")
 		}
 	case 13:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:110
+//line xpath.y:113
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Le, "le")
 		}
 	case 14:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:115
+//line xpath.y:118
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Ge, "ge")
 		}
 	case 16:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:123
+//line xpath.y:126
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Add, "add")
 		}
 	case 17:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:128
+//line xpath.y:131
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Sub, "sub")
 		}
 	case 19:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:136
+//line xpath.y:139
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Mul, "mul")
 		}
 	case 20:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:141
+//line xpath.y:144
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Div, "div")
 		}
 	case 21:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:146
+//line xpath.y:149
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Mod, "mod")
 		}
 	case 23:
 		exprDollar = exprS[exprpt-2 : exprpt+1]
-//line xpath.y:154
+//line xpath.y:157
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Negate, "negate")
 		}
 	case 25:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:162
+//line xpath.y:165
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Union, "union")
 		}
 	case 26:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:169
+//line xpath.y:172
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).EvalLocPath, "evalLocPath")
 		}
 	case 28:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:175
+//line xpath.y:178
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).EvalLocPath, "evalLocPath")
 		}
 	case 29:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:180
+//line xpath.y:183
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).EvalLocPath, "evalLocPath")
 		}
 	case 30:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:190
+//line xpath.y:193
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).FilterExprEnd, "filterExprEnd")
 		}
 	case 34:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:202
+//line xpath.y:205
 		{
 			getProgBldr(exprlex).CodeLiteral(exprDollar[1].name)
 		}
 	case 35:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:206
+//line xpath.y:209
 		{
 			getProgBldr(exprlex).CodeNum(exprDollar[1].val)
 		}
 	case 36:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:210
+//line xpath.y:213
 		{
 			getProgBldr(exprlex).CodeBltin(exprDollar[1].sym, 0)
 		}
 	case 37:
 		exprDollar = exprS[exprpt-4 : exprpt+1]
-//line xpath.y:214
+//line xpath.y:217
 		{
 			getProgBldr(exprlex).CodeBltin(exprDollar[1].sym, 1)
 		}
 	case 38:
 		exprDollar = exprS[exprpt-6 : exprpt+1]
-//line xpath.y:218
+//line xpath.y:221
 		{
 			getProgBldr(exprlex).CodeBltin(exprDollar[1].sym, 2)
 		}
 	case 39:
 		exprDollar = exprS[exprpt-8 : exprpt+1]
-//line xpath.y:222
+//line xpath.y:225
 		{
 			getProgBldr(exprlex).CodeBltin(exprDollar[1].sym, 3)
 		}
 	case 40:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:226
+//line xpath.y:229
 		{
 			getProgBldr(exprlex).UnsupportedName(xutils.NODETYPE, exprDollar[1].name)
 		}
 	case 46:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:247
+//line xpath.y:250
 		{
 			getProgBldr(exprlex).CodePathOper('/')
 		}
 	case 55:
 		exprDollar = exprS[exprpt-2 : exprpt+1]
-//line xpath.y:272
+//line xpath.y:275
 		{
 			getProgBldr(exprlex).UnsupportedName(xutils.AXISNAME, exprDollar[1].name)
 		}
 	case 57:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:278
+//line xpath.y:281
 		{
 			getProgBldr(exprlex).CodeNameTest(exprDollar[1].xmlname)
 		}
 	case 61:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:290
+//line xpath.y:293
 		{
 			getProgBldr(exprlex).CodePredStart()
 		}
 	case 63:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:298
+//line xpath.y:301
 		{
 			getProgBldr(exprlex).CodePredEnd()
 		}
 	case 66:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:310
+//line xpath.y:313
 		{
 			getProgBldr(exprlex).CodePathOper('.')
 		}
 	case 67:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:314
+//line xpath.y:317
 		{
 			getProgBldr(exprlex).CodePathOper(xutils.DOTDOT)
 		}
 	case 68:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:320
+//line xpath.y:323
 		{
 			getProgBldr(exprlex).UnsupportedName(
 				'@', "not yet implemented")
 		}
 	case 69:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:327
+//line xpath.y:330
 		{
 			getProgBldr(exprlex).UnsupportedName(
 				xutils.DBLSLASH, "not yet implemented")
