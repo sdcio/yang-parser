@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/steiler/yang-parser/testutils"
+	"github.com/iptecharch/yang-parser/testutils"
 )
 
 func TestValidLeafRef(t *testing.T) {

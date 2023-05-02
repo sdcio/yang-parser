@@ -10,8 +10,8 @@ package parse_test
 import (
 	"testing"
 
-	"github.com/steiler/yang-parser/parse"
-	. "github.com/steiler/yang-parser/parse/parsetest"
+	"github.com/iptecharch/yang-parser/parse"
+	. "github.com/iptecharch/yang-parser/parse/parsetest"
 )
 
 // This is what the contents of the "contact" field in string_pass_concat.yang

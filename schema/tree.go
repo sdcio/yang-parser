@@ -15,8 +15,8 @@ import (
 	"sort"
 
 	"github.com/danos/mgmterror"
-	"github.com/steiler/yang-parser/xpath"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/xpath"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 func cardinalityInRange(p xutils.PathType, min, max uint, len int) error {

@@ -10,7 +10,7 @@ package compile_test
 import (
 	"testing"
 
-	"github.com/steiler/yang-parser/testutils"
+	"github.com/iptecharch/yang-parser/testutils"
 )
 
 // Test Cases

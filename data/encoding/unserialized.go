@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/danos/mgmterror"
-	"github.com/steiler/yang-parser/data/datanode"
-	"github.com/steiler/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/data/datanode"
+	"github.com/iptecharch/yang-parser/schema"
 )
 
 type EncType int

@@ -14,8 +14,8 @@ import (
 
 	"github.com/danos/mgmterror"
 	"github.com/danos/utils/pathutil"
-	"github.com/steiler/yang-parser/data/datanode"
-	"github.com/steiler/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/data/datanode"
+	"github.com/iptecharch/yang-parser/schema"
 )
 
 type unmarshaledXML struct {

@@ -19,7 +19,7 @@ import (
 
 	"github.com/iptecharch/schema-server/datastore/ctree"
 	schemapb "github.com/iptecharch/schema-server/protos/schema_server"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 // CONTEXT

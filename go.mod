@@ -1,4 +1,4 @@
-module github.com/steiler/yang-parser
+module github.com/iptecharch/yang-parser
 
 go 1.20
 

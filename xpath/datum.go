@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 // Interpreter stack type used when executing a Machine object to store

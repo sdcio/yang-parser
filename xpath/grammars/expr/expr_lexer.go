@@ -19,8 +19,8 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/steiler/yang-parser/xpath"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/xpath"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 // The parser uses the type <prefix>Lex as a lexer.  It must provide

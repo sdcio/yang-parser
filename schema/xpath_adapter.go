@@ -17,8 +17,8 @@ import (
 
 	"github.com/danos/utils/natsort"
 
-	"github.com/steiler/yang-parser/data/datanode"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/data/datanode"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 // XPath Support

@@ -8,7 +8,7 @@ package compile
 import (
 	"fmt"
 
-	"github.com/steiler/yang-parser/parse"
+	"github.com/iptecharch/yang-parser/parse"
 )
 
 type deviateProcessor interface {

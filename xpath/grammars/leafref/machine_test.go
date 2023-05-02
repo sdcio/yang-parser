@@ -13,8 +13,8 @@ package leafref
 import (
 	"testing"
 
-	. "github.com/steiler/yang-parser/xpath/xpathtest"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	. "github.com/iptecharch/yang-parser/xpath/xpathtest"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 // Check all valid options in a machine are printed correctly.

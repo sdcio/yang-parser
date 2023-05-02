@@ -13,8 +13,8 @@ package compile_test
 import (
 	"testing"
 
-	"github.com/steiler/yang-parser/schema"
-	"github.com/steiler/yang-parser/testutils"
+	"github.com/iptecharch/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/testutils"
 )
 
 // Subsets of error strings that we use to match on actual error reported.

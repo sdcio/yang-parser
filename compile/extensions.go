@@ -9,8 +9,8 @@
 package compile
 
 import (
-	"github.com/steiler/yang-parser/parse"
-	"github.com/steiler/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/parse"
+	"github.com/iptecharch/yang-parser/schema"
 )
 
 /*

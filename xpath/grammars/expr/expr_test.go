@@ -16,10 +16,10 @@ package expr
 import (
 	"testing"
 
-	"github.com/steiler/yang-parser/xpath"
-	. "github.com/steiler/yang-parser/xpath/grammars/lexertest"
-	"github.com/steiler/yang-parser/xpath/xpathtest"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/xpath"
+	. "github.com/iptecharch/yang-parser/xpath/grammars/lexertest"
+	"github.com/iptecharch/yang-parser/xpath/xpathtest"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 func getMachine(

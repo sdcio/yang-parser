@@ -15,8 +15,8 @@ package leafref
 import (
     "encoding/xml"
 
-    "github.com/steiler/yang-parser/xpath"
-    "github.com/steiler/yang-parser/xpath/xutils"
+    "github.com/iptecharch/yang-parser/xpath"
+    "github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 %}

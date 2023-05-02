@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/steiler/yang-parser/parse"
+	"github.com/iptecharch/yang-parser/parse"
 )
 
 func mkModule(revs string) string {

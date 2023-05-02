@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/steiler/yang-parser/data/datanode"
-	"github.com/steiler/yang-parser/data/encoding"
-	"github.com/steiler/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/data/datanode"
+	"github.com/iptecharch/yang-parser/data/encoding"
+	"github.com/iptecharch/yang-parser/schema"
 )
 
 //

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/iptecharch/yang-parser/xpath"
+	"github.com/iptecharch/yang-parser/xpath/grammars/expr"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 	log "github.com/sirupsen/logrus"
-	"github.com/steiler/yang-parser/xpath"
-	"github.com/steiler/yang-parser/xpath/grammars/expr"
-	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 // call this

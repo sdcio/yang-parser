@@ -19,7 +19,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/steiler/yang-parser/xpath"
+	"github.com/iptecharch/yang-parser/xpath"
 )
 
 // Test Cases

@@ -28,7 +28,7 @@ import (
 	"strconv"
 	"unicode/utf8"
 
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 // Allow for different grammars to be compiled and run using Machine,

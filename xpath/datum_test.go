@@ -15,8 +15,8 @@ package xpath
 import (
 	"testing"
 
-	"github.com/steiler/yang-parser/xpath/xpathtest"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/xpath/xpathtest"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 // This covers isSameType() as well as equalTo()

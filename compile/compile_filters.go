@@ -8,7 +8,7 @@
 package compile
 
 import (
-	"github.com/steiler/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/schema"
 )
 
 type SchemaFilter func(sn schema.Node) bool

@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/steiler/yang-parser/schema"
-	"github.com/steiler/yang-parser/testutils"
+	"github.com/iptecharch/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/testutils"
 )
 
 func CheckStatus(expect schema.Status) checkFn {

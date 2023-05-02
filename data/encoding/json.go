@@ -15,8 +15,8 @@ import (
 	"strings"
 
 	"github.com/danos/encoding/rfc7951"
-	"github.com/steiler/yang-parser/data/datanode"
-	"github.com/steiler/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/data/datanode"
+	"github.com/iptecharch/yang-parser/schema"
 )
 
 type JSONReader struct {

@@ -15,10 +15,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/steiler/yang-parser/schema"
-	"github.com/steiler/yang-parser/schema/schematests"
-	"github.com/steiler/yang-parser/testutils"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/schema/schematests"
+	"github.com/iptecharch/yang-parser/testutils"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 const SchemaNamespace = "urn:vyatta.com:test:yang-compile"

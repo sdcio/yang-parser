@@ -11,10 +11,10 @@ package schema_test
 import (
 	"testing"
 
-	"github.com/steiler/yang-parser/data/encoding"
-	"github.com/steiler/yang-parser/schema"
-	"github.com/steiler/yang-parser/testutils"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/data/encoding"
+	"github.com/iptecharch/yang-parser/schema"
+	"github.com/iptecharch/yang-parser/testutils"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 func TestBasicDecodedJSON(t *testing.T) {

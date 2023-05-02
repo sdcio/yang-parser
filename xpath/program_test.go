@@ -19,7 +19,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 // Helper functions

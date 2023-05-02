@@ -14,8 +14,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 	log "github.com/sirupsen/logrus"
-	"github.com/steiler/yang-parser/xpath/xutils"
 )
 
 type bltinFn func(*context, []Datum) Datum

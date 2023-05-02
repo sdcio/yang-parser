@@ -16,10 +16,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/steiler/yang-parser/testutils/assert"
-	"github.com/steiler/yang-parser/xpath"
-	"github.com/steiler/yang-parser/xpath/xpathtest"
-	"github.com/steiler/yang-parser/xpath/xutils"
+	"github.com/iptecharch/yang-parser/testutils/assert"
+	"github.com/iptecharch/yang-parser/xpath"
+	"github.com/iptecharch/yang-parser/xpath/xpathtest"
+	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
 func CheckNumResult(t *testing.T, mach *xpath.Machine, expResult float64) {

@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/steiler/yang-parser/testutils"
+	"github.com/iptecharch/yang-parser/testutils"
 )
 
 var GroupingPass = []testutils.TestCase{
