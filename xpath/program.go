@@ -448,22 +448,28 @@ func (progBldr *ProgBuilder) StorePathEval(ctx *context) {
 	ctx.res.save(NewBoolDatum(true))
 }
 
-// Functions that are compiler primitives (as opposed to 'builtins' which
-// are additional) operating directly on the stack.
-
+// EvalLocPath is put on the stack whenever a path is finally defined, such that the value is to be resolved
+// and put onto the stack for other functions to evaluate.
 func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
+	// if EvalLocPath is encountered within a predicat, we need to distinguish.
+	// a predicat is the part in the square brackets "interface[name=current()/../something]/mtu"
+	// within the curly brackets EvalLocPath will be called twice. first after "name" and then after "current()/../something"
+	// the call for "name" is to be interrupted, since we need it as a key identifier in the path and not the resolved value.
+	// hence, if we're actually within a predicate
 	if ctx.predicateCount > 0 {
-		if ctx.predicateEvalPath%2 == 0 {
-			ctx.predicateEvalPath += 1
+		// we add 1 to predicateEvalPath
+		ctx.predicateEvalPath += 1
+		// and the value of predicateEvalPath is uneven (hence the left side of the assignment [=], since we've already added 1 to predicateEvalPath early)
+		// then we skip the resolution for the value
+		if ctx.predicateEvalPath%2 == 1 {
 			return
 		}
-		ctx.predicateEvalPath += 1
 	}
 
-	fmt.Printf("EvalLocPath: stacksize -> Pre: %d", len(ctx.stack))
-
+	// get the actual path from the PathStack
 	apathElems := ctx.actualPathStack.Get()
 
+	// retrieve the schema for the parent path for the path retrieved from the stack
 	parentSchema, err := ctx.schemaClient.GetSchema(ctx.goctx,
 		&schemapb.GetSchemaRequest{
 			Path:   &schemapb.Path{Elem: apathElems[:len(apathElems)-1]},
@@ -473,29 +479,31 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		ctx.res.runErr = err
 		return
 	}
-
+	// we need to check with the parent schema if the path we have at hand is maybe defined
+	// as a key in the parent level, because then we have to tried it differently
 	isKey := false
 	keyVal := ""
+	// if we got a schema
 	if parentSchema != nil {
+		// iterate through the keys
 		for _, k := range parentSchema.GetContainer().Keys {
+			// check if the last element of out stack retrieved path is listed as a key
 			if apathElems[len(apathElems)-1].Name == k.Name {
+				// if it is a key remove the last element for apathElems
 				apathElems = apathElems[:len(apathElems)-1]
+				// set the isKey
 				isKey = true
 				keyVal = apathElems[len(apathElems)-1].Key[k.Name]
+				break
 			}
 		}
 	}
 
-	completePath, err := utils.CompletePath(nil, &schemapb.Path{Elem: apathElems})
-	if err != nil {
-		ctx.res.runErr = err
-		return
-	}
-
 	if isKey {
-		fmt.Println("RESOLVED: " + keyVal)
 		ctx.pushDatum(NewLiteralDatum(keyVal))
 	} else {
+
+		// retrieve schema for actual path
 		actualPathSchema, err := ctx.schemaClient.GetSchema(ctx.goctx,
 			&schemapb.GetSchemaRequest{
 				Path:   &schemapb.Path{Elem: apathElems},
@@ -505,11 +513,19 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 			ctx.res.runErr = err
 			return
 		}
+
+		// convert schemapb.Path to a []string path to be able to query the ctree (headTree)
+		completePath, err := utils.CompletePath(nil, &schemapb.Path{Elem: apathElems})
+		if err != nil {
+			ctx.res.runErr = err
+			return
+		}
+
 		_, actualIsContainer := actualPathSchema.Schema.(*schemapb.GetSchemaResponse_Container)
 		if actualIsContainer {
 			// if it is a container, it is some sort of existence check
-			foo := ctx.headTree.Get(completePath)
-			if foo == nil {
+			container := ctx.headTree.Get(completePath)
+			if container == nil {
 				// so if it does not exist, push false
 				ctx.pushDatum(NewBoolDatum(false))
 			} else {
@@ -519,19 +535,19 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		} else {
 			// if it is a Leaf, resolve to the actual value
 			lv := ctx.headTree.GetLeafValue(completePath)
-			var foo *schemapb.TypedValue = nil
-			if lv != nil {
-				foo = ctx.headTree.GetLeafValue(completePath).(*schemapb.TypedValue)
-			}
-			if foo == nil {
-				ctx.pushDatum(NewNodesetDatum([]xutils.XpathNode{}))
+
+			// cast to typed value
+			tv, ok := lv.(*schemapb.TypedValue)
+
+			if ok && tv != nil {
+				// push retrieved value to stack
+				ctx.pushDatum(NewLiteralDatum(tv.GetStringVal()))
 			} else {
-				fmt.Println("RESOLVED: " + foo.GetStringVal())
-				ctx.pushDatum(NewLiteralDatum(foo.GetStringVal()))
+				// push an empty XpathNode Array to stack to indicate no node was found
+				ctx.pushDatum(NewNodesetDatum([]xutils.XpathNode{}))
 			}
 		}
 	}
-	fmt.Printf(" Post: %d\n", len(ctx.stack))
 	// rest actual path
 	ctx.ActualPathReset()
 }
