@@ -17,7 +17,6 @@ import (
 
 	gocontext "context"
 
-	"github.com/iptecharch/schema-server/datastore/ctree"
 	schemapb "github.com/iptecharch/schema-server/protos/schema_server"
 	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
@@ -68,13 +67,9 @@ type context struct {
 	refExpr      string // Expression being evaluated
 	xpathStmtLoc string // Module:line of original xpath statement.
 
-	headTree *ctree.Tree
-
-	schema       *schemapb.Schema
-	schemaClient schemapb.SchemaServerClient
-
-	current         []*schemapb.PathElem
-	actualPathStack *PathElemStack
+	mustValidationClient MustValidationClient
+	current              []*schemapb.PathElem
+	actualPathStack      *PathElemStack
 
 	predicateCount    int // if >0 we're inside a predicate
 	predicateEvalPath int
@@ -187,30 +182,35 @@ func (pe *PathElem) String() string {
 	return fmt.Sprintf("%s[%s]", pe.Name, strings.Join(keys, ","))
 }
 
-func NewCtxFromCurrent(mach *Machine, pe []*schemapb.PathElem, t *ctree.Tree, schema *schemapb.Schema, schemaClient schemapb.SchemaServerClient, goctx gocontext.Context) *context {
-	c := &context{
-		res:          NewResult(),
-		validate:     false,
-		debug:        false,
-		filter:       xutils.FullTree,
-		pos:          1,
-		size:         1,
-		level:        0,
-		refExpr:      mach.refExpr,
-		prog:         mach.prog,
-		xpathStmtLoc: mach.location,
-		current:      pe,
+type MustValidationClient interface {
+	GetSchema(ctx gocontext.Context, path *schemapb.Path) (*schemapb.GetSchemaResponse, error) // get schema for the given path
+	GetValue(ctx gocontext.Context, path *schemapb.Path) (*schemapb.TypedValue, error)         // Get the value for the provided path
+}
+
+func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*schemapb.PathElem, vc MustValidationClient) *context {
+
+	xctx := &context{
+		res:                  NewResult(),
+		validate:             false,
+		debug:                false,
+		filter:               xutils.FullTree,
+		pos:                  1,
+		size:                 1,
+		level:                0,
+		refExpr:              mach.refExpr,
+		prog:                 mach.prog,
+		xpathStmtLoc:         mach.location,
+		current:              pe,
+		mustValidationClient: vc,
 		actualPathStack: &PathElemStack{
 			stack: [][]*schemapb.PathElem{},
 		},
-		headTree:     t,
-		schema:       schema,
-		schemaClient: schemaClient,
-		goctx:        goctx,
+
+		goctx: goctx,
 	}
 
-	c.actualPathStack.Push(copyPathElems(pe))
-	return c
+	xctx.actualPathStack.Push(copyPathElems(pe))
+	return xctx
 }
 
 func copyPathElems(pe []*schemapb.PathElem) []*schemapb.PathElem {
