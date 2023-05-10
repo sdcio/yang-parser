@@ -509,7 +509,7 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		_, actualIsContainer := actualPathSchema.Schema.(*schemapb.GetSchemaResponse_Container)
 		if actualIsContainer {
 			// if it is a container, it is some sort of existence check
-			container, err := ctx.mustValidationClient.GetValue(ctx.goctx, &schemapb.Path{Elem: apathElems})
+			container, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &schemapb.Path{Elem: apathElems})
 			if err != nil {
 				ctx.res.runErr = err
 				return
@@ -524,7 +524,7 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 			}
 		} else {
 			// if it is a Leaf, resolve to the actual value
-			tv, err := ctx.mustValidationClient.GetValue(ctx.goctx, &schemapb.Path{Elem: apathElems})
+			tv, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &schemapb.Path{Elem: apathElems})
 			if err != nil {
 				ctx.res.runErr = err
 				return

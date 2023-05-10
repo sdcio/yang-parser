@@ -68,6 +68,7 @@ type context struct {
 	xpathStmtLoc string // Module:line of original xpath statement.
 
 	mustValidationClient MustValidationClient
+	candidateName        string
 	current              []*schemapb.PathElem
 	actualPathStack      *PathElemStack
 
@@ -183,11 +184,11 @@ func (pe *PathElem) String() string {
 }
 
 type MustValidationClient interface {
-	GetSchema(ctx gocontext.Context, path *schemapb.Path) (*schemapb.GetSchemaResponse, error) // get schema for the given path
-	GetValue(ctx gocontext.Context, path *schemapb.Path) (*schemapb.TypedValue, error)         // Get the value for the provided path
+	GetSchema(ctx gocontext.Context, path *schemapb.Path) (*schemapb.GetSchemaResponse, error)               // get schema for the given path
+	GetValue(ctx gocontext.Context, candidateName string, path *schemapb.Path) (*schemapb.TypedValue, error) // Get the value for the provided path
 }
 
-func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*schemapb.PathElem, vc MustValidationClient) *context {
+func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*schemapb.PathElem, vc MustValidationClient, candidateName string) *context {
 
 	xctx := &context{
 		res:                  NewResult(),
@@ -202,6 +203,7 @@ func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*schemapb.Pa
 		xpathStmtLoc:         mach.location,
 		current:              pe,
 		mustValidationClient: vc,
+		candidateName:        candidateName,
 		actualPathStack: &PathElemStack{
 			stack: [][]*schemapb.PathElem{},
 		},
