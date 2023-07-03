@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	schemapb "github.com/iptecharch/schema-server/protos/schema_server"
-	"github.com/iptecharch/schema-server/utils"
 
 	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
@@ -470,11 +469,8 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 	apathElems := ctx.actualPathStack.Get()
 
 	// retrieve the schema for the parent path for the path retrieved from the stack
-	parentSchema, err := ctx.schemaClient.GetSchema(ctx.goctx,
-		&schemapb.GetSchemaRequest{
-			Path:   &schemapb.Path{Elem: apathElems[:len(apathElems)-1]},
-			Schema: copySchema(ctx.schema),
-		})
+
+	parentSchema, err := ctx.mustValidationClient.GetSchema(ctx.goctx, &schemapb.Path{Elem: apathElems[:len(apathElems)-1]})
 	if err != nil {
 		ctx.res.runErr = err
 		return
@@ -504,18 +500,7 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 	} else {
 
 		// retrieve schema for actual path
-		actualPathSchema, err := ctx.schemaClient.GetSchema(ctx.goctx,
-			&schemapb.GetSchemaRequest{
-				Path:   &schemapb.Path{Elem: apathElems},
-				Schema: copySchema(ctx.schema),
-			})
-		if err != nil {
-			ctx.res.runErr = err
-			return
-		}
-
-		// convert schemapb.Path to a []string path to be able to query the ctree (headTree)
-		completePath, err := utils.CompletePath(nil, &schemapb.Path{Elem: apathElems})
+		actualPathSchema, err := ctx.mustValidationClient.GetSchema(ctx.goctx, &schemapb.Path{Elem: apathElems})
 		if err != nil {
 			ctx.res.runErr = err
 			return
@@ -524,7 +509,12 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		_, actualIsContainer := actualPathSchema.Schema.(*schemapb.GetSchemaResponse_Container)
 		if actualIsContainer {
 			// if it is a container, it is some sort of existence check
-			container := ctx.headTree.Get(completePath)
+			container, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &schemapb.Path{Elem: apathElems})
+			if err != nil {
+				ctx.res.runErr = err
+				return
+			}
+			// container := ctx.headTree.Get(completePath)
 			if container == nil {
 				// so if it does not exist, push false
 				ctx.pushDatum(NewBoolDatum(false))
@@ -534,12 +524,13 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 			}
 		} else {
 			// if it is a Leaf, resolve to the actual value
-			lv := ctx.headTree.GetLeafValue(completePath)
+			tv, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &schemapb.Path{Elem: apathElems})
+			if err != nil {
+				ctx.res.runErr = err
+				return
+			}
 
-			// cast to typed value
-			tv, ok := lv.(*schemapb.TypedValue)
-
-			if ok && tv != nil {
+			if tv != nil {
 				// push retrieved value to stack
 				ctx.pushDatum(NewLiteralDatum(tv.GetStringVal()))
 			} else {
@@ -550,14 +541,6 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 	}
 	// rest actual path
 	ctx.ActualPathReset()
-}
-
-func copySchema(s *schemapb.Schema) *schemapb.Schema {
-	return &schemapb.Schema{
-		Name:    s.Name,
-		Version: s.Version,
-		Vendor:  s.Vendor,
-	}
 }
 
 func (progBldr *ProgBuilder) EvalLocPathExists(ctx *context) {
