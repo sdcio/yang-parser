@@ -482,7 +482,7 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 	// if we got a schema
 	if parentSchema != nil {
 		// iterate through the keys
-		for _, k := range parentSchema.GetContainer().Keys {
+		for _, k := range parentSchema.GetSchema().GetContainer().GetKeys() {
 			// check if the last element of out stack retrieved path is listed as a key
 			if apathElems[len(apathElems)-1].Name == k.Name {
 				// if it is a key remove the last element for apathElems
@@ -506,7 +506,7 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 			return
 		}
 
-		_, actualIsContainer := actualPathSchema.Schema.(*schemapb.GetSchemaResponse_Container)
+		_, actualIsContainer := actualPathSchema.GetSchema().GetSchema().(*schemapb.SchemaElem_Container)
 		if actualIsContainer {
 			// if it is a container, it is some sort of existence check
 			container, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &schemapb.Path{Elem: apathElems})
