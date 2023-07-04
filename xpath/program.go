@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	schemapb "github.com/iptecharch/schema-server/protos/schema_server"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
@@ -221,9 +222,9 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 	if pathOperPush != nil {
 		progBldr.CodeFn(pathOperPush,
 			fmt.Sprintf("MypathOperPush\t%s", xutils.GetTokenName(elem)))
-	} else {
-		fmt.Printf("skipped %s token", xutils.GetTokenName(elem))
+		return
 	}
+	log.Debugf("skipped %s token", xutils.GetTokenName(elem))
 }
 
 func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
