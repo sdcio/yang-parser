@@ -18,7 +18,7 @@ import (
 	"math"
 	"strings"
 
-	schemapb "github.com/iptecharch/schema-server/protos/schema_server"
+	sdcpb "github.com/iptecharch/sdc-protos/sdcpb"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/iptecharch/yang-parser/xpath/xutils"
@@ -234,7 +234,7 @@ func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
 			ctx.pushDatum(NewLiteralDatum(name.Local))
 		} else {
 			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
-			ctx.ActualPathPushElem(&schemapb.PathElem{Name: name.Local})
+			ctx.ActualPathPushElem(&sdcpb.PathElem{Name: name.Local})
 			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
 		}
 	}
@@ -471,7 +471,7 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 
 	// retrieve the schema for the parent path for the path retrieved from the stack
 
-	parentSchema, err := ctx.mustValidationClient.GetSchema(ctx.goctx, &schemapb.Path{Elem: apathElems[:len(apathElems)-1]})
+	parentSchema, err := ctx.mustValidationClient.GetSchema(ctx.goctx, &sdcpb.Path{Elem: apathElems[:len(apathElems)-1]})
 	if err != nil {
 		ctx.res.runErr = err
 		return
@@ -501,16 +501,16 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 	} else {
 
 		// retrieve schema for actual path
-		actualPathSchema, err := ctx.mustValidationClient.GetSchema(ctx.goctx, &schemapb.Path{Elem: apathElems})
+		actualPathSchema, err := ctx.mustValidationClient.GetSchema(ctx.goctx, &sdcpb.Path{Elem: apathElems})
 		if err != nil {
 			ctx.res.runErr = err
 			return
 		}
 
-		_, actualIsContainer := actualPathSchema.GetSchema().GetSchema().(*schemapb.SchemaElem_Container)
+		_, actualIsContainer := actualPathSchema.GetSchema().GetSchema().(*sdcpb.SchemaElem_Container)
 		if actualIsContainer {
 			// if it is a container, it is some sort of existence check
-			container, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &schemapb.Path{Elem: apathElems})
+			container, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &sdcpb.Path{Elem: apathElems})
 			if err != nil {
 				ctx.res.runErr = err
 				return
@@ -525,7 +525,7 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 			}
 		} else {
 			// if it is a Leaf, resolve to the actual value
-			tv, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &schemapb.Path{Elem: apathElems})
+			tv, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &sdcpb.Path{Elem: apathElems})
 			if err != nil {
 				ctx.res.runErr = err
 				return

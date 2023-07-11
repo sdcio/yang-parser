@@ -17,7 +17,7 @@ import (
 
 	gocontext "context"
 
-	schemapb "github.com/iptecharch/schema-server/protos/schema_server"
+	sdcpb "github.com/iptecharch/sdc-protos/sdcpb"
 	"github.com/iptecharch/yang-parser/xpath/xutils"
 )
 
@@ -69,7 +69,7 @@ type context struct {
 
 	mustValidationClient MustValidationClient
 	candidateName        string
-	current              []*schemapb.PathElem
+	current              []*sdcpb.PathElem
 	actualPathStack      *PathElemStack
 
 	predicateCount    int // if >0 we're inside a predicate
@@ -79,7 +79,7 @@ type context struct {
 	goctx gocontext.Context
 }
 
-func (c *context) GetActualPath() []*schemapb.PathElem {
+func (c *context) GetActualPath() []*sdcpb.PathElem {
 	return c.actualPathStack.Get()
 }
 
@@ -89,7 +89,7 @@ func (c *context) ActualPathReset() {
 	c.ActualPathPush(x)
 }
 
-func (c *context) ActualPathPopElem() *schemapb.PathElem {
+func (c *context) ActualPathPopElem() *sdcpb.PathElem {
 	ap := c.ActualPathPop()
 	// extract last elem for return
 	lastElem := ap[len(ap)-1]
@@ -98,32 +98,32 @@ func (c *context) ActualPathPopElem() *schemapb.PathElem {
 	c.ActualPathPush(ap)
 	return lastElem
 }
-func (c *context) ActualPathPop() []*schemapb.PathElem {
+func (c *context) ActualPathPop() []*sdcpb.PathElem {
 	return c.actualPathStack.Pop()
 }
 
-func (c *context) ActualPathPush(pe []*schemapb.PathElem) {
+func (c *context) ActualPathPush(pe []*sdcpb.PathElem) {
 	c.actualPathStack.Push(pe)
 }
 
-func (c *context) ActualPathPushElem(pe *schemapb.PathElem) {
+func (c *context) ActualPathPushElem(pe *sdcpb.PathElem) {
 	ap := c.ActualPathPop()
 	ap = append(ap, pe)
 	c.ActualPathPush(ap)
 }
 
-func (c *context) ActualPathPopAll() []*schemapb.PathElem {
+func (c *context) ActualPathPopAll() []*sdcpb.PathElem {
 	ap := c.ActualPathPop()
 	oldPathElems := ap
-	c.ActualPathPush([]*schemapb.PathElem{})
+	c.ActualPathPush([]*sdcpb.PathElem{})
 	return oldPathElems
 }
 
 type PathElemStack struct {
-	stack [][]*schemapb.PathElem
+	stack [][]*sdcpb.PathElem
 }
 
-func (ps *PathElemStack) Pop() []*schemapb.PathElem {
+func (ps *PathElemStack) Pop() []*sdcpb.PathElem {
 	if len(ps.stack) > 0 {
 		p := ps.stack[len(ps.stack)-1]
 		ps.stack = ps.stack[:len(ps.stack)-1]
@@ -132,11 +132,11 @@ func (ps *PathElemStack) Pop() []*schemapb.PathElem {
 	return nil
 }
 
-func (ps *PathElemStack) Get() []*schemapb.PathElem {
+func (ps *PathElemStack) Get() []*sdcpb.PathElem {
 	return ps.stack[len(ps.stack)-1]
 }
 
-func (ps *PathElemStack) Push(p []*schemapb.PathElem) {
+func (ps *PathElemStack) Push(p []*sdcpb.PathElem) {
 	ps.stack = append(ps.stack, p)
 }
 
@@ -184,11 +184,11 @@ func (pe *PathElem) String() string {
 }
 
 type MustValidationClient interface {
-	GetSchema(ctx gocontext.Context, path *schemapb.Path) (*schemapb.GetSchemaResponse, error)               // get schema for the given path
-	GetValue(ctx gocontext.Context, candidateName string, path *schemapb.Path) (*schemapb.TypedValue, error) // Get the value for the provided path
+	GetSchema(ctx gocontext.Context, path *sdcpb.Path) (*sdcpb.GetSchemaResponse, error)               // get schema for the given path
+	GetValue(ctx gocontext.Context, candidateName string, path *sdcpb.Path) (*sdcpb.TypedValue, error) // Get the value for the provided path
 }
 
-func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*schemapb.PathElem, vc MustValidationClient, candidateName string) *context {
+func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*sdcpb.PathElem, vc MustValidationClient, candidateName string) *context {
 
 	xctx := &context{
 		res:                  NewResult(),
@@ -205,7 +205,7 @@ func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*schemapb.Pa
 		mustValidationClient: vc,
 		candidateName:        candidateName,
 		actualPathStack: &PathElemStack{
-			stack: [][]*schemapb.PathElem{},
+			stack: [][]*sdcpb.PathElem{},
 		},
 
 		goctx: goctx,
@@ -215,11 +215,11 @@ func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*schemapb.Pa
 	return xctx
 }
 
-func copyPathElems(pe []*schemapb.PathElem) []*schemapb.PathElem {
-	npe := make([]*schemapb.PathElem, len(pe))
+func copyPathElems(pe []*sdcpb.PathElem) []*sdcpb.PathElem {
+	npe := make([]*sdcpb.PathElem, len(pe))
 
 	for i, p := range pe {
-		npe[i] = &schemapb.PathElem{
+		npe[i] = &sdcpb.PathElem{
 			Name: p.Name,
 			Key:  p.Key,
 		}
