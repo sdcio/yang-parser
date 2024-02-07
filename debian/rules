@@ -3,7 +3,7 @@
 export DH_OPTIONS
 export DH_ALWAYS_EXCLUDE=.gitignore
 
-export DH_GOPKG := github.com/iptecharch/yang-parser
+export DH_GOPKG := github.com/sdcio/yang-parser
 export DH_GOLANG_INSTALL_ALL := 1
 export DH_GOLANG_GO_GENERATE := 1
 
@@ -40,11 +40,11 @@ override_dh_auto_test:
 # about a missing definition in an export_for_test.go file.
 vet:
 	if go doc cmd/vet >/dev/null 2>&1; then \
-		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/iptecharch/yang-parser/xpath/grammars/expr; \
+		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/sdcio/yang-parser/xpath/grammars/expr; \
 		go generate;cd -; \
-		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/iptecharch/yang-parser/xpath/grammars/leafref; \
+		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/sdcio/yang-parser/xpath/grammars/leafref; \
 		go generate;cd -; \
-		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/iptecharch/yang-parser/xpath/grammars/path_eval; \
+		cd $(CURDIR)/$(GOBUILDDIR)/src/github.com/sdcio/yang-parser/xpath/grammars/path_eval; \
 		go generate;cd -; \
 		GOPATH=$(CURDIR)/$(GOBUILDDIR) go vet -composites=false $$(find . -type f -name \*.go | \
 		xargs dirname | sort -u | grep $(GOBUILDDIR) | grep -v "/vendor/"); \

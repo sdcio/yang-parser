@@ -14,7 +14,7 @@ import (
 	"encoding/xml"
 	"reflect"
 
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 type XNode struct {

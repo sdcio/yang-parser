@@ -14,8 +14,8 @@ import (
 	"testing"
 
 	"github.com/danos/mgmterror/errtest"
-	"github.com/iptecharch/yang-parser/schema"
-	"github.com/iptecharch/yang-parser/testutils"
+	"github.com/sdcio/yang-parser/schema"
+	"github.com/sdcio/yang-parser/testutils"
 )
 
 // Single typedef statement validation (Passing testcases) for ranged values

@@ -11,8 +11,8 @@ import __yyfmt__ "fmt"
 import (
 	"encoding/xml"
 
-	"github.com/iptecharch/yang-parser/xpath"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 //line path_eval.y:39

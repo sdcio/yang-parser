@@ -11,8 +11,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/schema"
-	"github.com/iptecharch/yang-parser/testutils"
+	"github.com/sdcio/yang-parser/schema"
+	"github.com/sdcio/yang-parser/testutils"
 )
 
 func TestSkipUnknownTypes(t *testing.T) {

@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/iptecharch/yang-parser/parse"
-	"github.com/iptecharch/yang-parser/testutils"
+	. "github.com/sdcio/yang-parser/parse"
+	"github.com/sdcio/yang-parser/testutils"
 )
 
 // Parse a yang schema file

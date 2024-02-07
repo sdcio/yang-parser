@@ -8,7 +8,7 @@ package compile_test
 import (
 	"testing"
 
-	"github.com/iptecharch/yang-parser/testutils"
+	"github.com/sdcio/yang-parser/testutils"
 )
 
 const deviationSchema = `

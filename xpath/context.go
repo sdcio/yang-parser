@@ -17,8 +17,8 @@ import (
 
 	gocontext "context"
 
-	sdcpb "github.com/iptecharch/sdc-protos/sdcpb"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	sdcpb "github.com/sdcio/sdc-protos/sdcpb"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 // CONTEXT

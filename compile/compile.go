@@ -20,13 +20,13 @@ import (
 	"strings"
 
 	"github.com/danos/utils/tsort"
-	"github.com/iptecharch/yang-parser/parse"
-	"github.com/iptecharch/yang-parser/schema"
-	"github.com/iptecharch/yang-parser/xpath"
-	"github.com/iptecharch/yang-parser/xpath/grammars/expr"
-	"github.com/iptecharch/yang-parser/xpath/grammars/leafref"
-	"github.com/iptecharch/yang-parser/xpath/grammars/path_eval"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/parse"
+	"github.com/sdcio/yang-parser/schema"
+	"github.com/sdcio/yang-parser/xpath"
+	"github.com/sdcio/yang-parser/xpath/grammars/expr"
+	"github.com/sdcio/yang-parser/xpath/grammars/leafref"
+	"github.com/sdcio/yang-parser/xpath/grammars/path_eval"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 const DefaultCapsLocation = "/config/features"

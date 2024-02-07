@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/parse"
+	"github.com/sdcio/yang-parser/parse"
 )
 
 func mkModule(revs string) string {

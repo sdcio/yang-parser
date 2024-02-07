@@ -9,7 +9,7 @@ import (
 	"plugin"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/xpath"
+	"github.com/sdcio/yang-parser/xpath"
 )
 
 // Expects bool arg.  Returns string 'PASS' if arg is true, 'FAIL' if not.

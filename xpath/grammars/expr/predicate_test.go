@@ -12,10 +12,10 @@ package expr
 import (
 	"testing"
 
-	"github.com/iptecharch/yang-parser/xpath"
-	. "github.com/iptecharch/yang-parser/xpath/grammars/lexertest"
-	"github.com/iptecharch/yang-parser/xpath/xpathtest"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath"
+	. "github.com/sdcio/yang-parser/xpath/grammars/lexertest"
+	"github.com/sdcio/yang-parser/xpath/xpathtest"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 // Standard models examples for possible testing ...

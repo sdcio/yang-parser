@@ -24,9 +24,9 @@ import (
 	"math"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/xpath"
-	"github.com/iptecharch/yang-parser/xpath/xpathtest"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath"
+	"github.com/sdcio/yang-parser/xpath/xpathtest"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 // Functions

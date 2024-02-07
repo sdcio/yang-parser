@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/data/datanode"
-	"github.com/iptecharch/yang-parser/schema"
-	"github.com/iptecharch/yang-parser/testutils"
+	"github.com/sdcio/yang-parser/data/datanode"
+	"github.com/sdcio/yang-parser/schema"
+	"github.com/sdcio/yang-parser/testutils"
 )
 
 //

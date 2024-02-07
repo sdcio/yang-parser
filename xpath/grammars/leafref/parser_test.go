@@ -14,10 +14,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/xpath"
-	. "github.com/iptecharch/yang-parser/xpath/grammars/lexertest"
-	"github.com/iptecharch/yang-parser/xpath/xpathtest"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath"
+	. "github.com/sdcio/yang-parser/xpath/grammars/lexertest"
+	"github.com/sdcio/yang-parser/xpath/xpathtest"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 // For non-predicate tests, we can reuse the same 'config' which gives us

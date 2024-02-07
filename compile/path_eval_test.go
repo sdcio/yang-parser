@@ -14,9 +14,9 @@ import (
 
 	"fmt"
 
-	"github.com/iptecharch/yang-parser/testutils"
-	"github.com/iptecharch/yang-parser/xpath/xpathtest"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/testutils"
+	"github.com/sdcio/yang-parser/xpath/xpathtest"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 const (
