@@ -11,8 +11,8 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/iptecharch/yang-parser/parse"
-	"github.com/iptecharch/yang-parser/schema"
+	"github.com/sdcio/yang-parser/parse"
+	"github.com/sdcio/yang-parser/schema"
 )
 
 func (c *Compiler) validateModuleGroupings(m parse.Node) error {

@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/testutils"
+	"github.com/sdcio/yang-parser/testutils"
 )
 
 func TestAugmentImplicitLocalRef(t *testing.T) {

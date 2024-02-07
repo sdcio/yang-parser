@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/schema"
-	"github.com/iptecharch/yang-parser/schema/schematests"
-	. "github.com/iptecharch/yang-parser/testutils"
+	"github.com/sdcio/yang-parser/schema"
+	"github.com/sdcio/yang-parser/schema/schematests"
+	. "github.com/sdcio/yang-parser/testutils"
 )
 
 func verifyConfigStatement(

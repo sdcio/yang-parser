@@ -22,8 +22,8 @@ package expr
 import (
     "encoding/xml"
 
-    "github.com/iptecharch/yang-parser/xpath"
-    "github.com/iptecharch/yang-parser/xpath/xutils"
+    "github.com/sdcio/yang-parser/xpath"
+    "github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 %}

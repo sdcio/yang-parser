@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 const (

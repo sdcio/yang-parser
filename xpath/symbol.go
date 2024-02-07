@@ -14,7 +14,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 	log "github.com/sirupsen/logrus"
 )
 
