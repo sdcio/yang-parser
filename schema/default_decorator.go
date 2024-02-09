@@ -9,7 +9,7 @@
 package schema
 
 import (
-	"github.com/iptecharch/yang-parser/data/datanode"
+	"github.com/sdcio/yang-parser/data/datanode"
 )
 
 type addDefaults struct {

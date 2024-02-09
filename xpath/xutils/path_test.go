@@ -13,7 +13,7 @@ package xutils_test
 import (
 	"testing"
 
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 func checkPath(

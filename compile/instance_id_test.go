@@ -10,7 +10,7 @@ package compile_test
 import (
 	"testing"
 
-	"github.com/iptecharch/yang-parser/schema"
+	"github.com/sdcio/yang-parser/schema"
 )
 
 // This returns a standard checker function that can be used from NodeChecker

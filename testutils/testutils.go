@@ -17,10 +17,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/iptecharch/yang-parser/compile"
-	"github.com/iptecharch/yang-parser/parse"
-	"github.com/iptecharch/yang-parser/schema"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/compile"
+	"github.com/sdcio/yang-parser/parse"
+	"github.com/sdcio/yang-parser/schema"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 // Generic Test Case description allowing for cases where expected result

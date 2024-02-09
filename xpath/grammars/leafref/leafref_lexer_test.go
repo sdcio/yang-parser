@@ -11,7 +11,7 @@ import (
 	"encoding/xml"
 	"testing"
 
-	. "github.com/iptecharch/yang-parser/xpath/grammars/lexertest"
+	. "github.com/sdcio/yang-parser/xpath/grammars/lexertest"
 )
 
 // Test basic characters

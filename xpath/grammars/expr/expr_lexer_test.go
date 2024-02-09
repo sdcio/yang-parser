@@ -18,8 +18,8 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	. "github.com/iptecharch/yang-parser/xpath/grammars/lexertest"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	. "github.com/sdcio/yang-parser/xpath/grammars/lexertest"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 // The UTF-8 encoding for 0xD800, which is invalid in a UTF-8 stream,

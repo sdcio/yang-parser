@@ -13,7 +13,7 @@ package xpath
 import (
 	"fmt"
 
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 // RESULT

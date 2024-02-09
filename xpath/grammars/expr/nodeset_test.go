@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/iptecharch/yang-parser/xpath/xpathtest"
-	"github.com/iptecharch/yang-parser/xpath/xutils"
+	. "github.com/sdcio/yang-parser/xpath/xpathtest"
+	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
 // Make sure our test code is creating a vaguely sane tree!
