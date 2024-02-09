@@ -6,15 +6,13 @@ require (
 	github.com/danos/encoding v0.0.0-20210701125528-66857fd8c8ea
 	github.com/danos/mgmterror v0.0.0-20210701125710-6fcf751e367d
 	github.com/danos/utils v0.0.0-20210701125856-7935e3348d7c
-	github.com/iptecharch/yang-parser v0.0.3
 	github.com/sdcio/sdc-protos v0.0.22
 	github.com/sirupsen/logrus v1.9.3
 )
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/iptecharch/sdc-protos v0.0.1 // indirect
-	github.com/kr/text v0.2.0 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
