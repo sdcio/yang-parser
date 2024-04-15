@@ -6,7 +6,7 @@ require (
 	github.com/danos/encoding v0.0.0-20210701125528-66857fd8c8ea
 	github.com/danos/mgmterror v0.0.0-20210701125710-6fcf751e367d
 	github.com/danos/utils v0.0.0-20210701125856-7935e3348d7c
-	github.com/sdcio/sdc-protos v0.0.22
+	github.com/sdcio/sdc-protos v0.0.24
 	github.com/sirupsen/logrus v1.9.3
 )
 
