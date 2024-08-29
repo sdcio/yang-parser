@@ -222,13 +222,13 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 		// noop
 	case xutils.DOTDOT:
 		pathOperPush = func(ctx *context) {
-			ctx.ActualPathPopElem()
+			ctx.actualPathStack.PushElem("..")
 		}
 	case xutils.DBLSLASH:
 		// not implemented
 	case '/':
 		pathOperPush = func(ctx *context) {
-			ctx.ActualPathPopAll()
+			ctx.actualPathStack.PushElem("/")
 		}
 	default:
 		// unknown
@@ -249,7 +249,7 @@ func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
 			ctx.pushDatum(NewLiteralDatum(name.Local))
 		} else {
 			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
-			ctx.ActualPathPushElem(&sdcpb.PathElem{Name: name.Local})
+			ctx.actualPathStack.PushElem(name.Local)
 			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
 		}
 	}
@@ -328,9 +328,7 @@ func (progBldr *ProgBuilder) CodePredStart() {
 
 func (progBldr *ProgBuilder) NewPathStackFromActual() instFunc {
 	return func(ctx *context) {
-		spe := ctx.ActualPathPop()
-		ctx.ActualPathPush(spe)
-		ctx.ActualPathPush(copyPathElems(spe))
+		ctx.actualPathStack.NewPathFromCurrent()
 	}
 }
 
@@ -388,7 +386,7 @@ func (progBldr *ProgBuilder) CodePredEnd() {
 		//progBldr.Store(ctx)
 		ctx.predicateCount -= 1
 		ctx.predicateEvalPath = 0
-		ctx.ActualPathPop()
+		ctx.actualPathStack.PopPath()
 	}
 
 	progBldr.CodeFn(cFn, "PREDEND")
@@ -481,82 +479,23 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		}
 	}
 
-	// get the actual path from the PathStack
-	apathElems := ctx.actualPathStack.Get()
+	path := ctx.actualPathStack.PopPath()
 
-	// retrieve the schema for the parent path for the path retrieved from the stack
-
-	parentSchema, err := ctx.mustValidationClient.GetSchema(ctx.goctx, &sdcpb.Path{Elem: apathElems[:len(apathElems)-1]})
+	valEntry, err := ctx.current.Navigate(path)
 	if err != nil {
 		ctx.res.runErr = err
 		return
 	}
-	// we need to check with the parent schema if the path we have at hand is maybe defined
-	// as a key in the parent level, because then we have to tried it differently
-	isKey := false
-	keyVal := ""
-	// if we got a schema
-	if parentSchema != nil {
-		// iterate through the keys
-		for _, k := range parentSchema.GetSchema().GetContainer().GetKeys() {
-			// check if the last element of out stack retrieved path is listed as a key
-			if apathElems[len(apathElems)-1].Name == k.Name {
-				// if it is a key remove the last element for apathElems
-				apathElems = apathElems[:len(apathElems)-1]
-				// set the isKey
-				isKey = true
-				keyVal = apathElems[len(apathElems)-1].Key[k.Name]
-				break
-			}
-		}
+
+	val, err := valEntry.GetValue()
+	if err != nil {
+		ctx.res.runErr = err
+		return
 	}
+	ctx.pushDatum(val)
 
-	if isKey {
-		ctx.pushDatum(NewLiteralDatum(keyVal))
-	} else {
-
-		// retrieve schema for actual path
-		actualPathSchema, err := ctx.mustValidationClient.GetSchema(ctx.goctx, &sdcpb.Path{Elem: apathElems})
-		if err != nil {
-			ctx.res.runErr = err
-			return
-		}
-
-		_, actualIsContainer := actualPathSchema.GetSchema().GetSchema().(*sdcpb.SchemaElem_Container)
-		if actualIsContainer {
-			// if it is a container, it is some sort of existence check
-			container, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &sdcpb.Path{Elem: apathElems})
-			if err != nil {
-				ctx.res.runErr = err
-				return
-			}
-			// container := ctx.headTree.Get(completePath)
-			if container == nil {
-				// so if it does not exist, push false
-				ctx.pushDatum(NewBoolDatum(false))
-			} else {
-				// so if it does exist, push true
-				ctx.pushDatum(NewBoolDatum(true))
-			}
-		} else {
-			// if it is a Leaf, resolve to the actual value
-			tv, err := ctx.mustValidationClient.GetValue(ctx.goctx, ctx.candidateName, &sdcpb.Path{Elem: apathElems})
-			if err != nil {
-				ctx.res.runErr = err
-				return
-			}
-
-			if tv != nil {
-				// push retrieved value to stack
-				ctx.pushDatum(NewLiteralDatum(tvToString(tv)))
-			} else {
-				// push an empty XpathNode Array to stack to indicate no node was found
-				ctx.pushDatum(NewNodesetDatum([]xutils.XpathNode{}))
-			}
-		}
-	}
-	// rest actual path
-	ctx.ActualPathReset()
+	// reset the actual path to current() reference
+	ctx.actualPathStack.NewPathFromCurrent()
 }
 
 func (progBldr *ProgBuilder) EvalLocPathExists(ctx *context) {
@@ -729,15 +668,8 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 
 		d1 := ctx.popDatum()
 		d2 := ctx.popDatum()
-
-		predPath := ctx.ActualPathPop()
-		// retrieve the previouse path on the stack
-		pes := ctx.GetActualPath()
-		ctx.ActualPathPush(predPath)
-		if pes[len(pes)-1].Key == nil {
-			pes[len(pes)-1].Key = map[string]string{}
-		}
-		pes[len(pes)-1].Key[d2.Literal("")] = d1.Literal("")
+		_ = d2
+		ctx.actualPathStack.PushElem(d1.Literal(""))
 	}
 }
 

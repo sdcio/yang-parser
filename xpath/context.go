@@ -27,11 +27,9 @@ package xpath
 import (
 	"bytes"
 	"fmt"
-	"strings"
 
 	gocontext "context"
 
-	sdcpb "github.com/sdcio/sdc-protos/sdcpb"
 	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
@@ -81,10 +79,8 @@ type context struct {
 	refExpr      string // Expression being evaluated
 	xpathStmtLoc string // Module:line of original xpath statement.
 
-	mustValidationClient MustValidationClient
-	candidateName        string
-	current              []*sdcpb.PathElem
-	actualPathStack      *PathElemStack
+	current         Entry
+	actualPathStack *PathStack
 
 	predicateCount    int // if >0 we're inside a predicate
 	predicateEvalPath int
@@ -93,152 +89,69 @@ type context struct {
 	goctx gocontext.Context
 }
 
-func (c *context) GetActualPath() []*sdcpb.PathElem {
-	return c.actualPathStack.Get()
+type Entry interface {
+	GetValue() (Datum, error)
+	Navigate(path []string) (Entry, error)
+	Copy() Entry
 }
 
-func (c *context) ActualPathReset() {
-	c.ActualPathPop()
-	x := copyPathElems(c.current)
-	c.ActualPathPush(x)
-}
-
-func (c *context) ActualPathPopElem() *sdcpb.PathElem {
-	ap := c.ActualPathPop()
-	// extract last elem for return
-	lastElem := ap[len(ap)-1]
-	// store path without last elem
-	ap = ap[:len(ap)-1]
-	c.ActualPathPush(ap)
-	return lastElem
-}
-func (c *context) ActualPathPop() []*sdcpb.PathElem {
-	return c.actualPathStack.Pop()
-}
-
-func (c *context) ActualPathPush(pe []*sdcpb.PathElem) {
-	c.actualPathStack.Push(pe)
-}
-
-func (c *context) ActualPathPushElem(pe *sdcpb.PathElem) {
-	ap := c.ActualPathPop()
-	ap = append(ap, pe)
-	c.ActualPathPush(ap)
-}
-
-func (c *context) ActualPathPopAll() []*sdcpb.PathElem {
-	ap := c.ActualPathPop()
-	oldPathElems := ap
-	c.ActualPathPush([]*sdcpb.PathElem{})
-	return oldPathElems
-}
-
-type PathElemStack struct {
-	stack [][]*sdcpb.PathElem
-}
-
-func (ps *PathElemStack) Pop() []*sdcpb.PathElem {
-	if len(ps.stack) > 0 {
-		p := ps.stack[len(ps.stack)-1]
-		ps.stack = ps.stack[:len(ps.stack)-1]
-		return p
-	}
-	return nil
-}
-
-func (ps *PathElemStack) Get() []*sdcpb.PathElem {
-	return ps.stack[len(ps.stack)-1]
-}
-
-func (ps *PathElemStack) Push(p []*sdcpb.PathElem) {
-	ps.stack = append(ps.stack, p)
-}
-
-func (ps *PathElemStack) Len() int {
-	return len(ps.stack)
-}
-
-type Path struct {
-	Elems []*PathElem
-}
-
-func (p *Path) String() string {
-	e := []string{}
-	for _, pe := range p.Elems {
-		e = append(e, pe.String())
-	}
-	return strings.Join(e, "/")
-}
-
-func (p *Path) Push(pe *PathElem) {
-	p.Elems = append(p.Elems, pe)
-}
-
-func (p *Path) Pop() *PathElem {
-	last := p.Elems[len(p.Elems)-1]
-	p.Elems = p.Elems[:len(p.Elems)-1]
-	return last
-}
-
-func (p *Path) PopAll() {
-	p.Elems = []*PathElem{}
-}
-
-type PathElem struct {
-	Name string
-	Key  map[string]string
-}
-
-func (pe *PathElem) String() string {
-	keys := []string{}
-	for k, v := range pe.Key {
-		keys = append(keys, fmt.Sprintf("%s=%s", k, v))
-	}
-	return fmt.Sprintf("%s[%s]", pe.Name, strings.Join(keys, ","))
-}
-
-type MustValidationClient interface {
-	GetSchema(ctx gocontext.Context, path *sdcpb.Path) (*sdcpb.GetSchemaResponse, error)               // get schema for the given path
-	GetValue(ctx gocontext.Context, candidateName string, path *sdcpb.Path) (*sdcpb.TypedValue, error) // Get the value for the provided path
-}
-
-func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, pe []*sdcpb.PathElem, vc MustValidationClient, candidateName string) *context {
+func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *context {
 
 	xctx := &context{
-		res:                  NewResult(),
-		validate:             false,
-		debug:                false,
-		filter:               xutils.FullTree,
-		pos:                  1,
-		size:                 1,
-		level:                0,
-		refExpr:              mach.refExpr,
-		prog:                 mach.prog,
-		xpathStmtLoc:         mach.location,
-		current:              pe,
-		mustValidationClient: vc,
-		candidateName:        candidateName,
-		actualPathStack: &PathElemStack{
-			stack: [][]*sdcpb.PathElem{},
-		},
-
-		goctx: goctx,
+		res:             NewResult(),
+		validate:        false,
+		debug:           false,
+		filter:          xutils.FullTree,
+		pos:             1,
+		size:            1,
+		level:           0,
+		refExpr:         mach.refExpr,
+		prog:            mach.prog,
+		xpathStmtLoc:    mach.location,
+		current:         current,
+		actualPathStack: newPathStack(),
+		goctx:           goctx,
 	}
 
-	xctx.actualPathStack.Push(copyPathElems(pe))
 	return xctx
 }
 
-func copyPathElems(pe []*sdcpb.PathElem) []*sdcpb.PathElem {
-	npe := make([]*sdcpb.PathElem, len(pe))
+type PathStack struct {
+	stack [][]string
+}
 
-	for i, p := range pe {
-		npe[i] = &sdcpb.PathElem{
-			Name: p.Name,
-			Key:  p.Key,
-		}
+func newPathStack() *PathStack {
+	return &PathStack{
+		stack: [][]string{{}},
 	}
-	return npe
+}
+
+func (p *PathStack) PushElem(s string) {
+	p.stack[len(p.stack)-1] = append(p.stack[len(p.stack)-1], s)
+}
+
+func (p *PathStack) PopElem() string {
+	// retrieve the top path stack
+	topPathArr := p.stack[len(p.stack)-1]
+	// get the top element from the path
+	result := topPathArr[len(topPathArr)-1]
+	// arra with the last element removed
+	topPathArr = topPathArr[:len(topPathArr)-1]
+	// replace the last path on the path stack
+	p.stack[len(p.stack)-1] = topPathArr
+	return result
+}
+
+func (p *PathStack) PopPath() []string {
+	// result is the last path
+	result := p.stack[len(p.stack)-1]
+	// p.stack is all the paths up until the last one, which is popped
+	p.stack = p.stack[:len(p.stack)-1]
+	return result
+}
+
+func (p *PathStack) NewPathFromCurrent() {
+	p.stack = append(p.stack, []string{})
 }
 
 // As well as the initial context created when we start to evaluate an Xpath
@@ -449,7 +362,7 @@ func (ctx *context) printStack(prefix string) string {
 	}
 
 	var b bytes.Buffer
-	for index, _ := range ctx.stack {
+	for index := range ctx.stack {
 		b.WriteString(prefix)
 		if index == 0 {
 			b.WriteString("Stack:")
@@ -853,8 +766,6 @@ func (ctx *context) Run() (res *Result) {
 			ctx.logDebug()
 		}
 	}()
-
-	ctx.addDebugProgHeader(ctx.refExpr)
 
 	for x, instr := range ctx.prog {
 		ctx.addDebugInstrAndStack(instr.fnName)
