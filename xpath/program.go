@@ -669,7 +669,9 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 		d1 := ctx.popDatum()
 		d2 := ctx.popDatum()
 		_ = d2
+		ctx.actualPathStack.PopPath()
 		ctx.actualPathStack.PushElem(d1.Literal(""))
+		ctx.actualPathStack.NewPathFromCurrent()
 	}
 }
 
