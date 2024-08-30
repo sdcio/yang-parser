@@ -81,10 +81,10 @@ type context struct {
 
 	current         Entry
 	actualPathStack *PathStack
+	currentCalled   bool
 
 	predicateCount    int // if >0 we're inside a predicate
 	predicateEvalPath int
-	predKey           string
 
 	goctx gocontext.Context
 }
@@ -109,6 +109,7 @@ func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *c
 		prog:            mach.prog,
 		xpathStmtLoc:    mach.location,
 		current:         current,
+		currentCalled:   false,
 		actualPathStack: newPathStack(),
 		goctx:           goctx,
 	}

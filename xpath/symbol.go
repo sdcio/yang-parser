@@ -296,6 +296,7 @@ func current(ctx *context, args []Datum) (retNodeSet Datum) {
 	// reset the path to the current path
 	ctx.actualPathStack.PopPath()
 	ctx.actualPathStack.NewPathFromCurrent()
+	ctx.currentCalled = true
 	return NewNodesetDatum([]xutils.XpathNode{})
 }
 
