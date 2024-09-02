@@ -294,7 +294,9 @@ func count(ctx *context, args []Datum) (retNum Datum) {
 
 func current(ctx *context, args []Datum) (retNodeSet Datum) {
 	// reset the path to the current path
-	ctx.ActualPathReset()
+	ctx.actualPathStack.PopPath()
+	ctx.actualPathStack.NewPathFromCurrent()
+	ctx.currentCalled = true
 	return NewNodesetDatum([]xutils.XpathNode{})
 }
 
