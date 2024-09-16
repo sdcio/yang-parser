@@ -160,7 +160,6 @@ func (p *PathStack) PeakPath() []string {
 	return p.stack[len(p.stack)-1]
 }
 
-
 func (p *PathStack) NewPathFromCurrent() {
 	p.PushPath([]string{})
 }
