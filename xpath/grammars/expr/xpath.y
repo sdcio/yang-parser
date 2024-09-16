@@ -36,9 +36,10 @@ import (
 }
 
 %token	<val>			NUM DOTDOT DBLSLASH DBLCOLON ERR
-%token	<sym>			FUNC
+%token	<sym>			FUNC TEXTFUNC
 %token	<name>			NODETYPE AXISNAME LITERAL
 %token	<xmlname>		NAMETEST
+
 
 /* Set associativity (left or right) and precedence.  Items on one line
  * (eg '+' and  '-') are of equal precedence, but lower than line(s)
@@ -208,6 +209,12 @@ PrimaryExpr:
 		|		NUM
 				{
 					getProgBldr(exprlex).CodeNum($1);
+				}
+		|       TEXTFUNC '(' ')'
+				{
+					getProgBldr(exprlex).CodeFn(
+						getProgBldr(exprlex).EvalLocPath, "evalLocPath");
+					getProgBldr(exprlex).CodeBltin($1, 0);
 				}
 		|		FUNC '(' ')'
 				{

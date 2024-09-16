@@ -160,8 +160,27 @@ func (p *PathStack) PeakPath() []string {
 	return p.stack[len(p.stack)-1]
 }
 
+
 func (p *PathStack) NewPathFromCurrent() {
-	p.stack = append(p.stack, []string{})
+	p.PushPath([]string{})
+}
+
+func (p *PathStack) NewPathFromActual() {
+	// if path stack is empty, create new from current
+	if len(p.stack) == 0 {
+		p.NewPathFromCurrent()
+		return
+	}
+
+	// Duplicate last entry by copying
+	actual := p.stack[len(p.stack)-1]
+	var dup []string
+
+	for _, pathElem := range actual {
+		dup = append(dup, pathElem)
+	}
+
+	p.PushPath(dup)
 }
 
 // As well as the initial context created when we start to evaluate an Xpath

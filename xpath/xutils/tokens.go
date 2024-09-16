@@ -57,6 +57,7 @@ const (
 	AND
 	MOD
 	DIV
+	TEXTFUNC
 )
 
 // For testing and error pretty-printing, useful to be able to dump a string
@@ -88,6 +89,7 @@ var tokenNameMap = map[int]string{
 	AND:      "and",
 	MOD:      "mod",
 	DIV:      "div",
+	TEXTFUNC: "text",
 }
 
 func GetTokenName(token int) string {
