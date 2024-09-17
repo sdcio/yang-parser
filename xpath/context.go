@@ -798,7 +798,7 @@ func (ctx *context) Run() (res *Result) {
 	for x, instr := range ctx.prog {
 		ctx.addDebugInstrAndStack(instr.fnName)
 		instr.fn(ctx)
-		if instr.fnName == "bltin\t\tcurrent()" || instr.fnName == "bltin\t\tderef()" {
+		if instr.fnName == "bltin\t\tderef()" {
 			ctx.stack = ctx.stack[:len(ctx.stack)-1]
 		}
 		ctx.addDebug(ctx.pfx + "----\n")

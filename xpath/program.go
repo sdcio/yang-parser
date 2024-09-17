@@ -210,6 +210,16 @@ func (progBldr *ProgBuilder) CodeLiteral(lit string) {
 	progBldr.CodeFn(litpush, fmt.Sprintf("litpush\t\t'%s'", lit))
 }
 
+func (progBldr *ProgBuilder) CodePathSetCurrent() {
+	pathSetCurrent := func(ctx *context) {
+		_ = ctx.actualPathStack.PopPath()
+		ctx.actualPathStack.NewPathFromCurrent()
+	}
+	progBldr.CodeFn(pathSetCurrent,
+		fmt.Sprintf("pathsetcurrent"),
+	)
+}
+
 func (progBldr *ProgBuilder) CodePathOper(elem int) {
 	if progBldr.ignoreInsidePred > 0 {
 		return
@@ -474,9 +484,9 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		ctx.predicateEvalPath += 1
 		// and the value of predicateEvalPath is uneven (hence the left side of the assignment [=], since we've already added 1 to predicateEvalPath early)
 		// then we skip the resolution for the value
-		if ctx.predicateEvalPath%2 == 1 {
-			return
-		}
+		//if ctx.predicateEvalPath%2 == 1 {
+		//	return
+		//}
 	}
 
 	path := ctx.actualPathStack.PopPath()
@@ -648,6 +658,9 @@ func (progBldr *ProgBuilder) Or(ctx *context) {
 }
 
 func (progBldr *ProgBuilder) Eq(ctx *context) {
+	// test if d2 (leftmost) is nodeset then handle leaflist evaluation
+
+	// if not, continue
 	switch {
 	// being out of predicate, this is an equality check
 	case ctx.predicateCount == 0:
@@ -672,7 +685,7 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 		_ = d2
 		ctx.actualPathStack.PopPath()
 		ctx.actualPathStack.PushElem(d1.Literal(""))
-		ctx.actualPathStack.NewPathFromCurrent()
+		ctx.actualPathStack.NewPathFromActual()
 	}
 }
 

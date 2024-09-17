@@ -40,6 +40,8 @@ import (
 %token	<name>			NODETYPE AXISNAME LITERAL
 %token	<xmlname>		NAMETEST
 
+%token CURRENTFUNC
+
 
 /* Set associativity (left or right) and precedence.  Items on one line
  * (eg '+' and  '-') are of equal precedence, but lower than line(s)
@@ -240,12 +242,22 @@ PrimaryExpr:
 LocationPath:
 				RelativeLocationPath
 		|		AbsoluteLocationPath
+		|       CurrentRelativeLocationPath
 		;
 AbsoluteLocationPath:
 				Root
 		|		Root RelativeLocationPath
 		|		AbbreviatedAbsoluteLocationPath
 		;
+CurrentRelativeLocationPath:
+                CurrentFunc '/' RelativeLocationPath
+            ;
+CurrentFunc:
+                CURRENTFUNC '(' ')'
+                {
+                    getProgBldr(exprlex).CodePathSetCurrent();
+                }
+                ;
 /*
  * '/' called out into own production so stored in correct order.  Only stored
  * when it indicates an absolute path.  Otherwise there's no point storing

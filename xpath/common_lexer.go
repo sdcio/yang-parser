@@ -366,6 +366,8 @@ func (x *CommonLex) LexName(c rune) (int, TokVal) {
 			if ok {
 				return xutils.TEXTFUNC, fn
 			}
+		case "current":
+			return xutils.CURRENTFUNC, nil
 		default:
 			if x.nameIsNodeType(name.String()) {
 				return xutils.NODETYPE, name.String()
