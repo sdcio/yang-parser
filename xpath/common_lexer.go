@@ -357,9 +357,21 @@ func (x *CommonLex) LexName(c rune) (int, TokVal) {
 	// If next non-whitespace character is '(' then this must be a NodeType
 	// or a FunctionName
 	if x.NextNonWhitespaceStringIs("(") {
-		if x.nameIsNodeType(name.String()) {
-			return xutils.NODETYPE, name.String()
+		switch name.String() {
+		case "text":
+			fn, ok := LookupXpathFunction(
+				"text",
+				false,
+				nil)
+			if ok {
+				return xutils.TEXTFUNC, fn
+			}
+		default:
+			if x.nameIsNodeType(name.String()) {
+				return xutils.NODETYPE, name.String()
+			}
 		}
+
 		fn, ok := LookupXpathFunction(
 			name.String(),
 			x.allowCustomFns,

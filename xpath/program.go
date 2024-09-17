@@ -328,7 +328,7 @@ func (progBldr *ProgBuilder) CodePredStart() {
 
 func (progBldr *ProgBuilder) NewPathStackFromActual() instFunc {
 	return func(ctx *context) {
-		ctx.actualPathStack.NewPathFromCurrent()
+		ctx.actualPathStack.NewPathFromActual()
 	}
 }
 
@@ -496,8 +496,8 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 	}
 	ctx.pushDatum(val)
 
-	// reset the actual path to current() reference
-	ctx.actualPathStack.NewPathFromCurrent()
+	// reset the path to the actual reference
+	ctx.actualPathStack.NewPathFromActual()
 }
 
 func (progBldr *ProgBuilder) EvalLocPathExists(ctx *context) {
