@@ -91,7 +91,10 @@ func NewProgBuilder(refExpr string) *ProgBuilder {
 }
 
 func (progBldr *ProgBuilder) CurrentFix() {
-	_ = progBldr
+	strNamePrevFunc := progBldr.progs[len(progBldr.progs)-1][len(progBldr.progs[len(progBldr.progs)-1])-1].String()
+	if strings.Contains(strNamePrevFunc, "current()") {
+		progBldr.CodeFn(progBldr.EvalLocPath, "evalLocPath(afterCurrent)")
+	}
 }
 
 // Extract relevant predicate from expression - 'preds' indicates which '['
@@ -484,6 +487,8 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		return
 	}
 
+	ctx.lastEvalPath = valEntry
+
 	val, err := valEntry.GetValue()
 	if err != nil {
 		ctx.res.runErr = err
@@ -493,7 +498,6 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 
 	// reset the actual path to current() reference
 	ctx.actualPathStack.NewPathFromCurrent()
-	ctx.currentCalled = false
 }
 
 func (progBldr *ProgBuilder) EvalLocPathExists(ctx *context) {
@@ -663,11 +667,6 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 		ctx.popCompareEqualityAndPush(boolFn, litFn, numFn, "=")
 	case ctx.predicateCount > 0:
 		// being within a predicate this is an assignment
-
-		if ctx.currentCalled {
-			progBldr.EvalLocPath(ctx)
-		}
-
 		d1 := ctx.popDatum()
 		d2 := ctx.popDatum()
 		_ = d2

@@ -105,6 +105,8 @@ var xpathFunctionTable = symbolTable{
 		[]DatumTypeChecker{TypeIsNodeset}, TypeIsNumber),
 	"current": NewFnSym("current", current,
 		[]DatumTypeChecker{}, TypeIsNodeset),
+	"deref": NewFnSym("deref", deref,
+		[]DatumTypeChecker{TypeIsLiteral}, nil),
 	"false": NewFnSym("false", xFalse,
 		[]DatumTypeChecker{}, TypeIsBool),
 	"floor": NewFnSym("floor", floor,
@@ -296,7 +298,18 @@ func current(ctx *context, args []Datum) (retNodeSet Datum) {
 	// reset the path to the current path
 	ctx.actualPathStack.PopPath()
 	ctx.actualPathStack.NewPathFromCurrent()
-	ctx.currentCalled = true
+	return NewNodesetDatum([]xutils.XpathNode{})
+}
+
+func deref(ctx *context, args []Datum) (retNodeSet Datum) {
+
+	lrefentry, err := ctx.lastEvalPath.FollowLeafRef()
+	if err != nil {
+		ctx.execError(err.Error(), "")
+	}
+
+	ctx.actualPathStack.PushPath(append([]string{"/"}, lrefentry.GetPath()...))
+
 	return NewNodesetDatum([]xutils.XpathNode{})
 }
 
