@@ -80,8 +80,8 @@ type context struct {
 	xpathStmtLoc string // Module:line of original xpath statement.
 
 	current         Entry
+	lastEvalPath    Entry
 	actualPathStack *PathStack
-	currentCalled   bool
 
 	predicateCount    int // if >0 we're inside a predicate
 	predicateEvalPath int
@@ -93,6 +93,8 @@ type Entry interface {
 	GetValue() (Datum, error)
 	Navigate(path []string) (Entry, error)
 	Copy() Entry
+	FollowLeafRef() (lrefentry Entry, err error)
+	GetPath() []string
 }
 
 func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *context {
@@ -109,7 +111,6 @@ func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *c
 		prog:            mach.prog,
 		xpathStmtLoc:    mach.location,
 		current:         current,
-		currentCalled:   false,
 		actualPathStack: newPathStack(),
 		goctx:           goctx,
 	}
@@ -149,6 +150,14 @@ func (p *PathStack) PopPath() []string {
 	// p.stack is all the paths up until the last one, which is popped
 	p.stack = p.stack[:len(p.stack)-1]
 	return result
+}
+
+func (p *PathStack) PushPath(path []string) {
+	p.stack = append(p.stack, path)
+}
+
+func (p *PathStack) PeakPath() []string {
+	return p.stack[len(p.stack)-1]
 }
 
 func (p *PathStack) NewPathFromCurrent() {
@@ -771,7 +780,7 @@ func (ctx *context) Run() (res *Result) {
 	for x, instr := range ctx.prog {
 		ctx.addDebugInstrAndStack(instr.fnName)
 		instr.fn(ctx)
-		if instr.fnName == "bltin\t\tcurrent()" {
+		if instr.fnName == "bltin\t\tcurrent()" || instr.fnName == "bltin\t\tderef()" {
 			ctx.stack = ctx.stack[:len(ctx.stack)-1]
 		}
 		ctx.addDebug(ctx.pfx + "----\n")
