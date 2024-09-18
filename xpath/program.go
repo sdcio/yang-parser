@@ -686,13 +686,15 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 			ctx.pushDatum(datum)
 			ctx.pushDatum(d1)
 			progBldr.Eq(ctx)
-			resDatum := ctx.popDatum()
-			ctx.pushDatum(resDatum)
-			if resDatum.Boolean("eq(datumslice,arg2)") {
+			res := ctx.popBool("eq(datumslice,arg2)")
+			if res {
 				// if we have a true we can quick return
+				ctx.pushDatum(NewBoolDatum(true))
 				return
 			}
 		}
+		ctx.pushDatum(NewBoolDatum(false))
+		return
 	// being out of predicate, this is an equality check
 	// if we are in a leaflistfilter case, this is also needed
 	case ctx.predicateCount == 0 || ctx.isLeafListFilter:
@@ -713,11 +715,13 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 		ctx.pushDatum(d2)
 		ctx.pushDatum(d1)
 		ctx.popCompareEqualityAndPush(boolFn, litFn, numFn, "=")
+		return
 	case ctx.predicateCount > 0:
 		// here we add the value (after the '=') to the path (set the key)
 		ctx.actualPathStack.PopPath()
 		ctx.actualPathStack.PushElem(d1.Literal(""))
 		ctx.actualPathStack.NewPathFromActual()
+		return
 	}
 }
 
