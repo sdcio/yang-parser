@@ -328,6 +328,8 @@ func (progBldr *ProgBuilder) CodePredStart() {
 	instFn := func(ctx *context) {
 		progBldr.NewPathStackFromActual()(ctx)
 		ctx.predicateCount += 1
+		ctx.isLeafListFilter = false
+		ctx.previousPredicateWasLLFilter = false
 	}
 
 	progBldr.CodeFn(instFn, "PREDSTART")
@@ -396,6 +398,11 @@ func (progBldr *ProgBuilder) CodePredEnd() {
 		//progBldr.Store(ctx)
 		ctx.predicateCount -= 1
 		ctx.predicateEvalPath = 0
+		// if we performed a leaflistfilter we note this here
+		// so that we can use it when deciding if we have to
+		// evaluate the path to a value at the end of the path parsing
+		ctx.previousPredicateWasLLFilter = ctx.isLeafListFilter
+		ctx.isLeafListFilter = false
 		ctx.actualPathStack.PopPath()
 	}
 
@@ -487,6 +494,13 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		//if ctx.predicateEvalPath%2 == 1 {
 		//	return
 		//}
+
+	}
+	// If the last predicate we saw was a filter on a LeafList (e.g. /leaflist[text()='foo'])
+	// we don't need to do EvalLocPath and resolve path to value, as we already have the result of this
+	// search on the stack
+	if ctx.previousPredicateWasLLFilter {
+		return
 	}
 
 	path := ctx.actualPathStack.PopPath()
@@ -658,12 +672,30 @@ func (progBldr *ProgBuilder) Or(ctx *context) {
 }
 
 func (progBldr *ProgBuilder) Eq(ctx *context) {
-	// test if d2 (leftmost) is nodeset then handle leaflist evaluation
+	d1 := ctx.popDatum()
+	d2 := ctx.popDatum()
+	isDS, _ := TypeIsDatumSlice(d2)
 
-	// if not, continue
 	switch {
+	// test if d2 (leftmost) is nodeset -> handle leaflist evaluation
+	case isDS:
+		ctx.isLeafListFilter = true
+		ds := d2.DatumSlice("leaflistfilter")
+		for _, datum := range ds {
+			// take advantage of the Eq function and use it recursively
+			ctx.pushDatum(datum)
+			ctx.pushDatum(d1)
+			progBldr.Eq(ctx)
+			resDatum := ctx.popDatum()
+			ctx.pushDatum(resDatum)
+			if resDatum.Boolean("eq(datumslice,arg2)") {
+				// if we have a true we can quick return
+				return
+			}
+		}
 	// being out of predicate, this is an equality check
-	case ctx.predicateCount == 0:
+	// if we are in a leaflistfilter case, this is also needed
+	case ctx.predicateCount == 0 || ctx.isLeafListFilter:
 		boolFn := func(d1, d2 Datum) bool {
 			return d1.Boolean("eq(bool1)") == d2.Boolean("eq(bool2)")
 		}
@@ -677,12 +709,12 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 			n2 := d2.Number("eq(num2)")
 			return (n1 == n2) && !math.IsNaN(n1) && !math.IsNaN(n2)
 		}
+		// put the values back as this will pop them...
+		ctx.pushDatum(d2)
+		ctx.pushDatum(d1)
 		ctx.popCompareEqualityAndPush(boolFn, litFn, numFn, "=")
 	case ctx.predicateCount > 0:
-		// being within a predicate this is an assignment
-		d1 := ctx.popDatum()
-		d2 := ctx.popDatum()
-		_ = d2
+		// here we add the value (after the '=') to the path (set the key)
 		ctx.actualPathStack.PopPath()
 		ctx.actualPathStack.PushElem(d1.Literal(""))
 		ctx.actualPathStack.NewPathFromActual()

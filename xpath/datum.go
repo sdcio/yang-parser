@@ -53,15 +53,17 @@ type Datum interface {
 	Literal(context string) string
 	Nodeset(context string) []xutils.XpathNode
 	Number(context string) float64
+	DatumSlice(context string) []Datum
 
 	stackable
 }
 
 // Helper functions to make code elsewhere a little cleaner.
-func isBool(d Datum) bool    { _, ok := d.(boolDatum); return ok }
-func isLiteral(d Datum) bool { _, ok := d.(litDatum); return ok }
-func isNodeset(d Datum) bool { _, ok := d.(nodesetDatum); return ok }
-func isNum(d Datum) bool     { _, ok := d.(numDatum); return ok }
+func isBool(d Datum) bool       { _, ok := d.(boolDatum); return ok }
+func isLiteral(d Datum) bool    { _, ok := d.(litDatum); return ok }
+func isNodeset(d Datum) bool    { _, ok := d.(nodesetDatum); return ok }
+func isNum(d Datum) bool        { _, ok := d.(numDatum); return ok }
+func isDatumSlice(d Datum) bool { _, ok := d.(datumSliceDatum); return ok }
 
 // For type checking the likes of return values for built-in functions.
 // string provides a name to identify the type that has or hasn't been
@@ -84,10 +86,14 @@ func TypeIsNumber(d Datum) (bool, string) {
 	return isNum(d), "NUMBER"
 }
 
+func TypeIsDatumSlice(d Datum) (bool, string) {
+	return isDatumSlice(d), "DATUMSLICE"
+}
+
 // Allow for invalidDatum here hence default case.
 func TypeIsObject(d Datum) (bool, string) {
 	switch d.(type) {
-	case boolDatum, litDatum, nodesetDatum, numDatum:
+	case boolDatum, litDatum, nodesetDatum, numDatum, datumSliceDatum:
 		return true, "OBJECT"
 	default:
 		return false, "OBJECT"
@@ -131,6 +137,10 @@ func (i invalidDatum) Nodeset(context string) []xutils.XpathNode {
 
 func (i invalidDatum) Number(context string) float64 {
 	panic(fmt.Errorf("%s: Unable to convert datum to a number.", context))
+}
+
+func (i invalidDatum) DatumSlice(context string) []Datum {
+	panic(fmt.Errorf("%s: Unable to convert datum to a datumslice.", context))
 }
 
 func NewInvalidDatum() Datum {
@@ -190,6 +200,11 @@ func (b boolDatum) Number(context string) float64 {
 
 	return 0
 }
+func (b boolDatum) DatumSlice(context string) []Datum {
+	return []Datum{
+		boolDatum{boolVal: b.boolVal},
+	}
+}
 
 // litDatum
 type litDatum struct {
@@ -236,6 +251,12 @@ func (l litDatum) Nodeset(context string) []xutils.XpathNode {
 
 func (l litDatum) Number(context string) float64 {
 	return numberFromString(l.lit)
+}
+
+func (l litDatum) DatumSlice(context string) []Datum {
+	return []Datum{
+		litDatum{lit: l.lit},
+	}
 }
 
 // nodesetDatum
@@ -327,6 +348,10 @@ func (ns nodesetDatum) literalSlice() []Datum {
 	return litSlice
 }
 
+func (ns nodesetDatum) DatumSlice(context string) []Datum {
+	return ns.literalSlice()
+}
+
 // numDatum
 type numDatum struct {
 	num float64
@@ -393,4 +418,72 @@ func (n numDatum) Nodeset(context string) []xutils.XpathNode {
 
 func (n numDatum) Number(context string) float64 {
 	return n.num
+}
+
+func (n numDatum) DatumSlice(context string) []Datum {
+	return []Datum{
+		numDatum{n.num},
+	}
+}
+
+type datumSliceDatum struct {
+	ds []Datum
+}
+
+func (d datumSliceDatum) name() string {
+	return "DATUMSLICE"
+}
+
+func (d datumSliceDatum) isSameType(o Datum) bool {
+	return isDatumSlice(o)
+}
+
+func (d datumSliceDatum) equalTo(o Datum) error {
+	if !d.isSameType(o) {
+		return fmt.Errorf("Cannot compare DATUMSLICE with %s", o.name())
+	}
+	if len(d.ds) != len(o.(datumSliceDatum).ds) {
+		return fmt.Errorf("datumSlices are not same length: %d/%d", len(d.ds), len(o.(datumSliceDatum).ds))
+	}
+	for i, _ := range d.ds {
+		d1 := d.ds[i]
+		d2 := o.(datumSliceDatum).ds[i]
+		err := d1.equalTo(d2)
+		if err != nil {
+			return fmt.Errorf("datumSlices are not the same, elements %v and %v are not equal: %w", d1, d2, err)
+		}
+	}
+	return nil
+}
+
+func (d datumSliceDatum) Boolean(context string) bool {
+	return len(d.ds) != 0
+}
+
+func (d datumSliceDatum) Literal(context string) string {
+	var b bytes.Buffer
+	setLen := len(d.ds)
+	for i, datum := range d.ds {
+		b.WriteString(datum.Literal(context))
+		if i != setLen-1 {
+			b.WriteString(" ")
+		}
+	}
+	return b.String()
+}
+
+func (d datumSliceDatum) Nodeset(context string) []xutils.XpathNode {
+	panic(fmt.Errorf("%s: Unable to convert DATUMSLICE to a nodeset.", context))
+}
+
+func (d datumSliceDatum) Number(context string) float64 {
+	return numberFromString(d.Literal(context))
+}
+
+func (d datumSliceDatum) DatumSlice(context string) []Datum {
+	return d.ds
+}
+
+func NewDatumSliceDatum(ds []Datum) Datum {
+	return datumSliceDatum{ds: ds}
 }

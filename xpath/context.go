@@ -83,8 +83,10 @@ type context struct {
 	lastEvalPath    Entry
 	actualPathStack *PathStack
 
-	predicateCount    int // if >0 we're inside a predicate
-	predicateEvalPath int
+	predicateCount               int // if >0 we're inside a predicate
+	predicateEvalPath            int
+	isLeafListFilter             bool
+	previousPredicateWasLLFilter bool
 
 	goctx gocontext.Context
 }
@@ -100,19 +102,20 @@ type Entry interface {
 func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *context {
 
 	xctx := &context{
-		res:             NewResult(),
-		validate:        false,
-		debug:           false,
-		filter:          xutils.FullTree,
-		pos:             1,
-		size:            1,
-		level:           0,
-		refExpr:         mach.refExpr,
-		prog:            mach.prog,
-		xpathStmtLoc:    mach.location,
-		current:         current,
-		actualPathStack: newPathStack(),
-		goctx:           goctx,
+		res:                          NewResult(),
+		validate:                     false,
+		debug:                        false,
+		filter:                       xutils.FullTree,
+		pos:                          1,
+		size:                         1,
+		level:                        0,
+		refExpr:                      mach.refExpr,
+		prog:                         mach.prog,
+		xpathStmtLoc:                 mach.location,
+		current:                      current,
+		actualPathStack:              newPathStack(),
+		goctx:                        goctx,
+		previousPredicateWasLLFilter: false,
 	}
 
 	return xctx

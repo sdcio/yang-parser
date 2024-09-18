@@ -319,9 +319,11 @@ func text(ctx *context, args []Datum) (retNodeSet Datum) {
 	//text() accepts no arguments
 	ctx.verifyArgNumAndTypes("text", args, []DatumTypeChecker{})
 
-	val := ctx.popDatum()
+	//val := ctx.popDatum()
+	//lit := val.Literal("text()")
+	//return NewLiteralDatum(lit)
 
-	return val
+	return ctx.popDatum()
 }
 
 // Round DOWN to nearest integer
