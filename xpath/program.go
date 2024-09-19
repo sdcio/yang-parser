@@ -329,7 +329,7 @@ func (progBldr *ProgBuilder) CodePredStart() {
 		progBldr.NewPathStackFromActual()(ctx)
 		ctx.predicateCount += 1
 		ctx.isLeafListFilter = false
-		ctx.previousPredicateWasLLFilter = false
+		ctx.previousPredicateRequiresELP = false
 	}
 
 	progBldr.CodeFn(instFn, "PREDSTART")
@@ -401,7 +401,6 @@ func (progBldr *ProgBuilder) CodePredEnd() {
 		// if we performed a leaflistfilter we note this here
 		// so that we can use it when deciding if we have to
 		// evaluate the path to a value at the end of the path parsing
-		ctx.previousPredicateWasLLFilter = ctx.isLeafListFilter
 		ctx.isLeafListFilter = false
 		ctx.actualPathStack.PopPath()
 	}
@@ -495,12 +494,13 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		//	return
 		//}
 
-	}
-	// If the last predicate we saw was a filter on a LeafList (e.g. /leaflist[text()='foo'])
-	// we don't need to do EvalLocPath and resolve path to value, as we already have the result of this
-	// search on the stack
-	if ctx.previousPredicateWasLLFilter {
-		return
+	} else {
+		// If we are no longer in a predicate and the last predicate we saw was a filter on a LeafList
+		// (e.g. /leaflist[text()='foo']) we don't need to do EvalLocPath and resolve path to value, as we
+		// already have the result of this filter (bool) on the stack
+		if !ctx.previousPredicateRequiresELP {
+			return
+		}
 	}
 
 	path := ctx.actualPathStack.PopPath()
@@ -721,6 +721,7 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 		ctx.actualPathStack.PopPath()
 		ctx.actualPathStack.PushElem(d1.Literal(""))
 		ctx.actualPathStack.NewPathFromActual()
+		ctx.previousPredicateRequiresELP = true
 		return
 	}
 }

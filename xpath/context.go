@@ -86,7 +86,7 @@ type context struct {
 	predicateCount               int // if >0 we're inside a predicate
 	predicateEvalPath            int
 	isLeafListFilter             bool
-	previousPredicateWasLLFilter bool
+	previousPredicateRequiresELP bool //the previous predicate requires evallocpath to be called
 
 	goctx gocontext.Context
 }
@@ -115,7 +115,7 @@ func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *c
 		current:                      current,
 		actualPathStack:              newPathStack(),
 		goctx:                        goctx,
-		previousPredicateWasLLFilter: false,
+		previousPredicateRequiresELP: true,
 	}
 
 	return xctx
