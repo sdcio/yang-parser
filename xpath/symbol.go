@@ -319,11 +319,13 @@ func text(ctx *context, args []Datum) (retNodeSet Datum) {
 	//text() accepts no arguments
 	ctx.verifyArgNumAndTypes("text", args, []DatumTypeChecker{})
 
-	//val := ctx.popDatum()
-	//lit := val.Literal("text()")
-	//return NewLiteralDatum(lit)
+	val := ctx.popDatum()
+	// if we do not have a datum slice, convert (so that we do not take text() to become part of a path)
+	if b, _ := TypeIsDatumSlice(val); !b {
+		val = NewDatumSliceDatum(val.DatumSlice("text()"))
+	}
 
-	return ctx.popDatum()
+	return val
 }
 
 // Round DOWN to nearest integer
