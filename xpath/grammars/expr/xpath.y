@@ -250,7 +250,8 @@ AbsoluteLocationPath:
 		|		AbbreviatedAbsoluteLocationPath
 		;
 CurrentRelativeLocationPath:
-                CurrentFunc '/' RelativeLocationPath
+                CurrentFunc
+        |       CurrentFunc '/' RelativeLocationPath
             ;
 CurrentFunc:
                 CURRENTFUNC '(' ')'

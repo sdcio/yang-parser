@@ -95,7 +95,7 @@ const exprEofCode = 1
 const exprErrCode = 2
 const exprInitialStackSize = 16
 
-//line xpath.y:354
+//line xpath.y:355
 
 /* Code is in .go files so we get the benefit of gofmt etc.
  * What's above is formatted as best as emacs Bison-mode will allow,
@@ -170,10 +170,10 @@ var exprR1 = [...]int8{
 	6, 6, 6, 6, 6, 7, 7, 7, 8, 8,
 	8, 8, 9, 9, 10, 10, 11, 11, 11, 11,
 	14, 13, 13, 17, 17, 17, 17, 17, 17, 17,
-	17, 17, 12, 12, 12, 19, 19, 19, 20, 23,
-	21, 15, 15, 15, 24, 24, 24, 24, 24, 26,
-	26, 27, 28, 28, 18, 31, 32, 33, 22, 25,
-	29, 29, 30, 16,
+	17, 17, 12, 12, 12, 19, 19, 19, 20, 20,
+	23, 21, 15, 15, 15, 24, 24, 24, 24, 24,
+	26, 26, 27, 28, 28, 18, 31, 32, 33, 22,
+	25, 29, 29, 30, 16,
 }
 
 var exprR2 = [...]int8{
@@ -181,10 +181,10 @@ var exprR2 = [...]int8{
 	1, 3, 3, 3, 3, 1, 3, 3, 1, 3,
 	3, 3, 1, 2, 1, 3, 1, 1, 3, 3,
 	1, 1, 2, 3, 1, 1, 3, 3, 4, 6,
-	8, 1, 1, 1, 1, 1, 2, 1, 3, 3,
-	1, 1, 3, 1, 3, 2, 2, 1, 1, 2,
-	1, 1, 1, 2, 3, 1, 1, 1, 2, 3,
-	1, 1, 1, 1,
+	8, 1, 1, 1, 1, 1, 2, 1, 1, 3,
+	3, 1, 1, 3, 1, 3, 2, 2, 1, 1,
+	2, 1, 1, 1, 2, 3, 1, 1, 1, 2,
+	3, 1, 1, 1, 1,
 }
 
 var exprChk = [...]int16{
@@ -205,15 +205,15 @@ var exprChk = [...]int16{
 var exprDef = [...]int8{
 	0, -2, 1, 2, 3, 5, 7, 10, 15, 18,
 	22, 0, 24, 26, -2, 0, 42, 43, 44, 31,
-	51, 53, 45, 47, 0, 0, 34, 35, 0, 0,
-	41, 0, 57, 58, 50, 0, 0, 0, 60, 61,
-	70, 71, 73, 72, 0, 0, 0, 0, 0, 0,
+	52, 54, 45, 47, 48, 0, 34, 35, 0, 0,
+	41, 0, 58, 59, 51, 0, 0, 0, 61, 62,
+	71, 72, 74, 73, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 23, 32,
-	0, 65, 0, 0, 0, 0, 46, 0, 0, 0,
-	0, 55, 56, 62, 68, 0, 59, 4, 6, 8,
+	0, 66, 0, 0, 0, 0, 46, 0, 0, 0,
+	0, 56, 57, 63, 69, 0, 60, 4, 6, 8,
 	9, 11, 12, 13, 14, 16, 17, 19, 20, 21,
-	25, 0, 66, 28, 29, 52, 69, 48, 33, 36,
-	37, 0, 54, 63, 49, 64, 67, 38, 0, 0,
+	25, 0, 67, 28, 29, 53, 70, 49, 33, 36,
+	37, 0, 55, 64, 50, 65, 68, 38, 0, 0,
 	39, 0, 0, 40,
 }
 
@@ -776,64 +776,64 @@ exprdefault:
 		{
 			getProgBldr(exprlex).UnsupportedName(xutils.NODETYPE, exprDollar[1].name)
 		}
-	case 49:
+	case 50:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:257
+//line xpath.y:258
 		{
 			getProgBldr(exprlex).CodePathSetCurrent()
 		}
-	case 50:
+	case 51:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:269
+//line xpath.y:270
 		{
 			getProgBldr(exprlex).CodePathOper('/')
 		}
-	case 59:
+	case 60:
 		exprDollar = exprS[exprpt-2 : exprpt+1]
-//line xpath.y:294
+//line xpath.y:295
 		{
 			getProgBldr(exprlex).UnsupportedName(xutils.AXISNAME, exprDollar[1].name)
 		}
-	case 61:
+	case 62:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:300
+//line xpath.y:301
 		{
 			getProgBldr(exprlex).CodeNameTest(exprDollar[1].xmlname)
 		}
-	case 65:
+	case 66:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:312
+//line xpath.y:313
 		{
 			getProgBldr(exprlex).CodePredStart()
 		}
-	case 67:
+	case 68:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:320
+//line xpath.y:321
 		{
 			getProgBldr(exprlex).CodePredEnd()
 		}
-	case 70:
+	case 71:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:332
+//line xpath.y:333
 		{
 			getProgBldr(exprlex).CodePathOper('.')
 		}
-	case 71:
+	case 72:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:336
+//line xpath.y:337
 		{
 			getProgBldr(exprlex).CodePathOper(xutils.DOTDOT)
 		}
-	case 72:
+	case 73:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:342
+//line xpath.y:343
 		{
 			getProgBldr(exprlex).UnsupportedName(
 				'@', "not yet implemented")
 		}
-	case 73:
+	case 74:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:349
+//line xpath.y:350
 		{
 			getProgBldr(exprlex).UnsupportedName(
 				xutils.DBLSLASH, "not yet implemented")
