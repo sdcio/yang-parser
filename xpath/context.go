@@ -205,7 +205,7 @@ func (p *PathStack) NewPathFromActual() {
 
 	// Duplicate last entry by copying
 	actual := p.stack[len(p.stack)-1]
-	var dup []string
+	dup := make([]string, 0, len(actual))
 
 	for _, pathElem := range actual {
 		dup = append(dup, pathElem)
