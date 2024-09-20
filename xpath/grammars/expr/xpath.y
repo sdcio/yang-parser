@@ -214,9 +214,7 @@ PrimaryExpr:
 				}
 		|       TEXTFUNC '(' ')'
 				{
-					getProgBldr(exprlex).CodeFn(
-						getProgBldr(exprlex).EvalLocPath, "evalLocPath");
-					getProgBldr(exprlex).CodeBltin($1, 0);
+					getProgBldr(exprlex).Text();
 				}
 		|		FUNC '(' ')'
 				{
@@ -284,9 +282,9 @@ Step:
 				// To further complicate matters, we can have 0 or more
 				// Predicates following NodeTest so we have to handle that as
 				// well.
-				AxisSpecifier NodeTest PredicateSet
+				AxisSpecifier NodeTest PredicatesStart PredicateSet PredicatesEnd
 		|		AxisSpecifier NodeTest
-		|		NodeTest PredicateSet
+		|		NodeTest PredicatesStart PredicateSet PredicatesEnd
 		|		NodeTest
 		|		AbbreviatedStep
 		;
@@ -303,9 +301,18 @@ NodeTest:		NAMETEST
 				}
 		;
 PredicateSet:
-				Predicate
+				Predicate 
 		|		PredicateSet Predicate
 		;
+PredicatesStart:
+				{
+					getProgBldr(exprlex).PredicatesStart();
+				}
+
+PredicatesEnd:
+				{
+					getProgBldr(exprlex).PredicatesEnd();
+				}
 Predicate:
 				PredicateStart PredicateExpr PredicateEnd
 		;

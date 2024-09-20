@@ -30,6 +30,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -218,6 +219,54 @@ func (progBldr *ProgBuilder) CodePathSetCurrent() {
 	progBldr.CodeFn(pathSetCurrent,
 		fmt.Sprintf("pathsetcurrent"),
 	)
+}
+
+func (progBldr *ProgBuilder) Text() {
+
+	textFunc := func(ctx *context) {
+		val := ctx.popDatum()
+		// if we do not have a datum slice, convert (so that we do not take text() to become part of a path)
+		if b, _ := TypeIsDatumSlice(val); !b {
+			val = NewDatumSliceDatum(val.DatumSlice("text()"))
+		}
+		ctx.pushDatum(val)
+	}
+
+	progBldr.CodeFn(progBldr.EvalLocPathInternal, "EvalLocPathInternal - text()")
+	progBldr.CodeFn(textFunc, fmt.Sprintf("text()"))
+
+}
+
+func (progBldr *ProgBuilder) PredicatesStart() {
+	pstarts := func(ctx *context) {
+		ctx.predicatePathElemStack.AddEmptyMap()
+	}
+	progBldr.CodeFn(pstarts,
+		fmt.Sprintf("PredicatesStart"))
+}
+
+func (progBldr *ProgBuilder) PredicatesEnd() {
+
+	pends := func(ctx *context) {
+		// If multiple keys exist, they need to appear in the path in
+		// alphabetical order, so we need to process that.
+		// collect keys
+		keySlice := []string{}
+		elems := ctx.predicatePathElemStack.PopMap()
+
+		for k, _ := range elems {
+			keySlice = append(keySlice, k)
+		}
+		// sort alphabetically
+		slices.Sort(keySlice)
+
+		for _, v := range keySlice {
+			ctx.actualPathStack.PushElem(elems[v])
+		}
+	}
+
+	progBldr.CodeFn(pends,
+		fmt.Sprintf("PredicatesEnd"))
 }
 
 func (progBldr *ProgBuilder) CodePathOper(elem int) {
@@ -490,9 +539,9 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		ctx.predicateEvalPath += 1
 		// and the value of predicateEvalPath is uneven (hence the left side of the assignment [=], since we've already added 1 to predicateEvalPath early)
 		// then we skip the resolution for the value
-		//if ctx.predicateEvalPath%2 == 1 {
-		//	return
-		//}
+		if ctx.predicateEvalPath%2 == 1 {
+			return
+		}
 
 	} else {
 		// If we are no longer in a predicate and the last predicate we saw was a filter on a LeafList
@@ -503,6 +552,10 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 		}
 	}
 
+	progBldr.EvalLocPathInternal(ctx)
+}
+
+func (progBldr *ProgBuilder) EvalLocPathInternal(ctx *context) {
 	path := ctx.actualPathStack.PopPath()
 
 	valEntry, err := ctx.current.Navigate(path)
@@ -719,7 +772,7 @@ func (progBldr *ProgBuilder) Eq(ctx *context) {
 	case ctx.predicateCount > 0:
 		// here we add the value (after the '=') to the path (set the key)
 		ctx.actualPathStack.PopPath()
-		ctx.actualPathStack.PushElem(d1.Literal(""))
+		ctx.predicatePathElemStack.TopSet(d2.Literal(""), d1.Literal(""))
 		ctx.actualPathStack.NewPathFromActual()
 		ctx.previousPredicateRequiresELP = true
 		return

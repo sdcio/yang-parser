@@ -143,8 +143,6 @@ var xpathFunctionTable = symbolTable{
 		TypeIsLiteral),
 	"sum": NewFnSym("sum", sum,
 		[]DatumTypeChecker{TypeIsNodeset}, TypeIsNumber),
-	"text": NewFnSym("text", text,
-		[]DatumTypeChecker{}, TypeIsLiteral),
 	"translate": NewFnSym("translate", translate,
 		[]DatumTypeChecker{TypeIsLiteral, TypeIsLiteral, TypeIsLiteral},
 		TypeIsLiteral),
@@ -313,19 +311,6 @@ func deref(ctx *context, args []Datum) (retNodeSet Datum) {
 	ctx.actualPathStack.PushPath(append([]string{"/"}, lrefentry.GetPath()...))
 
 	return NewNodesetDatum([]xutils.XpathNode{})
-}
-
-func text(ctx *context, args []Datum) (retNodeSet Datum) {
-	//text() accepts no arguments
-	ctx.verifyArgNumAndTypes("text", args, []DatumTypeChecker{})
-
-	val := ctx.popDatum()
-	// if we do not have a datum slice, convert (so that we do not take text() to become part of a path)
-	if b, _ := TypeIsDatumSlice(val); !b {
-		val = NewDatumSliceDatum(val.DatumSlice("text()"))
-	}
-
-	return val
 }
 
 // Round DOWN to nearest integer

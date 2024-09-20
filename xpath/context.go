@@ -79,9 +79,10 @@ type context struct {
 	refExpr      string // Expression being evaluated
 	xpathStmtLoc string // Module:line of original xpath statement.
 
-	current         Entry
-	lastEvalPath    Entry
-	actualPathStack *PathStack
+	current                Entry
+	lastEvalPath           Entry
+	actualPathStack        *PathStack
+	predicatePathElemStack *PredicatePathElemStack
 
 	predicateCount               int // if >0 we're inside a predicate
 	predicateEvalPath            int
@@ -116,9 +117,37 @@ func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *c
 		actualPathStack:              newPathStack(),
 		goctx:                        goctx,
 		previousPredicateRequiresELP: true,
+		predicatePathElemStack:       newPredicatePathElemStack(),
 	}
 
 	return xctx
+}
+
+type PredicatePathElemStack struct {
+	stack []map[string]string
+}
+
+func newPredicatePathElemStack() *PredicatePathElemStack {
+	return &PredicatePathElemStack{
+		stack: []map[string]string{},
+	}
+}
+
+// AddEmptyMap adds a new empty map to the stack
+func (p *PredicatePathElemStack) AddEmptyMap() {
+	p.stack = append(p.stack, map[string]string{})
+}
+
+// PopMap pops the top most path and returns it
+func (p *PredicatePathElemStack) PopMap() map[string]string {
+	result := p.stack[len(p.stack)-1]
+	p.stack = p.stack[:len(p.stack)-1]
+	return result
+}
+
+// TopSet adds the given key: value to the top most map
+func (p *PredicatePathElemStack) TopSet(key string, value string) {
+	p.stack[len(p.stack)-1][key] = value
 }
 
 type PathStack struct {
