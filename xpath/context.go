@@ -79,12 +79,15 @@ type context struct {
 	refExpr      string // Expression being evaluated
 	xpathStmtLoc string // Module:line of original xpath statement.
 
-	current         Entry
-	lastEvalPath    Entry
-	actualPathStack *PathStack
+	current                Entry
+	lastEvalPath           Entry
+	actualPathStack        *PathStack
+	predicatePathElemStack *PredicatePathElemStack
 
-	predicateCount    int // if >0 we're inside a predicate
-	predicateEvalPath int
+	predicateCount               int // if >0 we're inside a predicate
+	predicateEvalPath            int
+	isLeafListFilter             bool
+	previousPredicateRequiresELP bool //the previous predicate requires evallocpath to be called
 
 	goctx gocontext.Context
 }
@@ -100,22 +103,51 @@ type Entry interface {
 func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *context {
 
 	xctx := &context{
-		res:             NewResult(),
-		validate:        false,
-		debug:           false,
-		filter:          xutils.FullTree,
-		pos:             1,
-		size:            1,
-		level:           0,
-		refExpr:         mach.refExpr,
-		prog:            mach.prog,
-		xpathStmtLoc:    mach.location,
-		current:         current,
-		actualPathStack: newPathStack(),
-		goctx:           goctx,
+		res:                          NewResult(),
+		validate:                     false,
+		debug:                        false,
+		filter:                       xutils.FullTree,
+		pos:                          1,
+		size:                         1,
+		level:                        0,
+		refExpr:                      mach.refExpr,
+		prog:                         mach.prog,
+		xpathStmtLoc:                 mach.location,
+		current:                      current,
+		actualPathStack:              newPathStack(),
+		goctx:                        goctx,
+		previousPredicateRequiresELP: true,
+		predicatePathElemStack:       newPredicatePathElemStack(),
 	}
 
 	return xctx
+}
+
+type PredicatePathElemStack struct {
+	stack []map[string]string
+}
+
+func newPredicatePathElemStack() *PredicatePathElemStack {
+	return &PredicatePathElemStack{
+		stack: []map[string]string{},
+	}
+}
+
+// AddEmptyMap adds a new empty map to the stack
+func (p *PredicatePathElemStack) AddEmptyMap() {
+	p.stack = append(p.stack, map[string]string{})
+}
+
+// PopMap pops the top most path and returns it
+func (p *PredicatePathElemStack) PopMap() map[string]string {
+	result := p.stack[len(p.stack)-1]
+	p.stack = p.stack[:len(p.stack)-1]
+	return result
+}
+
+// TopSet adds the given key: value to the top most map
+func (p *PredicatePathElemStack) TopSet(key string, value string) {
+	p.stack[len(p.stack)-1][key] = value
 }
 
 type PathStack struct {
@@ -160,7 +192,6 @@ func (p *PathStack) PeakPath() []string {
 	return p.stack[len(p.stack)-1]
 }
 
-
 func (p *PathStack) NewPathFromCurrent() {
 	p.PushPath([]string{})
 }
@@ -174,7 +205,7 @@ func (p *PathStack) NewPathFromActual() {
 
 	// Duplicate last entry by copying
 	actual := p.stack[len(p.stack)-1]
-	var dup []string
+	dup := make([]string, 0, len(actual))
 
 	for _, pathElem := range actual {
 		dup = append(dup, pathElem)
@@ -799,7 +830,7 @@ func (ctx *context) Run() (res *Result) {
 	for x, instr := range ctx.prog {
 		ctx.addDebugInstrAndStack(instr.fnName)
 		instr.fn(ctx)
-		if instr.fnName == "bltin\t\tcurrent()" || instr.fnName == "bltin\t\tderef()" {
+		if instr.fnName == "bltin\t\tderef()" {
 			ctx.stack = ctx.stack[:len(ctx.stack)-1]
 		}
 		ctx.addDebug(ctx.pfx + "----\n")

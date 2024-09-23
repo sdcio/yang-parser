@@ -58,6 +58,7 @@ const (
 	MOD
 	DIV
 	TEXTFUNC
+	CURRENTFUNC
 )
 
 // For testing and error pretty-printing, useful to be able to dump a string
@@ -68,28 +69,29 @@ const (
 // <grammar>.  Which is best?  Fn call here or map elsewhere?
 
 var tokenNameMap = map[int]string{
-	EOF:      "EOF",
-	ERR:      "LexError",
-	NUM:      "NUM",
-	FUNC:     "FUNC",
-	DOTDOT:   "..",
-	DBLSLASH: "//",
-	DBLCOLON: "::",
-	GT:       ">",
-	GE:       ">=",
-	LT:       "<",
-	LE:       "<=",
-	EQ:       "=",
-	NE:       "!=",
-	NODETYPE: "NodeType",
-	AXISNAME: "AxisName",
-	NAMETEST: "NameTest",
-	LITERAL:  "Literal",
-	OR:       "or",
-	AND:      "and",
-	MOD:      "mod",
-	DIV:      "div",
-	TEXTFUNC: "text",
+	EOF:         "EOF",
+	ERR:         "LexError",
+	NUM:         "NUM",
+	FUNC:        "FUNC",
+	DOTDOT:      "..",
+	DBLSLASH:    "//",
+	DBLCOLON:    "::",
+	GT:          ">",
+	GE:          ">=",
+	LT:          "<",
+	LE:          "<=",
+	EQ:          "=",
+	NE:          "!=",
+	NODETYPE:    "NodeType",
+	AXISNAME:    "AxisName",
+	NAMETEST:    "NameTest",
+	LITERAL:     "Literal",
+	OR:          "or",
+	AND:         "and",
+	MOD:         "mod",
+	DIV:         "div",
+	TEXTFUNC:    "text",
+	CURRENTFUNC: "current",
 }
 
 func GetTokenName(token int) string {

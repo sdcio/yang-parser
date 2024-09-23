@@ -40,6 +40,8 @@ import (
 %token	<name>			NODETYPE AXISNAME LITERAL
 %token	<xmlname>		NAMETEST
 
+%token CURRENTFUNC
+
 
 /* Set associativity (left or right) and precedence.  Items on one line
  * (eg '+' and  '-') are of equal precedence, but lower than line(s)
@@ -212,9 +214,7 @@ PrimaryExpr:
 				}
 		|       TEXTFUNC '(' ')'
 				{
-					getProgBldr(exprlex).CodeFn(
-						getProgBldr(exprlex).EvalLocPath, "evalLocPath");
-					getProgBldr(exprlex).CodeBltin($1, 0);
+					getProgBldr(exprlex).Text();
 				}
 		|		FUNC '(' ')'
 				{
@@ -240,12 +240,23 @@ PrimaryExpr:
 LocationPath:
 				RelativeLocationPath
 		|		AbsoluteLocationPath
+		|       CurrentRelativeLocationPath
 		;
 AbsoluteLocationPath:
 				Root
 		|		Root RelativeLocationPath
 		|		AbbreviatedAbsoluteLocationPath
 		;
+CurrentRelativeLocationPath:
+                CurrentFunc
+        |       CurrentFunc '/' RelativeLocationPath
+            ;
+CurrentFunc:
+                CURRENTFUNC '(' ')'
+                {
+                    getProgBldr(exprlex).CodePathSetCurrent();
+                }
+                ;
 /*
  * '/' called out into own production so stored in correct order.  Only stored
  * when it indicates an absolute path.  Otherwise there's no point storing
@@ -271,9 +282,9 @@ Step:
 				// To further complicate matters, we can have 0 or more
 				// Predicates following NodeTest so we have to handle that as
 				// well.
-				AxisSpecifier NodeTest PredicateSet
+				AxisSpecifier NodeTest PredicatesStart PredicateSet PredicatesEnd
 		|		AxisSpecifier NodeTest
-		|		NodeTest PredicateSet
+		|		NodeTest PredicatesStart PredicateSet PredicatesEnd
 		|		NodeTest
 		|		AbbreviatedStep
 		;
@@ -290,9 +301,18 @@ NodeTest:		NAMETEST
 				}
 		;
 PredicateSet:
-				Predicate
+				Predicate 
 		|		PredicateSet Predicate
 		;
+PredicatesStart:
+				{
+					getProgBldr(exprlex).PredicatesStart();
+				}
+
+PredicatesEnd:
+				{
+					getProgBldr(exprlex).PredicatesEnd();
+				}
 Predicate:
 				PredicateStart PredicateExpr PredicateEnd
 		;
