@@ -105,8 +105,6 @@ var xpathFunctionTable = symbolTable{
 		[]DatumTypeChecker{TypeIsNodeset}, TypeIsNumber),
 	"current": NewFnSym("current", current,
 		[]DatumTypeChecker{}, TypeIsNodeset),
-	"deref": NewFnSym("deref", deref,
-		[]DatumTypeChecker{TypeIsLiteral}, nil),
 	"false": NewFnSym("false", xFalse,
 		[]DatumTypeChecker{}, TypeIsBool),
 	"floor": NewFnSym("floor", floor,
@@ -288,28 +286,29 @@ func re_match(ctx *context, args []Datum) (retBool Datum) {
 }
 
 func count(ctx *context, args []Datum) (retNum Datum) {
-	ctx.verifyArgNumAndTypes("count",
-		args, []DatumTypeChecker{TypeIsNodeset})
-	ns0 := args[0].Nodeset("count()")
-	return NewNumDatum(float64(len(ns0)))
+	//ctx.verifyArgNumAndTypes("count",
+	//args, []DatumTypeChecker{TypeIsNodeset})
+
+	if len(args) != 1 {
+		ctx.execError("count received incorrect number of parameters, expected 1 got", fmt.Sprintf("%d", len(args)))
+	}
+
+	if ds, _ := TypeIsDatumSlice(args[0]); ds {
+		return NewNumDatum(float64(len(args[0].DatumSlice("count()"))))
+	}
+
+	if ns, _ := TypeIsNodeset(args[0]); ns {
+		return NewNumDatum(float64(len(args[0].Nodeset("count"))))
+	}
+
+	ctx.execError("datum types passed to count() were not supported - got", args[0].name())
+	return NewInvalidDatum()
 }
 
 func current(ctx *context, args []Datum) (retNodeSet Datum) {
 	// reset the path to the current path
 	ctx.actualPathStack.PopPath()
 	ctx.actualPathStack.NewPathFromCurrent()
-	return NewNodesetDatum([]xutils.XpathNode{})
-}
-
-func deref(ctx *context, args []Datum) (retNodeSet Datum) {
-
-	lrefentry, err := ctx.lastEvalPath.FollowLeafRef()
-	if err != nil {
-		ctx.execError(err.Error(), "")
-	}
-
-	ctx.actualPathStack.PushPath(append([]string{"/"}, lrefentry.GetPath()...))
-
 	return NewNodesetDatum([]xutils.XpathNode{})
 }
 

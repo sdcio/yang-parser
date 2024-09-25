@@ -91,13 +91,6 @@ func NewProgBuilder(refExpr string) *ProgBuilder {
 	return progBldr
 }
 
-func (progBldr *ProgBuilder) CurrentFix() {
-	strNamePrevFunc := progBldr.progs[len(progBldr.progs)-1][len(progBldr.progs[len(progBldr.progs)-1])-1].String()
-	if strings.Contains(strNamePrevFunc, "current()") {
-		progBldr.CodeFn(progBldr.EvalLocPath, "evalLocPath(afterCurrent)")
-	}
-}
-
 // Extract relevant predicate from expression - 'preds' indicates which '['
 // is the starting point.
 func GetSubExpr(expr string, preds int) (retStr string) {
@@ -237,6 +230,29 @@ func (progBldr *ProgBuilder) Text() {
 
 }
 
+func (progBldr *ProgBuilder) Deref() {
+
+	derefFunc := func(ctx *context) {
+		path := ctx.actualPathStack.PopPath()
+
+		valEntry, err := ctx.current.Navigate(path)
+		if err != nil {
+			ctx.res.runErr = err
+			return
+		}
+
+		lrefentry, err := valEntry.FollowLeafRef()
+		if err != nil {
+			ctx.execError(err.Error(), "")
+		}
+
+		ctx.actualPathStack.PushPath(append([]string{"/"}, lrefentry.GetPath()...))
+	}
+
+	progBldr.CodeFn(derefFunc, fmt.Sprintf("deref"))
+
+}
+
 func (progBldr *ProgBuilder) PredicatesStart() {
 	pstarts := func(ctx *context) {
 		ctx.predicatePathElemStack.AddEmptyMap()
@@ -295,7 +311,7 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 
 	if pathOperPush != nil {
 		progBldr.CodeFn(pathOperPush,
-			fmt.Sprintf("MypathOperPush\t%s", xutils.GetTokenName(elem)))
+			fmt.Sprintf("PathOper-Push\t%s", xutils.GetTokenName(elem)))
 		return
 	}
 	log.Debugf("skipped %s token", xutils.GetTokenName(elem))
@@ -313,7 +329,7 @@ func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
 		}
 	}
 	progBldr.CodeFn(nameTestPush,
-		fmt.Sprintf("MyNameTestPush\t%s", name))
+		fmt.Sprintf("Name-Push\t%s", name))
 }
 
 func (progBldr *ProgBuilder) CodeBltin(sym *Symbol, numArgs int) {
@@ -563,8 +579,6 @@ func (progBldr *ProgBuilder) EvalLocPathInternal(ctx *context) {
 		ctx.res.runErr = err
 		return
 	}
-
-	ctx.lastEvalPath = valEntry
 
 	val, err := valEntry.GetValue()
 	if err != nil {

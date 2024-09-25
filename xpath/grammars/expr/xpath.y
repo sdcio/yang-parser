@@ -40,7 +40,7 @@ import (
 %token	<name>			NODETYPE AXISNAME LITERAL
 %token	<xmlname>		NAMETEST
 
-%token CURRENTFUNC
+%token CURRENTFUNC DEREFFUNC
 
 
 /* Set associativity (left or right) and precedence.  Items on one line
@@ -67,9 +67,6 @@ top:
 		;
 Expr:
 				OrExpr
-				{
-					getProgBldr(exprlex).CurrentFix();
-				}
 		;
 OrExpr:
 				AndExpr
@@ -204,6 +201,7 @@ FilterExpr:
 		;
 PrimaryExpr:
 				'(' Expr ')'
+		|		'(' ')'
 		|		LITERAL
 				{
 					getProgBldr(exprlex).CodeLiteral($1);
@@ -212,7 +210,7 @@ PrimaryExpr:
 				{
 					getProgBldr(exprlex).CodeNum($1);
 				}
-		|       TEXTFUNC '(' ')'
+		|		TEXTFUNC '(' ')'
 				{
 					getProgBldr(exprlex).Text();
 				}
@@ -241,6 +239,7 @@ LocationPath:
 				RelativeLocationPath
 		|		AbsoluteLocationPath
 		|       CurrentRelativeLocationPath
+		|       DerefRelativeLocationPath
 		;
 AbsoluteLocationPath:
 				Root
@@ -257,6 +256,19 @@ CurrentFunc:
                     getProgBldr(exprlex).CodePathSetCurrent();
                 }
                 ;
+
+DerefRelativeLocationPath:
+                DerefFunc
+         |      DerefFunc '/' RelativeLocationPath
+         ;
+
+DerefFunc:
+		DEREFFUNC '(' LocationPath ')'
+				{
+					getProgBldr(exprlex).Deref();
+				}
+				;
+
 /*
  * '/' called out into own production so stored in correct order.  Only stored
  * when it indicates an absolute path.  Otherwise there's no point storing

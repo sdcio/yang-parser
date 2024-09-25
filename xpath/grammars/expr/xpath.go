@@ -36,17 +36,18 @@ const AXISNAME = 57354
 const LITERAL = 57355
 const NAMETEST = 57356
 const CURRENTFUNC = 57357
-const OR = 57358
-const AND = 57359
-const NE = 57360
-const EQ = 57361
-const GT = 57362
-const GE = 57363
-const LT = 57364
-const LE = 57365
-const DIV = 57366
-const MOD = 57367
-const UNARYMINUS = 57368
+const DEREFFUNC = 57358
+const OR = 57359
+const AND = 57360
+const NE = 57361
+const EQ = 57362
+const GT = 57363
+const GE = 57364
+const LT = 57365
+const LE = 57366
+const DIV = 57367
+const MOD = 57368
+const UNARYMINUS = 57369
 
 var exprToknames = [...]string{
 	"$end",
@@ -64,6 +65,7 @@ var exprToknames = [...]string{
 	"LITERAL",
 	"NAMETEST",
 	"CURRENTFUNC",
+	"DEREFFUNC",
 	"OR",
 	"AND",
 	"NE",
@@ -95,7 +97,7 @@ const exprEofCode = 1
 const exprErrCode = 2
 const exprInitialStackSize = 16
 
-//line xpath.y:362
+//line xpath.y:374
 
 /* Code is in .go files so we get the benefit of gofmt etc.
  * What's above is formatted as best as emacs Bison-mode will allow,
@@ -111,64 +113,71 @@ var exprExca = [...]int8{
 	-2, 0,
 	-1, 14,
 	6, 30,
-	27, 30,
+	28, 30,
 	-2, 27,
-	-1, 32,
-	35, 65,
-	-2, 58,
-	-1, 71,
-	35, 65,
-	-2, 56,
+	-1, 34,
+	36, 70,
+	-2, 63,
+	-1, 76,
+	36, 70,
+	-2, 61,
 }
 
 const exprPrivate = 57344
 
-const exprLast = 208
+const exprLast = 265
 
 var exprAct = [...]int8{
-	2, 103, 110, 35, 102, 16, 72, 7, 5, 20,
-	9, 106, 114, 115, 12, 6, 59, 61, 117, 63,
-	65, 104, 58, 107, 108, 98, 68, 8, 66, 97,
-	74, 4, 70, 69, 54, 57, 55, 56, 67, 42,
-	45, 73, 44, 42, 52, 53, 39, 32, 49, 51,
-	48, 50, 47, 46, 77, 75, 80, 81, 82, 83,
-	64, 91, 78, 79, 62, 86, 87, 88, 92, 93,
-	65, 100, 89, 96, 94, 95, 76, 65, 101, 71,
-	84, 85, 105, 90, 60, 38, 33, 31, 21, 24,
-	23, 22, 18, 17, 41, 19, 65, 65, 15, 14,
-	65, 37, 13, 39, 111, 10, 109, 3, 1, 112,
-	0, 111, 113, 27, 41, 42, 116, 0, 29, 28,
-	30, 37, 26, 39, 36, 0, 40, 43, 0, 0,
-	0, 0, 0, 0, 11, 0, 34, 0, 0, 0,
-	0, 25, 99, 27, 41, 42, 40, 43, 29, 28,
-	30, 37, 26, 39, 36, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 11, 0, 34, 0, 0, 0,
-	0, 25, 0, 27, 41, 42, 40, 43, 29, 28,
-	30, 37, 26, 39, 36, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 34, 0, 0, 0,
-	0, 25, 0, 0, 0, 0, 40, 43,
+	2, 110, 118, 37, 109, 13, 77, 7, 16, 21,
+	9, 12, 114, 64, 5, 6, 62, 44, 126, 66,
+	68, 120, 61, 4, 40, 111, 42, 105, 72, 123,
+	124, 8, 69, 115, 116, 104, 80, 79, 75, 74,
+	57, 60, 58, 59, 71, 45, 78, 34, 70, 48,
+	43, 46, 55, 56, 52, 54, 51, 53, 47, 86,
+	87, 88, 89, 83, 97, 84, 85, 67, 92, 93,
+	94, 82, 95, 68, 98, 99, 107, 100, 101, 102,
+	103, 76, 68, 108, 50, 49, 112, 90, 91, 42,
+	45, 113, 81, 96, 63, 41, 35, 33, 22, 26,
+	25, 24, 68, 68, 23, 19, 68, 68, 18, 17,
+	20, 119, 65, 117, 15, 14, 10, 121, 3, 119,
+	122, 29, 44, 45, 1, 125, 31, 30, 32, 40,
+	28, 42, 38, 39, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 11, 0, 36, 0, 0, 0, 0,
+	27, 106, 29, 44, 45, 43, 46, 31, 30, 32,
+	40, 28, 42, 38, 39, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 11, 0, 36, 0, 0, 0,
+	0, 27, 73, 29, 44, 45, 43, 46, 31, 30,
+	32, 40, 28, 42, 38, 39, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 11, 0, 36, 0, 0,
+	0, 0, 27, 0, 29, 44, 45, 43, 46, 31,
+	30, 32, 40, 28, 42, 38, 39, 0, 0, 0,
+	44, 45, 0, 0, 0, 0, 0, 40, 36, 42,
+	38, 39, 0, 27, 0, 0, 0, 0, 43, 46,
+	0, 0, 0, 36, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 43, 46,
 }
 
 var exprPact = [...]int16{
-	139, -1000, -1000, 26, 23, 34, 28, 20, 8, -1000,
-	4, 139, -1000, -1000, -18, 37, 33, -1000, -1000, -1000,
-	-1000, -1000, 89, -1000, 11, 139, -1000, -1000, 1, 0,
-	-1000, 32, -1000, -1000, -1000, 89, -2, 48, -1000, -1000,
-	-1000, -1000, -1000, -1000, 139, 139, 139, 139, 139, 139,
-	139, 139, 139, 139, 139, 139, 139, 169, -1000, -1000,
-	139, -1000, 89, 89, 89, 89, 33, 89, -4, -8,
-	109, -1000, -18, 33, -12, -1000, 23, 34, 28, 28,
-	20, 20, 20, 20, 8, 8, -1000, -1000, -1000, -1000,
-	-25, -1000, 33, 33, -1000, -1000, 33, -1000, -1000, -1000,
-	-10, -18, -18, -1000, -1000, -1000, -1000, -1000, 139, -18,
-	-1000, -1000, -21, -1000, -1000, 139, -15, -1000,
+	179, -1000, -1000, 41, 31, 65, 33, 27, 13, -1000,
+	9, 179, -1000, -1000, -23, 84, 39, -1000, -1000, -1000,
+	-1000, -1000, -1000, 12, -1000, 20, 16, 148, -1000, -1000,
+	6, 5, -1000, 75, -1000, -1000, -1000, 12, 4, 3,
+	85, -1000, -1000, -1000, -1000, -1000, -1000, 179, 179, 179,
+	179, 179, 179, 179, 179, 179, 179, 179, 179, 179,
+	210, -1000, -1000, 179, -1000, 12, 12, 12, 12, 39,
+	12, 12, 1, -1000, -7, 117, -1000, -23, 39, -9,
+	225, -1000, 31, 65, 33, 33, 27, 27, 27, 27,
+	13, 13, -1000, -1000, -1000, -1000, -25, -1000, 39, 39,
+	-1000, -1000, 39, 39, -1000, -1000, -1000, -1, -23, -23,
+	-1000, -1000, -13, -1000, -1000, -1000, 179, -23, -1000, -1000,
+	-1000, -5, -1000, -1000, 179, -16, -1000,
 }
 
 var exprPgo = [...]int8{
-	0, 108, 0, 107, 31, 8, 15, 7, 27, 10,
-	105, 14, 102, 99, 98, 5, 3, 95, 1, 93,
-	92, 91, 90, 89, 9, 88, 87, 47, 6, 4,
-	2, 86, 85, 84, 83, 82,
+	0, 124, 0, 118, 23, 14, 15, 7, 31, 10,
+	116, 11, 5, 115, 114, 8, 3, 110, 1, 109,
+	108, 105, 104, 101, 100, 99, 9, 98, 97, 47,
+	6, 4, 2, 96, 95, 94, 93, 91,
 }
 
 var exprR1 = [...]int8{
@@ -176,51 +185,55 @@ var exprR1 = [...]int8{
 	6, 6, 6, 6, 6, 7, 7, 7, 8, 8,
 	8, 8, 9, 9, 10, 10, 11, 11, 11, 11,
 	14, 13, 13, 17, 17, 17, 17, 17, 17, 17,
-	17, 17, 12, 12, 12, 19, 19, 19, 20, 20,
-	23, 21, 15, 15, 15, 24, 24, 24, 24, 24,
-	26, 26, 27, 29, 29, 28, 30, 18, 33, 34,
-	35, 22, 25, 31, 31, 32, 16,
+	17, 17, 17, 12, 12, 12, 12, 19, 19, 19,
+	20, 20, 24, 21, 21, 25, 22, 15, 15, 15,
+	26, 26, 26, 26, 26, 28, 28, 29, 31, 31,
+	30, 32, 18, 35, 36, 37, 23, 27, 33, 33,
+	34, 16,
 }
 
 var exprR2 = [...]int8{
 	0, 1, 1, 1, 3, 1, 3, 1, 3, 3,
 	1, 3, 3, 3, 3, 1, 3, 3, 1, 3,
 	3, 3, 1, 2, 1, 3, 1, 1, 3, 3,
-	1, 1, 2, 3, 1, 1, 3, 3, 4, 6,
-	8, 1, 1, 1, 1, 1, 2, 1, 1, 3,
-	3, 1, 1, 3, 1, 5, 2, 4, 1, 1,
-	2, 1, 1, 1, 2, 0, 0, 3, 1, 1,
-	1, 2, 3, 1, 1, 1, 1,
+	1, 1, 2, 3, 2, 1, 1, 3, 3, 4,
+	6, 8, 1, 1, 1, 1, 1, 1, 2, 1,
+	1, 3, 3, 1, 3, 4, 1, 1, 3, 1,
+	5, 2, 4, 1, 1, 2, 1, 1, 1, 2,
+	0, 0, 3, 1, 1, 1, 2, 3, 1, 1,
+	1, 1,
 }
 
 var exprChk = [...]int16{
 	-1000, -1, -2, -3, -4, -5, -6, -7, -8, -9,
-	-10, 25, -11, -12, -13, -14, -15, -19, -20, -17,
-	-24, -25, -21, -22, -23, 32, 13, 4, 10, 9,
-	11, -26, -27, -31, 27, -16, 15, 12, -32, 14,
-	37, 5, 6, 38, 16, 17, 19, 18, 22, 20,
-	23, 21, 24, 25, 26, 28, 29, 31, -9, -18,
-	-33, 35, 27, -16, 27, -16, -15, 27, -2, 32,
-	32, -27, -28, -15, 32, 7, -4, -5, -6, -6,
-	-7, -7, -7, -7, -8, -8, -9, -9, -9, -11,
-	-34, -2, -15, -15, -24, -24, -15, 33, 33, 33,
-	-2, -28, -29, -18, 33, -35, 36, 33, 34, -29,
-	-30, -18, -2, -30, 33, 34, -2, 33,
+	-10, 26, -11, -12, -13, -14, -15, -19, -20, -21,
+	-17, -26, -27, -22, -23, -24, -25, 33, 13, 4,
+	10, 9, 11, -28, -29, -33, 28, -16, 15, 16,
+	12, -34, 14, 38, 5, 6, 39, 17, 18, 20,
+	19, 23, 21, 24, 22, 25, 26, 27, 29, 30,
+	32, -9, -18, -35, 36, 28, -16, 28, -16, -15,
+	28, 28, -2, 34, 33, 33, -29, -30, -15, 33,
+	33, 7, -4, -5, -6, -6, -7, -7, -7, -7,
+	-8, -8, -9, -9, -9, -11, -36, -2, -15, -15,
+	-26, -26, -15, -15, 34, 34, 34, -2, -30, -31,
+	-18, 34, -12, -37, 37, 34, 35, -31, -32, -18,
+	34, -2, -32, 34, 35, -2, 34,
 }
 
 var exprDef = [...]int8{
 	0, -2, 1, 2, 3, 5, 7, 10, 15, 18,
-	22, 0, 24, 26, -2, 0, 42, 43, 44, 31,
-	52, 54, 45, 47, 48, 0, 34, 35, 0, 0,
-	41, 0, -2, 59, 51, 0, 0, 0, 61, 62,
-	73, 74, 76, 75, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 23, 32,
-	0, 68, 0, 0, 0, 0, 46, 0, 0, 0,
-	0, -2, 0, 71, 0, 60, 4, 6, 8, 9,
-	11, 12, 13, 14, 16, 17, 19, 20, 21, 25,
-	0, 69, 28, 29, 53, 72, 49, 33, 36, 37,
-	0, 0, 66, 63, 50, 67, 70, 38, 0, 66,
-	57, 64, 0, 55, 39, 0, 0, 40,
+	22, 0, 24, 26, -2, 0, 43, 44, 45, 46,
+	31, 57, 59, 47, 49, 50, 53, 0, 35, 36,
+	0, 0, 42, 0, -2, 64, 56, 0, 0, 0,
+	0, 66, 67, 78, 79, 81, 80, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 23, 32, 0, 73, 0, 0, 0, 0, 48,
+	0, 0, 0, 34, 0, 0, -2, 0, 76, 0,
+	0, 65, 4, 6, 8, 9, 11, 12, 13, 14,
+	16, 17, 19, 20, 21, 25, 0, 74, 28, 29,
+	58, 77, 51, 54, 33, 37, 38, 0, 0, 71,
+	68, 52, 0, 72, 75, 39, 0, 71, 62, 69,
+	55, 0, 60, 40, 0, 0, 41,
 }
 
 var exprTok1 = [...]int8{
@@ -228,21 +241,21 @@ var exprTok1 = [...]int8{
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	32, 33, 26, 24, 34, 25, 37, 27, 3, 3,
+	33, 34, 27, 25, 35, 26, 38, 28, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 38, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 35, 3, 36, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 39, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 31,
+	3, 36, 3, 37, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 32,
 }
 
 var exprTok2 = [...]int8{
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-	22, 23, 28, 29, 30,
+	22, 23, 24, 29, 30, 31,
 }
 
 var exprTok3 = [...]int8{
@@ -593,263 +606,263 @@ exprdefault:
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Store, "store")
 		}
-	case 2:
-		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:70
-		{
-			getProgBldr(exprlex).CurrentFix()
-		}
 	case 4:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:77
+//line xpath.y:74
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Or, "or")
 		}
 	case 6:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:85
+//line xpath.y:82
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).And, "and")
 		}
 	case 8:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:93
+//line xpath.y:90
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Eq, "eq")
 		}
 	case 9:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:98
+//line xpath.y:95
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Ne, "ne")
 		}
 	case 11:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:106
+//line xpath.y:103
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Lt, "lt")
 		}
 	case 12:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:111
+//line xpath.y:108
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Gt, "gt")
 		}
 	case 13:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:116
+//line xpath.y:113
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Le, "le")
 		}
 	case 14:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:121
+//line xpath.y:118
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Ge, "ge")
 		}
 	case 16:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:129
+//line xpath.y:126
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Add, "add")
 		}
 	case 17:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:134
+//line xpath.y:131
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Sub, "sub")
 		}
 	case 19:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:142
+//line xpath.y:139
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Mul, "mul")
 		}
 	case 20:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:147
+//line xpath.y:144
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Div, "div")
 		}
 	case 21:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:152
+//line xpath.y:149
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Mod, "mod")
 		}
 	case 23:
 		exprDollar = exprS[exprpt-2 : exprpt+1]
-//line xpath.y:160
+//line xpath.y:157
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Negate, "negate")
 		}
 	case 25:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:168
+//line xpath.y:165
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).Union, "union")
 		}
 	case 26:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:175
+//line xpath.y:172
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).EvalLocPath, "evalLocPath")
 		}
 	case 28:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:181
+//line xpath.y:178
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).EvalLocPath, "evalLocPath")
 		}
 	case 29:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:186
+//line xpath.y:183
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).EvalLocPath, "evalLocPath")
 		}
 	case 30:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:196
+//line xpath.y:193
 		{
 			getProgBldr(exprlex).CodeFn(
 				getProgBldr(exprlex).FilterExprEnd, "filterExprEnd")
 		}
-	case 34:
+	case 35:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:208
+//line xpath.y:206
 		{
 			getProgBldr(exprlex).CodeLiteral(exprDollar[1].name)
 		}
-	case 35:
+	case 36:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:212
+//line xpath.y:210
 		{
 			getProgBldr(exprlex).CodeNum(exprDollar[1].val)
 		}
-	case 36:
+	case 37:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:216
+//line xpath.y:214
 		{
 			getProgBldr(exprlex).Text()
 		}
-	case 37:
+	case 38:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:220
+//line xpath.y:218
 		{
 			getProgBldr(exprlex).CodeBltin(exprDollar[1].sym, 0)
 		}
-	case 38:
+	case 39:
 		exprDollar = exprS[exprpt-4 : exprpt+1]
-//line xpath.y:224
+//line xpath.y:222
 		{
 			getProgBldr(exprlex).CodeBltin(exprDollar[1].sym, 1)
 		}
-	case 39:
+	case 40:
 		exprDollar = exprS[exprpt-6 : exprpt+1]
-//line xpath.y:228
+//line xpath.y:226
 		{
 			getProgBldr(exprlex).CodeBltin(exprDollar[1].sym, 2)
 		}
-	case 40:
+	case 41:
 		exprDollar = exprS[exprpt-8 : exprpt+1]
-//line xpath.y:232
+//line xpath.y:230
 		{
 			getProgBldr(exprlex).CodeBltin(exprDollar[1].sym, 3)
 		}
-	case 41:
+	case 42:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:236
+//line xpath.y:234
 		{
 			getProgBldr(exprlex).UnsupportedName(xutils.NODETYPE, exprDollar[1].name)
 		}
-	case 50:
+	case 52:
 		exprDollar = exprS[exprpt-3 : exprpt+1]
-//line xpath.y:256
+//line xpath.y:255
 		{
 			getProgBldr(exprlex).CodePathSetCurrent()
 		}
-	case 51:
+	case 55:
+		exprDollar = exprS[exprpt-4 : exprpt+1]
+//line xpath.y:267
+		{
+			getProgBldr(exprlex).Deref()
+		}
+	case 56:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:268
+//line xpath.y:280
 		{
 			getProgBldr(exprlex).CodePathOper('/')
 		}
-	case 60:
+	case 65:
 		exprDollar = exprS[exprpt-2 : exprpt+1]
-//line xpath.y:293
+//line xpath.y:305
 		{
 			getProgBldr(exprlex).UnsupportedName(xutils.AXISNAME, exprDollar[1].name)
 		}
-	case 62:
+	case 67:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:299
+//line xpath.y:311
 		{
 			getProgBldr(exprlex).CodeNameTest(exprDollar[1].xmlname)
 		}
-	case 65:
+	case 70:
 		exprDollar = exprS[exprpt-0 : exprpt+1]
-//line xpath.y:308
+//line xpath.y:320
 		{
 			getProgBldr(exprlex).PredicatesStart()
 		}
-	case 66:
+	case 71:
 		exprDollar = exprS[exprpt-0 : exprpt+1]
-//line xpath.y:313
+//line xpath.y:325
 		{
 			getProgBldr(exprlex).PredicatesEnd()
 		}
-	case 68:
+	case 73:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:320
+//line xpath.y:332
 		{
 			getProgBldr(exprlex).CodePredStart()
 		}
-	case 70:
-		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:328
-		{
-			getProgBldr(exprlex).CodePredEnd()
-		}
-	case 73:
+	case 75:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
 //line xpath.y:340
 		{
+			getProgBldr(exprlex).CodePredEnd()
+		}
+	case 78:
+		exprDollar = exprS[exprpt-1 : exprpt+1]
+//line xpath.y:352
+		{
 			getProgBldr(exprlex).CodePathOper('.')
 		}
-	case 74:
+	case 79:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:344
+//line xpath.y:356
 		{
 			getProgBldr(exprlex).CodePathOper(xutils.DOTDOT)
 		}
-	case 75:
+	case 80:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:350
+//line xpath.y:362
 		{
 			getProgBldr(exprlex).UnsupportedName(
 				'@', "not yet implemented")
 		}
-	case 76:
+	case 81:
 		exprDollar = exprS[exprpt-1 : exprpt+1]
-//line xpath.y:357
+//line xpath.y:369
 		{
 			getProgBldr(exprlex).UnsupportedName(
 				xutils.DBLSLASH, "not yet implemented")
