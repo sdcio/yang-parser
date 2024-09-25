@@ -110,6 +110,7 @@ var commonToExprTokenMap = map[int]int{
 	xutils.DIV:         DIV,
 	xutils.TEXTFUNC:    TEXTFUNC,
 	xutils.CURRENTFUNC: CURRENTFUNC,
+	xutils.DEREFFUNC:   DEREFFUNC,
 }
 
 func mapCommonTokenValToExpr(val int) int {
@@ -143,6 +144,7 @@ var exprToCommonTokenMap = map[int]int{
 	DIV:         xutils.DIV,
 	TEXTFUNC:    xutils.TEXTFUNC,
 	CURRENTFUNC: xutils.CURRENTFUNC,
+	DEREFFUNC:   xutils.DEREFFUNC,
 }
 
 func (expr *exprLex) MapTokenValToCommon(val int) int {

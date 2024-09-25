@@ -59,6 +59,7 @@ const (
 	DIV
 	TEXTFUNC
 	CURRENTFUNC
+	DEREFFUNC
 )
 
 // For testing and error pretty-printing, useful to be able to dump a string
@@ -92,6 +93,7 @@ var tokenNameMap = map[int]string{
 	DIV:         "div",
 	TEXTFUNC:    "text",
 	CURRENTFUNC: "current",
+	DEREFFUNC:   "deref",
 }
 
 func GetTokenName(token int) string {

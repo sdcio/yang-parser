@@ -80,7 +80,6 @@ type context struct {
 	xpathStmtLoc string // Module:line of original xpath statement.
 
 	current                Entry
-	lastEvalPath           Entry
 	actualPathStack        *PathStack
 	predicatePathElemStack *PredicatePathElemStack
 
@@ -830,9 +829,6 @@ func (ctx *context) Run() (res *Result) {
 	for x, instr := range ctx.prog {
 		ctx.addDebugInstrAndStack(instr.fnName)
 		instr.fn(ctx)
-		if instr.fnName == "bltin\t\tderef()" {
-			ctx.stack = ctx.stack[:len(ctx.stack)-1]
-		}
 		ctx.addDebug(ctx.pfx + "----\n")
 		_ = x
 	}
