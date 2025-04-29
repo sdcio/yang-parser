@@ -35,7 +35,6 @@ import (
 	"strings"
 
 	sdcpb "github.com/sdcio/sdc-protos/sdcpb"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/sdcio/yang-parser/xpath/xutils"
 )
@@ -230,6 +229,23 @@ func (progBldr *ProgBuilder) Text() {
 
 }
 
+func (progBldr *ProgBuilder) Count() {
+
+	countFunc := func(ctx *context) {
+		path := ctx.actualPathStack.PopPath()
+
+		entries, err := ctx.current.BreadthSearch(ctx.goctx, strings.Join(path, "/"))
+		if err != nil {
+			ctx.execError(err.Error(), "")
+			return
+		}
+
+		ctx.stack = append(ctx.stack, NewNumDatum(float64(len(entries))))
+	}
+
+	progBldr.CodeFn(countFunc, fmt.Sprintf("count"))
+}
+
 func (progBldr *ProgBuilder) Deref() {
 
 	derefFunc := func(ctx *context) {
@@ -314,7 +330,6 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 			fmt.Sprintf("PathOper-Push\t%s", xutils.GetTokenName(elem)))
 		return
 	}
-	log.Debugf("skipped %s token", xutils.GetTokenName(elem))
 }
 
 func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
