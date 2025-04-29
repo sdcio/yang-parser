@@ -35,7 +35,6 @@ import (
 	"strings"
 
 	sdcpb "github.com/sdcio/sdc-protos/sdcpb"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/sdcio/yang-parser/xpath/xutils"
 )
@@ -314,7 +313,7 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 			fmt.Sprintf("PathOper-Push\t%s", xutils.GetTokenName(elem)))
 		return
 	}
-	log.Debugf("skipped %s token", xutils.GetTokenName(elem))
+	// log.Debugf("skipped %s token", xutils.GetTokenName(elem))
 }
 
 func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
