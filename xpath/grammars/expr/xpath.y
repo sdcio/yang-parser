@@ -40,7 +40,7 @@ import (
 %token	<name>			NODETYPE AXISNAME LITERAL
 %token	<xmlname>		NAMETEST
 
-%token CURRENTFUNC DEREFFUNC
+%token CURRENTFUNC DEREFFUNC COUNTFUNC
 
 
 /* Set associativity (left or right) and precedence.  Items on one line
@@ -240,6 +240,7 @@ LocationPath:
 		|		AbsoluteLocationPath
 		|       CurrentRelativeLocationPath
 		|       DerefRelativeLocationPath
+		|       CountRelativeLocationPath
 		;
 AbsoluteLocationPath:
 				Root
@@ -266,6 +267,18 @@ DerefFunc:
 		DEREFFUNC '(' LocationPath ')'
 				{
 					getProgBldr(exprlex).Deref();
+				}
+				;
+
+CountRelativeLocationPath:
+                CountFunc
+         |      CountFunc '/' RelativeLocationPath
+         ;
+
+CountFunc:
+		COUNTFUNC '(' LocationPath ')'
+				{
+					getProgBldr(exprlex).Count();
 				}
 				;
 
