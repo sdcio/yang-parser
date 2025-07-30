@@ -244,11 +244,10 @@ func (progBldr *ProgBuilder) Deref() {
 		if err != nil {
 			ctx.execError(err.Error(), "")
 		}
-
-		ctx.actualPathStack.PushPath(append([]string{"/"}, lrefentry.GetPath()...))
+		ctx.actualPathStack.PushPath(lrefentry.GetSdcpbPath())
 	}
 
-	progBldr.CodeFn(derefFunc, fmt.Sprintf("deref"))
+	progBldr.CodeFn(derefFunc, "deref")
 
 }
 
@@ -276,7 +275,7 @@ func (progBldr *ProgBuilder) PredicatesEnd() {
 		slices.Sort(keySlice)
 
 		for _, v := range keySlice {
-			ctx.actualPathStack.PushElem(elems[v])
+			ctx.actualPathStack.PeakPath().LastPathElem().Key[v] = elems[v]
 		}
 	}
 
@@ -296,13 +295,14 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 		// noop
 	case xutils.DOTDOT:
 		pathOperPush = func(ctx *context) {
-			ctx.actualPathStack.PushElem("..")
+			ctx.actualPathStack.PushElem(sdcpb.NewPathElem("..", nil))
 		}
 	case xutils.DBLSLASH:
 		// not implemented
 	case '/':
 		pathOperPush = func(ctx *context) {
-			ctx.actualPathStack.PushElem("/")
+			ctx.actualPathStack.PeakPath().SetIsRootBased(true)
+			//ctx.actualPathStack.PushElem("/")
 		}
 	default:
 		// unknown
@@ -323,7 +323,7 @@ func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
 			ctx.pushDatum(NewLiteralDatum(name.Local))
 		} else {
 			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
-			ctx.actualPathStack.PushElem(name.Local)
+			ctx.actualPathStack.PushElem(sdcpb.NewPathElem(name.Local, nil))
 			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
 		}
 	}

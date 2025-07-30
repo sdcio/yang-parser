@@ -30,6 +30,7 @@ import (
 
 	gocontext "context"
 
+	sdcpb "github.com/sdcio/sdc-protos/sdcpb"
 	"github.com/sdcio/yang-parser/xpath/xutils"
 )
 
@@ -93,10 +94,10 @@ type context struct {
 
 type Entry interface {
 	GetValue() (Datum, error)
-	Navigate(path []string) (Entry, error)
+	Navigate(path *sdcpb.Path) (Entry, error)
 	Copy() Entry
 	FollowLeafRef() (lrefentry Entry, err error)
-	GetPath() []string
+	GetSdcpbPath() *sdcpb.Path
 }
 
 func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *context {
@@ -150,32 +151,32 @@ func (p *PredicatePathElemStack) TopSet(key string, value string) {
 }
 
 type PathStack struct {
-	stack [][]string
+	stack []*sdcpb.Path
 }
 
 func newPathStack() *PathStack {
 	return &PathStack{
-		stack: [][]string{{}},
+		stack: []*sdcpb.Path{},
 	}
 }
 
-func (p *PathStack) PushElem(s string) {
-	p.stack[len(p.stack)-1] = append(p.stack[len(p.stack)-1], s)
+func (p *PathStack) PushElem(e *sdcpb.PathElem) {
+	p.stack[len(p.stack)-1].AddPathElem(e)
 }
 
-func (p *PathStack) PopElem() string {
-	// retrieve the top path stack
-	topPathArr := p.stack[len(p.stack)-1]
-	// get the top element from the path
-	result := topPathArr[len(topPathArr)-1]
-	// arra with the last element removed
-	topPathArr = topPathArr[:len(topPathArr)-1]
-	// replace the last path on the path stack
-	p.stack[len(p.stack)-1] = topPathArr
-	return result
-}
+// func (p *PathStack) PopElem() *sdcpb.PathElem {
+// 	// retrieve the top path stack
+// 	topPathArr := p.stack[len(p.stack)-1]
+// 	// get the top element from the path
+// 	result := topPathArr.GetElem()[len(topPathArr.GetElem())-1]
+// 	// arra with the last element removed
+// 	topPathArr = topPathArr[:len(topPathArr)-1]
+// 	// replace the last path on the path stack
+// 	p.stack[len(p.stack)-1] = topPathArr
+// 	return result
+// }
 
-func (p *PathStack) PopPath() []string {
+func (p *PathStack) PopPath() *sdcpb.Path {
 	// result is the last path
 	result := p.stack[len(p.stack)-1]
 	// p.stack is all the paths up until the last one, which is popped
@@ -183,16 +184,16 @@ func (p *PathStack) PopPath() []string {
 	return result
 }
 
-func (p *PathStack) PushPath(path []string) {
+func (p *PathStack) PushPath(path *sdcpb.Path) {
 	p.stack = append(p.stack, path)
 }
 
-func (p *PathStack) PeakPath() []string {
+func (p *PathStack) PeakPath() *sdcpb.Path {
 	return p.stack[len(p.stack)-1]
 }
 
 func (p *PathStack) NewPathFromCurrent() {
-	p.PushPath([]string{})
+	p.PushPath(&sdcpb.Path{})
 }
 
 func (p *PathStack) NewPathFromActual() {
@@ -204,13 +205,8 @@ func (p *PathStack) NewPathFromActual() {
 
 	// Duplicate last entry by copying
 	actual := p.stack[len(p.stack)-1]
-	dup := make([]string, 0, len(actual))
 
-	for _, pathElem := range actual {
-		dup = append(dup, pathElem)
-	}
-
-	p.PushPath(dup)
+	p.PushPath(actual.DeepCopy())
 }
 
 // As well as the initial context created when we start to evaluate an Xpath
