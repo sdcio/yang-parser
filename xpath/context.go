@@ -156,7 +156,7 @@ type PathStack struct {
 
 func newPathStack() *PathStack {
 	return &PathStack{
-		stack: []*sdcpb.Path{},
+		stack: []*sdcpb.Path{{}},
 	}
 }
 
