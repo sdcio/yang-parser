@@ -234,7 +234,7 @@ func (progBldr *ProgBuilder) Count() {
 	countFunc := func(ctx *context) {
 		path := ctx.actualPathStack.PopPath()
 
-		entries, err := ctx.current.BreadthSearch(ctx.goctx, strings.Join(path, "/"))
+		entries, err := ctx.current.BreadthSearch(ctx.goctx, path)
 		if err != nil {
 			ctx.execError(err.Error(), "")
 			return
