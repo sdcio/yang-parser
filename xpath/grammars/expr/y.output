@@ -2,22 +2,23 @@
 state 0
 	$accept: .top $end 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
 	top  goto 1
@@ -35,21 +36,23 @@ state 0
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 1
 	$accept:  top.$end 
@@ -68,7 +71,7 @@ state 3
 	Expr:  OrExpr.    (2)
 	OrExpr:  OrExpr.OR AndExpr 
 
-	OR  shift 47
+	OR  shift 50
 	.  reduce 2 (src line 68)
 
 
@@ -76,7 +79,7 @@ state 4
 	OrExpr:  AndExpr.    (3)
 	AndExpr:  AndExpr.AND EqualityExpr 
 
-	AND  shift 48
+	AND  shift 51
 	.  reduce 3 (src line 71)
 
 
@@ -85,8 +88,8 @@ state 5
 	EqualityExpr:  EqualityExpr.EQ RelationalExpr 
 	EqualityExpr:  EqualityExpr.NE RelationalExpr 
 
-	NE  shift 50
-	EQ  shift 49
+	NE  shift 53
+	EQ  shift 52
 	.  reduce 5 (src line 79)
 
 
@@ -97,10 +100,10 @@ state 6
 	RelationalExpr:  RelationalExpr.LE AdditiveExpr 
 	RelationalExpr:  RelationalExpr.GE AdditiveExpr 
 
-	GT  shift 52
-	GE  shift 54
-	LT  shift 51
-	LE  shift 53
+	GT  shift 55
+	GE  shift 57
+	LT  shift 54
+	LE  shift 56
 	.  reduce 7 (src line 87)
 
 
@@ -109,8 +112,8 @@ state 7
 	AdditiveExpr:  AdditiveExpr.'+' MultiplicativeExpr 
 	AdditiveExpr:  AdditiveExpr.'-' MultiplicativeExpr 
 
-	'+'  shift 55
-	'-'  shift 56
+	'+'  shift 58
+	'-'  shift 59
 	.  reduce 10 (src line 100)
 
 
@@ -120,9 +123,9 @@ state 8
 	MultiplicativeExpr:  MultiplicativeExpr.DIV UnaryExpr 
 	MultiplicativeExpr:  MultiplicativeExpr.MOD UnaryExpr 
 
-	'*'  shift 57
-	DIV  shift 58
-	MOD  shift 59
+	'*'  shift 60
+	DIV  shift 61
+	MOD  shift 62
 	.  reduce 15 (src line 123)
 
 
@@ -136,53 +139,56 @@ state 10
 	UnaryExpr:  UnionExpr.    (22)
 	UnionExpr:  UnionExpr.'|' PathExpr 
 
-	'|'  shift 60
+	'|'  shift 63
 	.  reduce 22 (src line 154)
 
 
 state 11
 	UnaryExpr:  '-'.UnaryExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	UnaryExpr  goto 61
+	UnaryExpr  goto 64
 	UnionExpr  goto 10
 	PathExpr  goto 12
 	LocationPath  goto 13
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 12
 	UnionExpr:  PathExpr.    (24)
@@ -203,32 +209,32 @@ state 14
 
 	DBLSLASH  reduce 30 (src line 191)
 	'/'  reduce 30 (src line 191)
-	'['  shift 64
+	'['  shift 67
 	.  reduce 27 (src line 176)
 
-	Predicate  goto 62
-	PredicateStart  goto 63
+	Predicate  goto 65
+	PredicateStart  goto 66
 
 state 15
 	PathExpr:  CompoundFilterExpr.'/' RelativeLocationPath 
 	PathExpr:  CompoundFilterExpr.DoubleSlash RelativeLocationPath 
 
-	DBLSLASH  shift 45
-	'/'  shift 65
+	DBLSLASH  shift 48
+	'/'  shift 68
 	.  error
 
-	DoubleSlash  goto 66
+	DoubleSlash  goto 69
 
 state 16
 	LocationPath:  RelativeLocationPath.    (43)
 	RelativeLocationPath:  RelativeLocationPath.'/' Step 
 	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
 
-	DBLSLASH  shift 45
-	'/'  shift 67
+	DBLSLASH  shift 48
+	'/'  shift 70
 	.  reduce 43 (src line 238)
 
-	DoubleSlash  goto 68
+	DoubleSlash  goto 71
 
 state 17
 	LocationPath:  AbsoluteLocationPath.    (44)
@@ -249,88 +255,103 @@ state 19
 
 
 state 20
+	LocationPath:  CountRelativeLocationPath.    (47)
+
+	.  reduce 47 (src line 243)
+
+
+state 21
 	FilterExpr:  PrimaryExpr.    (31)
 
 	.  reduce 31 (src line 198)
 
 
-state 21
-	RelativeLocationPath:  Step.    (57)
-
-	.  reduce 57 (src line 284)
-
-
 state 22
-	RelativeLocationPath:  AbbreviatedRelativeLocationPath.    (59)
+	RelativeLocationPath:  Step.    (61)
 
-	.  reduce 59 (src line 287)
+	.  reduce 61 (src line 297)
 
 
 state 23
-	AbsoluteLocationPath:  Root.    (47)
-	AbsoluteLocationPath:  Root.RelativeLocationPath 
+	RelativeLocationPath:  AbbreviatedRelativeLocationPath.    (63)
 
-	DOTDOT  shift 44
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	'.'  shift 43
-	'@'  shift 46
-	.  reduce 47 (src line 244)
+	.  reduce 63 (src line 300)
 
-	RelativeLocationPath  goto 69
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
 
 state 24
-	AbsoluteLocationPath:  AbbreviatedAbsoluteLocationPath.    (49)
+	AbsoluteLocationPath:  Root.    (48)
+	AbsoluteLocationPath:  Root.RelativeLocationPath 
 
-	.  reduce 49 (src line 247)
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
+	.  reduce 48 (src line 245)
 
+	RelativeLocationPath  goto 72
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 25
-	CurrentRelativeLocationPath:  CurrentFunc.    (50)
-	CurrentRelativeLocationPath:  CurrentFunc.'/' RelativeLocationPath 
+	AbsoluteLocationPath:  AbbreviatedAbsoluteLocationPath.    (50)
 
-	'/'  shift 70
-	.  reduce 50 (src line 249)
+	.  reduce 50 (src line 248)
 
 
 state 26
-	DerefRelativeLocationPath:  DerefFunc.    (53)
-	DerefRelativeLocationPath:  DerefFunc.'/' RelativeLocationPath 
+	CurrentRelativeLocationPath:  CurrentFunc.    (51)
+	CurrentRelativeLocationPath:  CurrentFunc.'/' RelativeLocationPath 
 
-	'/'  shift 71
-	.  reduce 53 (src line 260)
+	'/'  shift 73
+	.  reduce 51 (src line 250)
 
 
 state 27
+	DerefRelativeLocationPath:  DerefFunc.    (54)
+	DerefRelativeLocationPath:  DerefFunc.'/' RelativeLocationPath 
+
+	'/'  shift 74
+	.  reduce 54 (src line 261)
+
+
+state 28
+	CountRelativeLocationPath:  CountFunc.    (57)
+	CountRelativeLocationPath:  CountFunc.'/' RelativeLocationPath 
+
+	'/'  shift 75
+	.  reduce 57 (src line 273)
+
+
+state 29
 	PrimaryExpr:  '('.Expr ')' 
 	PrimaryExpr:  '('.')' 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	')'  shift 73
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	')'  shift 77
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	Expr  goto 72
+	Expr  goto 76
 	OrExpr  goto 3
 	AndExpr  goto 4
 	EqualityExpr  goto 5
@@ -344,185 +365,195 @@ state 27
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
-state 28
+state 30
 	PrimaryExpr:  LITERAL.    (35)
 
 	.  reduce 35 (src line 205)
 
 
-state 29
+state 31
 	PrimaryExpr:  NUM.    (36)
 
 	.  reduce 36 (src line 209)
 
 
-state 30
+state 32
 	PrimaryExpr:  TEXTFUNC.'(' ')' 
 
-	'('  shift 74
+	'('  shift 78
 	.  error
 
 
-state 31
+state 33
 	PrimaryExpr:  FUNC.'(' ')' 
 	PrimaryExpr:  FUNC.'(' Expr ')' 
 	PrimaryExpr:  FUNC.'(' Expr ',' Expr ')' 
 	PrimaryExpr:  FUNC.'(' Expr ',' Expr ',' Expr ')' 
 
-	'('  shift 75
+	'('  shift 79
 	.  error
 
 
-state 32
+state 34
 	PrimaryExpr:  NODETYPE.    (42)
 
 	.  reduce 42 (src line 233)
 
 
-state 33
+state 35
 	Step:  AxisSpecifier.NodeTest PredicatesStart PredicateSet PredicatesEnd 
 	Step:  AxisSpecifier.NodeTest 
 
-	NAMETEST  shift 42
+	NAMETEST  shift 45
 	.  error
 
-	NodeTest  goto 76
-
-state 34
-	Step:  NodeTest.PredicatesStart PredicateSet PredicatesEnd 
-	Step:  NodeTest.    (63)
-	PredicatesStart: .    (70)
-
-	'['  reduce 70 (src line 319)
-	.  reduce 63 (src line 300)
-
-	PredicatesStart  goto 77
-
-state 35
-	Step:  AbbreviatedStep.    (64)
-
-	.  reduce 64 (src line 301)
-
+	NodeTest  goto 80
 
 state 36
-	Root:  '/'.    (56)
+	Step:  NodeTest.PredicatesStart PredicateSet PredicatesEnd 
+	Step:  NodeTest.    (67)
+	PredicatesStart: .    (74)
 
-	.  reduce 56 (src line 278)
+	'['  reduce 74 (src line 332)
+	.  reduce 67 (src line 313)
 
+	PredicatesStart  goto 81
 
 state 37
-	AbbreviatedAbsoluteLocationPath:  DoubleSlash.RelativeLocationPath 
+	Step:  AbbreviatedStep.    (68)
 
-	DOTDOT  shift 44
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	'.'  shift 43
-	'@'  shift 46
-	.  error
+	.  reduce 68 (src line 314)
 
-	RelativeLocationPath  goto 78
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
 
 state 38
-	CurrentFunc:  CURRENTFUNC.'(' ')' 
+	Root:  '/'.    (60)
 
-	'('  shift 79
-	.  error
+	.  reduce 60 (src line 291)
 
 
 state 39
-	DerefFunc:  DEREFFUNC.'(' LocationPath ')' 
+	AbbreviatedAbsoluteLocationPath:  DoubleSlash.RelativeLocationPath 
 
-	'('  shift 80
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
+	RelativeLocationPath  goto 82
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 40
-	AxisSpecifier:  AXISNAME.DBLCOLON 
+	CurrentFunc:  CURRENTFUNC.'(' ')' 
 
-	DBLCOLON  shift 81
+	'('  shift 83
 	.  error
 
 
 state 41
-	AxisSpecifier:  AbbreviatedAxisSpecifier.    (66)
+	DerefFunc:  DEREFFUNC.'(' LocationPath ')' 
 
-	.  reduce 66 (src line 308)
+	'('  shift 84
+	.  error
 
 
 state 42
-	NodeTest:  NAMETEST.    (67)
+	CountFunc:  COUNTFUNC.'(' LocationPath ')' 
 
-	.  reduce 67 (src line 310)
+	'('  shift 85
+	.  error
 
 
 state 43
-	AbbreviatedStep:  '.'.    (78)
+	AxisSpecifier:  AXISNAME.DBLCOLON 
 
-	.  reduce 78 (src line 350)
+	DBLCOLON  shift 86
+	.  error
 
 
 state 44
-	AbbreviatedStep:  DOTDOT.    (79)
+	AxisSpecifier:  AbbreviatedAxisSpecifier.    (70)
 
-	.  reduce 79 (src line 355)
+	.  reduce 70 (src line 321)
 
 
 state 45
-	DoubleSlash:  DBLSLASH.    (81)
+	NodeTest:  NAMETEST.    (71)
 
-	.  reduce 81 (src line 367)
+	.  reduce 71 (src line 323)
 
 
 state 46
-	AbbreviatedAxisSpecifier:  '@'.    (80)
+	AbbreviatedStep:  '.'.    (82)
 
-	.  reduce 80 (src line 360)
+	.  reduce 82 (src line 363)
 
 
 state 47
+	AbbreviatedStep:  DOTDOT.    (83)
+
+	.  reduce 83 (src line 368)
+
+
+state 48
+	DoubleSlash:  DBLSLASH.    (85)
+
+	.  reduce 85 (src line 380)
+
+
+state 49
+	AbbreviatedAxisSpecifier:  '@'.    (84)
+
+	.  reduce 84 (src line 373)
+
+
+state 50
 	OrExpr:  OrExpr OR.AndExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	AndExpr  goto 82
+	AndExpr  goto 87
 	EqualityExpr  goto 5
 	RelationalExpr  goto 6
 	AdditiveExpr  goto 7
@@ -534,44 +565,47 @@ state 47
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
-state 48
+state 51
 	AndExpr:  AndExpr AND.EqualityExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	EqualityExpr  goto 83
+	EqualityExpr  goto 88
 	RelationalExpr  goto 6
 	AdditiveExpr  goto 7
 	MultiplicativeExpr  goto 8
@@ -582,184 +616,48 @@ state 48
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
-
-state 49
-	EqualityExpr:  EqualityExpr EQ.RelationalExpr 
-
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
-	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
-	.  error
-
-	RelationalExpr  goto 84
-	AdditiveExpr  goto 7
-	MultiplicativeExpr  goto 8
-	UnaryExpr  goto 9
-	UnionExpr  goto 10
-	PathExpr  goto 12
-	LocationPath  goto 13
-	FilterExpr  goto 14
-	CompoundFilterExpr  goto 15
-	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
-	AbsoluteLocationPath  goto 17
-	CurrentRelativeLocationPath  goto 18
-	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
-
-state 50
-	EqualityExpr:  EqualityExpr NE.RelationalExpr 
-
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
-	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
-	.  error
-
-	RelationalExpr  goto 85
-	AdditiveExpr  goto 7
-	MultiplicativeExpr  goto 8
-	UnaryExpr  goto 9
-	UnionExpr  goto 10
-	PathExpr  goto 12
-	LocationPath  goto 13
-	FilterExpr  goto 14
-	CompoundFilterExpr  goto 15
-	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
-	AbsoluteLocationPath  goto 17
-	CurrentRelativeLocationPath  goto 18
-	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
-
-state 51
-	RelationalExpr:  RelationalExpr LT.AdditiveExpr 
-
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
-	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
-	.  error
-
-	AdditiveExpr  goto 86
-	MultiplicativeExpr  goto 8
-	UnaryExpr  goto 9
-	UnionExpr  goto 10
-	PathExpr  goto 12
-	LocationPath  goto 13
-	FilterExpr  goto 14
-	CompoundFilterExpr  goto 15
-	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
-	AbsoluteLocationPath  goto 17
-	CurrentRelativeLocationPath  goto 18
-	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 52
-	RelationalExpr:  RelationalExpr GT.AdditiveExpr 
+	EqualityExpr:  EqualityExpr EQ.RelationalExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	AdditiveExpr  goto 87
+	RelationalExpr  goto 89
+	AdditiveExpr  goto 7
 	MultiplicativeExpr  goto 8
 	UnaryExpr  goto 9
 	UnionExpr  goto 10
@@ -768,44 +666,48 @@ state 52
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 53
-	RelationalExpr:  RelationalExpr LE.AdditiveExpr 
+	EqualityExpr:  EqualityExpr NE.RelationalExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	AdditiveExpr  goto 88
+	RelationalExpr  goto 90
+	AdditiveExpr  goto 7
 	MultiplicativeExpr  goto 8
 	UnaryExpr  goto 9
 	UnionExpr  goto 10
@@ -814,44 +716,47 @@ state 53
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 54
-	RelationalExpr:  RelationalExpr GE.AdditiveExpr 
+	RelationalExpr:  RelationalExpr LT.AdditiveExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	AdditiveExpr  goto 89
+	AdditiveExpr  goto 91
 	MultiplicativeExpr  goto 8
 	UnaryExpr  goto 9
 	UnionExpr  goto 10
@@ -860,44 +765,48 @@ state 54
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 55
-	AdditiveExpr:  AdditiveExpr '+'.MultiplicativeExpr 
+	RelationalExpr:  RelationalExpr GT.AdditiveExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	MultiplicativeExpr  goto 90
+	AdditiveExpr  goto 92
+	MultiplicativeExpr  goto 8
 	UnaryExpr  goto 9
 	UnionExpr  goto 10
 	PathExpr  goto 12
@@ -905,44 +814,48 @@ state 55
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 56
-	AdditiveExpr:  AdditiveExpr '-'.MultiplicativeExpr 
+	RelationalExpr:  RelationalExpr LE.AdditiveExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	MultiplicativeExpr  goto 91
+	AdditiveExpr  goto 93
+	MultiplicativeExpr  goto 8
 	UnaryExpr  goto 9
 	UnionExpr  goto 10
 	PathExpr  goto 12
@@ -950,229 +863,389 @@ state 56
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 57
-	MultiplicativeExpr:  MultiplicativeExpr '*'.UnaryExpr 
+	RelationalExpr:  RelationalExpr GE.AdditiveExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	UnaryExpr  goto 92
+	AdditiveExpr  goto 94
+	MultiplicativeExpr  goto 8
+	UnaryExpr  goto 9
 	UnionExpr  goto 10
 	PathExpr  goto 12
 	LocationPath  goto 13
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 58
-	MultiplicativeExpr:  MultiplicativeExpr DIV.UnaryExpr 
+	AdditiveExpr:  AdditiveExpr '+'.MultiplicativeExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	UnaryExpr  goto 93
+	MultiplicativeExpr  goto 95
+	UnaryExpr  goto 9
 	UnionExpr  goto 10
 	PathExpr  goto 12
 	LocationPath  goto 13
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 59
-	MultiplicativeExpr:  MultiplicativeExpr MOD.UnaryExpr 
+	AdditiveExpr:  AdditiveExpr '-'.MultiplicativeExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	UnaryExpr  goto 94
+	MultiplicativeExpr  goto 96
+	UnaryExpr  goto 9
 	UnionExpr  goto 10
 	PathExpr  goto 12
 	LocationPath  goto 13
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 60
-	UnionExpr:  UnionExpr '|'.PathExpr 
+	MultiplicativeExpr:  MultiplicativeExpr '*'.UnaryExpr 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
+	'-'  shift 11
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	PathExpr  goto 95
+	UnaryExpr  goto 97
+	UnionExpr  goto 10
+	PathExpr  goto 12
 	LocationPath  goto 13
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 61
+	MultiplicativeExpr:  MultiplicativeExpr DIV.UnaryExpr 
+
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
+	'-'  shift 11
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	UnaryExpr  goto 98
+	UnionExpr  goto 10
+	PathExpr  goto 12
+	LocationPath  goto 13
+	FilterExpr  goto 14
+	CompoundFilterExpr  goto 15
+	RelativeLocationPath  goto 16
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
+	AbsoluteLocationPath  goto 17
+	CurrentRelativeLocationPath  goto 18
+	DerefRelativeLocationPath  goto 19
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 62
+	MultiplicativeExpr:  MultiplicativeExpr MOD.UnaryExpr 
+
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
+	'-'  shift 11
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	UnaryExpr  goto 99
+	UnionExpr  goto 10
+	PathExpr  goto 12
+	LocationPath  goto 13
+	FilterExpr  goto 14
+	CompoundFilterExpr  goto 15
+	RelativeLocationPath  goto 16
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
+	AbsoluteLocationPath  goto 17
+	CurrentRelativeLocationPath  goto 18
+	DerefRelativeLocationPath  goto 19
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 63
+	UnionExpr:  UnionExpr '|'.PathExpr 
+
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	PathExpr  goto 100
+	LocationPath  goto 13
+	FilterExpr  goto 14
+	CompoundFilterExpr  goto 15
+	RelativeLocationPath  goto 16
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
+	AbsoluteLocationPath  goto 17
+	CurrentRelativeLocationPath  goto 18
+	DerefRelativeLocationPath  goto 19
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 64
 	UnaryExpr:  '-' UnaryExpr.    (23)
 
 	.  reduce 23 (src line 156)
 
 
-state 62
+state 65
 	FilterExpr:  FilterExpr Predicate.    (32)
 
 	.  reduce 32 (src line 200)
 
 
-state 63
+state 66
 	Predicate:  PredicateStart.PredicateExpr PredicateEnd 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	Expr  goto 97
+	Expr  goto 102
 	OrExpr  goto 3
 	AndExpr  goto 4
 	EqualityExpr  goto 5
@@ -1186,190 +1259,211 @@ state 63
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
-	PredicateExpr  goto 96
-
-state 64
-	PredicateStart:  '['.    (73)
-
-	.  reduce 73 (src line 331)
-
-
-state 65
-	PathExpr:  CompoundFilterExpr '/'.RelativeLocationPath 
-
-	DOTDOT  shift 44
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	'.'  shift 43
-	'@'  shift 46
-	.  error
-
-	RelativeLocationPath  goto 98
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
-
-state 66
-	PathExpr:  CompoundFilterExpr DoubleSlash.RelativeLocationPath 
-
-	DOTDOT  shift 44
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	'.'  shift 43
-	'@'  shift 46
-	.  error
-
-	RelativeLocationPath  goto 99
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+	PredicateExpr  goto 101
 
 state 67
-	RelativeLocationPath:  RelativeLocationPath '/'.Step 
+	PredicateStart:  '['.    (77)
 
-	DOTDOT  shift 44
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	'.'  shift 43
-	'@'  shift 46
-	.  error
+	.  reduce 77 (src line 344)
 
-	Step  goto 100
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
 
 state 68
-	AbbreviatedRelativeLocationPath:  RelativeLocationPath DoubleSlash.Step 
+	PathExpr:  CompoundFilterExpr '/'.RelativeLocationPath 
 
-	DOTDOT  shift 44
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	'.'  shift 43
-	'@'  shift 46
-	.  error
-
-	Step  goto 101
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
-
-state 69
-	AbsoluteLocationPath:  Root RelativeLocationPath.    (48)
-	RelativeLocationPath:  RelativeLocationPath.'/' Step 
-	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
-
-	DBLSLASH  shift 45
-	'/'  shift 67
-	.  reduce 48 (src line 246)
-
-	DoubleSlash  goto 68
-
-state 70
-	CurrentRelativeLocationPath:  CurrentFunc '/'.RelativeLocationPath 
-
-	DOTDOT  shift 44
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	'.'  shift 43
-	'@'  shift 46
-	.  error
-
-	RelativeLocationPath  goto 102
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
-
-state 71
-	DerefRelativeLocationPath:  DerefFunc '/'.RelativeLocationPath 
-
-	DOTDOT  shift 44
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	'.'  shift 43
-	'@'  shift 46
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
 	RelativeLocationPath  goto 103
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 69
+	PathExpr:  CompoundFilterExpr DoubleSlash.RelativeLocationPath 
+
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	RelativeLocationPath  goto 104
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 70
+	RelativeLocationPath:  RelativeLocationPath '/'.Step 
+
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	Step  goto 105
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 71
+	AbbreviatedRelativeLocationPath:  RelativeLocationPath DoubleSlash.Step 
+
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	Step  goto 106
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 72
+	AbsoluteLocationPath:  Root RelativeLocationPath.    (49)
+	RelativeLocationPath:  RelativeLocationPath.'/' Step 
+	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
+
+	DBLSLASH  shift 48
+	'/'  shift 70
+	.  reduce 49 (src line 247)
+
+	DoubleSlash  goto 71
+
+state 73
+	CurrentRelativeLocationPath:  CurrentFunc '/'.RelativeLocationPath 
+
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	RelativeLocationPath  goto 107
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 74
+	DerefRelativeLocationPath:  DerefFunc '/'.RelativeLocationPath 
+
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	RelativeLocationPath  goto 108
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 75
+	CountRelativeLocationPath:  CountFunc '/'.RelativeLocationPath 
+
+	DOTDOT  shift 47
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	RelativeLocationPath  goto 109
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 76
 	PrimaryExpr:  '(' Expr.')' 
 
-	')'  shift 104
+	')'  shift 110
 	.  error
 
 
-state 73
+state 77
 	PrimaryExpr:  '(' ')'.    (34)
 
 	.  reduce 34 (src line 204)
 
 
-state 74
+state 78
 	PrimaryExpr:  TEXTFUNC '('.')' 
 
-	')'  shift 105
+	')'  shift 111
 	.  error
 
 
-state 75
+state 79
 	PrimaryExpr:  FUNC '('.')' 
 	PrimaryExpr:  FUNC '('.Expr ')' 
 	PrimaryExpr:  FUNC '('.Expr ',' Expr ')' 
 	PrimaryExpr:  FUNC '('.Expr ',' Expr ',' Expr ')' 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	')'  shift 106
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	')'  shift 112
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	Expr  goto 107
+	Expr  goto 113
 	OrExpr  goto 3
 	AndExpr  goto 4
 	EqualityExpr  goto 5
@@ -1383,411 +1477,469 @@ state 75
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
-
-state 76
-	Step:  AxisSpecifier NodeTest.PredicatesStart PredicateSet PredicatesEnd 
-	Step:  AxisSpecifier NodeTest.    (61)
-	PredicatesStart: .    (70)
-
-	'['  reduce 70 (src line 319)
-	.  reduce 61 (src line 298)
-
-	PredicatesStart  goto 108
-
-state 77
-	Step:  NodeTest PredicatesStart.PredicateSet PredicatesEnd 
-
-	'['  shift 64
-	.  error
-
-	Predicate  goto 110
-	PredicateSet  goto 109
-	PredicateStart  goto 63
-
-state 78
-	RelativeLocationPath:  RelativeLocationPath.'/' Step 
-	AbbreviatedAbsoluteLocationPath:  DoubleSlash RelativeLocationPath.    (76)
-	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
-
-	DBLSLASH  shift 45
-	'/'  shift 67
-	.  reduce 76 (src line 344)
-
-	DoubleSlash  goto 68
-
-state 79
-	CurrentFunc:  CURRENTFUNC '('.')' 
-
-	')'  shift 111
-	.  error
-
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
 state 80
-	DerefFunc:  DEREFFUNC '('.LocationPath ')' 
+	Step:  AxisSpecifier NodeTest.PredicatesStart PredicateSet PredicatesEnd 
+	Step:  AxisSpecifier NodeTest.    (65)
+	PredicatesStart: .    (74)
 
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	AXISNAME  shift 40
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
-	'/'  shift 36
-	'.'  shift 43
-	'@'  shift 46
+	'['  reduce 74 (src line 332)
+	.  reduce 65 (src line 311)
+
+	PredicatesStart  goto 114
+
+state 81
+	Step:  NodeTest PredicatesStart.PredicateSet PredicatesEnd 
+
+	'['  shift 67
 	.  error
 
-	LocationPath  goto 112
+	Predicate  goto 116
+	PredicateSet  goto 115
+	PredicateStart  goto 66
+
+state 82
+	RelativeLocationPath:  RelativeLocationPath.'/' Step 
+	AbbreviatedAbsoluteLocationPath:  DoubleSlash RelativeLocationPath.    (80)
+	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
+
+	DBLSLASH  shift 48
+	'/'  shift 70
+	.  reduce 80 (src line 357)
+
+	DoubleSlash  goto 71
+
+state 83
+	CurrentFunc:  CURRENTFUNC '('.')' 
+
+	')'  shift 117
+	.  error
+
+
+state 84
+	DerefFunc:  DEREFFUNC '('.LocationPath ')' 
+
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
+	'/'  shift 38
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	LocationPath  goto 118
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
+	DoubleSlash  goto 39
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
-state 81
-	AxisSpecifier:  AXISNAME DBLCOLON.    (65)
+state 85
+	CountFunc:  COUNTFUNC '('.LocationPath ')' 
 
-	.  reduce 65 (src line 303)
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	AXISNAME  shift 43
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
+	'/'  shift 38
+	'.'  shift 46
+	'@'  shift 49
+	.  error
+
+	LocationPath  goto 119
+	RelativeLocationPath  goto 16
+	DoubleSlash  goto 39
+	AbsoluteLocationPath  goto 17
+	CurrentRelativeLocationPath  goto 18
+	DerefRelativeLocationPath  goto 19
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
+
+state 86
+	AxisSpecifier:  AXISNAME DBLCOLON.    (69)
+
+	.  reduce 69 (src line 316)
 
 
-state 82
+state 87
 	OrExpr:  OrExpr OR AndExpr.    (4)
 	AndExpr:  AndExpr.AND EqualityExpr 
 
-	AND  shift 48
+	AND  shift 51
 	.  reduce 4 (src line 73)
 
 
-state 83
+state 88
 	AndExpr:  AndExpr AND EqualityExpr.    (6)
 	EqualityExpr:  EqualityExpr.EQ RelationalExpr 
 	EqualityExpr:  EqualityExpr.NE RelationalExpr 
 
-	NE  shift 50
-	EQ  shift 49
+	NE  shift 53
+	EQ  shift 52
 	.  reduce 6 (src line 81)
 
 
-state 84
+state 89
 	EqualityExpr:  EqualityExpr EQ RelationalExpr.    (8)
 	RelationalExpr:  RelationalExpr.LT AdditiveExpr 
 	RelationalExpr:  RelationalExpr.GT AdditiveExpr 
 	RelationalExpr:  RelationalExpr.LE AdditiveExpr 
 	RelationalExpr:  RelationalExpr.GE AdditiveExpr 
 
-	GT  shift 52
-	GE  shift 54
-	LT  shift 51
-	LE  shift 53
+	GT  shift 55
+	GE  shift 57
+	LT  shift 54
+	LE  shift 56
 	.  reduce 8 (src line 89)
 
 
-state 85
+state 90
 	EqualityExpr:  EqualityExpr NE RelationalExpr.    (9)
 	RelationalExpr:  RelationalExpr.LT AdditiveExpr 
 	RelationalExpr:  RelationalExpr.GT AdditiveExpr 
 	RelationalExpr:  RelationalExpr.LE AdditiveExpr 
 	RelationalExpr:  RelationalExpr.GE AdditiveExpr 
 
-	GT  shift 52
-	GE  shift 54
-	LT  shift 51
-	LE  shift 53
+	GT  shift 55
+	GE  shift 57
+	LT  shift 54
+	LE  shift 56
 	.  reduce 9 (src line 94)
 
 
-state 86
+state 91
 	RelationalExpr:  RelationalExpr LT AdditiveExpr.    (11)
 	AdditiveExpr:  AdditiveExpr.'+' MultiplicativeExpr 
 	AdditiveExpr:  AdditiveExpr.'-' MultiplicativeExpr 
 
-	'+'  shift 55
-	'-'  shift 56
+	'+'  shift 58
+	'-'  shift 59
 	.  reduce 11 (src line 102)
 
 
-state 87
+state 92
 	RelationalExpr:  RelationalExpr GT AdditiveExpr.    (12)
 	AdditiveExpr:  AdditiveExpr.'+' MultiplicativeExpr 
 	AdditiveExpr:  AdditiveExpr.'-' MultiplicativeExpr 
 
-	'+'  shift 55
-	'-'  shift 56
+	'+'  shift 58
+	'-'  shift 59
 	.  reduce 12 (src line 107)
 
 
-state 88
+state 93
 	RelationalExpr:  RelationalExpr LE AdditiveExpr.    (13)
 	AdditiveExpr:  AdditiveExpr.'+' MultiplicativeExpr 
 	AdditiveExpr:  AdditiveExpr.'-' MultiplicativeExpr 
 
-	'+'  shift 55
-	'-'  shift 56
+	'+'  shift 58
+	'-'  shift 59
 	.  reduce 13 (src line 112)
 
 
-state 89
+state 94
 	RelationalExpr:  RelationalExpr GE AdditiveExpr.    (14)
 	AdditiveExpr:  AdditiveExpr.'+' MultiplicativeExpr 
 	AdditiveExpr:  AdditiveExpr.'-' MultiplicativeExpr 
 
-	'+'  shift 55
-	'-'  shift 56
+	'+'  shift 58
+	'-'  shift 59
 	.  reduce 14 (src line 117)
 
 
-state 90
+state 95
 	AdditiveExpr:  AdditiveExpr '+' MultiplicativeExpr.    (16)
 	MultiplicativeExpr:  MultiplicativeExpr.'*' UnaryExpr 
 	MultiplicativeExpr:  MultiplicativeExpr.DIV UnaryExpr 
 	MultiplicativeExpr:  MultiplicativeExpr.MOD UnaryExpr 
 
-	'*'  shift 57
-	DIV  shift 58
-	MOD  shift 59
+	'*'  shift 60
+	DIV  shift 61
+	MOD  shift 62
 	.  reduce 16 (src line 125)
 
 
-state 91
+state 96
 	AdditiveExpr:  AdditiveExpr '-' MultiplicativeExpr.    (17)
 	MultiplicativeExpr:  MultiplicativeExpr.'*' UnaryExpr 
 	MultiplicativeExpr:  MultiplicativeExpr.DIV UnaryExpr 
 	MultiplicativeExpr:  MultiplicativeExpr.MOD UnaryExpr 
 
-	'*'  shift 57
-	DIV  shift 58
-	MOD  shift 59
+	'*'  shift 60
+	DIV  shift 61
+	MOD  shift 62
 	.  reduce 17 (src line 130)
 
 
-state 92
+state 97
 	MultiplicativeExpr:  MultiplicativeExpr '*' UnaryExpr.    (19)
 
 	.  reduce 19 (src line 138)
 
 
-state 93
+state 98
 	MultiplicativeExpr:  MultiplicativeExpr DIV UnaryExpr.    (20)
 
 	.  reduce 20 (src line 143)
 
 
-state 94
+state 99
 	MultiplicativeExpr:  MultiplicativeExpr MOD UnaryExpr.    (21)
 
 	.  reduce 21 (src line 148)
 
 
-state 95
+state 100
 	UnionExpr:  UnionExpr '|' PathExpr.    (25)
 
 	.  reduce 25 (src line 164)
 
 
-state 96
+state 101
 	Predicate:  PredicateStart PredicateExpr.PredicateEnd 
 
-	']'  shift 114
+	']'  shift 121
 	.  error
 
-	PredicateEnd  goto 113
+	PredicateEnd  goto 120
 
-state 97
-	PredicateExpr:  Expr.    (74)
+state 102
+	PredicateExpr:  Expr.    (78)
 
-	.  reduce 74 (src line 336)
+	.  reduce 78 (src line 349)
 
 
-state 98
+state 103
 	PathExpr:  CompoundFilterExpr '/' RelativeLocationPath.    (28)
 	RelativeLocationPath:  RelativeLocationPath.'/' Step 
 	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
 
-	DBLSLASH  shift 45
-	'/'  shift 67
+	DBLSLASH  shift 48
+	'/'  shift 70
 	.  reduce 28 (src line 177)
 
-	DoubleSlash  goto 68
+	DoubleSlash  goto 71
 
-state 99
+state 104
 	PathExpr:  CompoundFilterExpr DoubleSlash RelativeLocationPath.    (29)
 	RelativeLocationPath:  RelativeLocationPath.'/' Step 
 	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
 
-	DBLSLASH  shift 45
-	'/'  shift 67
+	DBLSLASH  shift 48
+	'/'  shift 70
 	.  reduce 29 (src line 182)
 
-	DoubleSlash  goto 68
+	DoubleSlash  goto 71
 
-state 100
-	RelativeLocationPath:  RelativeLocationPath '/' Step.    (58)
+state 105
+	RelativeLocationPath:  RelativeLocationPath '/' Step.    (62)
 
-	.  reduce 58 (src line 286)
-
-
-state 101
-	AbbreviatedRelativeLocationPath:  RelativeLocationPath DoubleSlash Step.    (77)
-
-	.  reduce 77 (src line 347)
+	.  reduce 62 (src line 299)
 
 
-state 102
-	CurrentRelativeLocationPath:  CurrentFunc '/' RelativeLocationPath.    (51)
+state 106
+	AbbreviatedRelativeLocationPath:  RelativeLocationPath DoubleSlash Step.    (81)
+
+	.  reduce 81 (src line 360)
+
+
+state 107
+	CurrentRelativeLocationPath:  CurrentFunc '/' RelativeLocationPath.    (52)
 	RelativeLocationPath:  RelativeLocationPath.'/' Step 
 	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
 
-	DBLSLASH  shift 45
-	'/'  shift 67
-	.  reduce 51 (src line 251)
+	DBLSLASH  shift 48
+	'/'  shift 70
+	.  reduce 52 (src line 252)
 
-	DoubleSlash  goto 68
+	DoubleSlash  goto 71
 
-state 103
-	DerefRelativeLocationPath:  DerefFunc '/' RelativeLocationPath.    (54)
+state 108
+	DerefRelativeLocationPath:  DerefFunc '/' RelativeLocationPath.    (55)
 	RelativeLocationPath:  RelativeLocationPath.'/' Step 
 	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
 
-	DBLSLASH  shift 45
-	'/'  shift 67
-	.  reduce 54 (src line 262)
+	DBLSLASH  shift 48
+	'/'  shift 70
+	.  reduce 55 (src line 263)
 
-	DoubleSlash  goto 68
+	DoubleSlash  goto 71
 
-state 104
+state 109
+	CountRelativeLocationPath:  CountFunc '/' RelativeLocationPath.    (58)
+	RelativeLocationPath:  RelativeLocationPath.'/' Step 
+	AbbreviatedRelativeLocationPath:  RelativeLocationPath.DoubleSlash Step 
+
+	DBLSLASH  shift 48
+	'/'  shift 70
+	.  reduce 58 (src line 275)
+
+	DoubleSlash  goto 71
+
+state 110
 	PrimaryExpr:  '(' Expr ')'.    (33)
 
 	.  reduce 33 (src line 202)
 
 
-state 105
+state 111
 	PrimaryExpr:  TEXTFUNC '(' ')'.    (37)
 
 	.  reduce 37 (src line 213)
 
 
-state 106
+state 112
 	PrimaryExpr:  FUNC '(' ')'.    (38)
 
 	.  reduce 38 (src line 217)
 
 
-state 107
+state 113
 	PrimaryExpr:  FUNC '(' Expr.')' 
 	PrimaryExpr:  FUNC '(' Expr.',' Expr ')' 
 	PrimaryExpr:  FUNC '(' Expr.',' Expr ',' Expr ')' 
 
-	')'  shift 115
-	','  shift 116
+	')'  shift 122
+	','  shift 123
 	.  error
 
 
-state 108
+state 114
 	Step:  AxisSpecifier NodeTest PredicatesStart.PredicateSet PredicatesEnd 
 
-	'['  shift 64
+	'['  shift 67
 	.  error
 
-	Predicate  goto 110
-	PredicateSet  goto 117
-	PredicateStart  goto 63
+	Predicate  goto 116
+	PredicateSet  goto 124
+	PredicateStart  goto 66
 
-state 109
+state 115
 	Step:  NodeTest PredicatesStart PredicateSet.PredicatesEnd 
 	PredicateSet:  PredicateSet.Predicate 
-	PredicatesEnd: .    (71)
+	PredicatesEnd: .    (75)
 
-	'['  shift 64
-	.  reduce 71 (src line 324)
+	'['  shift 67
+	.  reduce 75 (src line 337)
 
-	Predicate  goto 119
-	PredicatesEnd  goto 118
-	PredicateStart  goto 63
+	Predicate  goto 126
+	PredicatesEnd  goto 125
+	PredicateStart  goto 66
 
-state 110
-	PredicateSet:  Predicate.    (68)
-
-	.  reduce 68 (src line 315)
-
-
-state 111
-	CurrentFunc:  CURRENTFUNC '(' ')'.    (52)
-
-	.  reduce 52 (src line 253)
-
-
-state 112
-	DerefFunc:  DEREFFUNC '(' LocationPath.')' 
-
-	')'  shift 120
-	.  error
-
-
-state 113
-	Predicate:  PredicateStart PredicateExpr PredicateEnd.    (72)
+state 116
+	PredicateSet:  Predicate.    (72)
 
 	.  reduce 72 (src line 328)
 
 
-state 114
-	PredicateEnd:  ']'.    (75)
+state 117
+	CurrentFunc:  CURRENTFUNC '(' ')'.    (53)
 
-	.  reduce 75 (src line 339)
+	.  reduce 53 (src line 254)
 
 
-state 115
+state 118
+	DerefFunc:  DEREFFUNC '(' LocationPath.')' 
+
+	')'  shift 127
+	.  error
+
+
+state 119
+	CountFunc:  COUNTFUNC '(' LocationPath.')' 
+
+	')'  shift 128
+	.  error
+
+
+state 120
+	Predicate:  PredicateStart PredicateExpr PredicateEnd.    (76)
+
+	.  reduce 76 (src line 341)
+
+
+state 121
+	PredicateEnd:  ']'.    (79)
+
+	.  reduce 79 (src line 352)
+
+
+state 122
 	PrimaryExpr:  FUNC '(' Expr ')'.    (39)
 
 	.  reduce 39 (src line 221)
 
 
-state 116
+state 123
 	PrimaryExpr:  FUNC '(' Expr ','.Expr ')' 
 	PrimaryExpr:  FUNC '(' Expr ','.Expr ',' Expr ')' 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	Expr  goto 121
+	Expr  goto 129
 	OrExpr  goto 3
 	AndExpr  goto 4
 	EqualityExpr  goto 5
@@ -1801,95 +1953,104 @@ state 116
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
-state 117
+state 124
 	Step:  AxisSpecifier NodeTest PredicatesStart PredicateSet.PredicatesEnd 
 	PredicateSet:  PredicateSet.Predicate 
-	PredicatesEnd: .    (71)
+	PredicatesEnd: .    (75)
 
-	'['  shift 64
-	.  reduce 71 (src line 324)
+	'['  shift 67
+	.  reduce 75 (src line 337)
 
-	Predicate  goto 119
-	PredicatesEnd  goto 122
-	PredicateStart  goto 63
+	Predicate  goto 126
+	PredicatesEnd  goto 130
+	PredicateStart  goto 66
 
-state 118
-	Step:  NodeTest PredicatesStart PredicateSet PredicatesEnd.    (62)
+state 125
+	Step:  NodeTest PredicatesStart PredicateSet PredicatesEnd.    (66)
 
-	.  reduce 62 (src line 299)
-
-
-state 119
-	PredicateSet:  PredicateSet Predicate.    (69)
-
-	.  reduce 69 (src line 317)
+	.  reduce 66 (src line 312)
 
 
-state 120
-	DerefFunc:  DEREFFUNC '(' LocationPath ')'.    (55)
+state 126
+	PredicateSet:  PredicateSet Predicate.    (73)
 
-	.  reduce 55 (src line 265)
+	.  reduce 73 (src line 330)
 
 
-state 121
+state 127
+	DerefFunc:  DEREFFUNC '(' LocationPath ')'.    (56)
+
+	.  reduce 56 (src line 266)
+
+
+state 128
+	CountFunc:  COUNTFUNC '(' LocationPath ')'.    (59)
+
+	.  reduce 59 (src line 278)
+
+
+state 129
 	PrimaryExpr:  FUNC '(' Expr ',' Expr.')' 
 	PrimaryExpr:  FUNC '(' Expr ',' Expr.',' Expr ')' 
 
-	')'  shift 123
-	','  shift 124
+	')'  shift 131
+	','  shift 132
 	.  error
 
 
-state 122
-	Step:  AxisSpecifier NodeTest PredicatesStart PredicateSet PredicatesEnd.    (60)
+state 130
+	Step:  AxisSpecifier NodeTest PredicatesStart PredicateSet PredicatesEnd.    (64)
 
-	.  reduce 60 (src line 289)
+	.  reduce 64 (src line 302)
 
 
-state 123
+state 131
 	PrimaryExpr:  FUNC '(' Expr ',' Expr ')'.    (40)
 
 	.  reduce 40 (src line 225)
 
 
-state 124
+state 132
 	PrimaryExpr:  FUNC '(' Expr ',' Expr ','.Expr ')' 
 
-	NUM  shift 29
-	DOTDOT  shift 44
-	DBLSLASH  shift 45
-	FUNC  shift 31
-	TEXTFUNC  shift 30
-	NODETYPE  shift 32
-	AXISNAME  shift 40
-	LITERAL  shift 28
-	NAMETEST  shift 42
-	CURRENTFUNC  shift 38
-	DEREFFUNC  shift 39
+	NUM  shift 31
+	DOTDOT  shift 47
+	DBLSLASH  shift 48
+	FUNC  shift 33
+	TEXTFUNC  shift 32
+	NODETYPE  shift 34
+	AXISNAME  shift 43
+	LITERAL  shift 30
+	NAMETEST  shift 45
+	CURRENTFUNC  shift 40
+	DEREFFUNC  shift 41
+	COUNTFUNC  shift 42
 	'-'  shift 11
-	'/'  shift 36
-	'('  shift 27
-	'.'  shift 43
-	'@'  shift 46
+	'/'  shift 38
+	'('  shift 29
+	'.'  shift 46
+	'@'  shift 49
 	.  error
 
-	Expr  goto 125
+	Expr  goto 133
 	OrExpr  goto 3
 	AndExpr  goto 4
 	EqualityExpr  goto 5
@@ -1903,44 +2064,46 @@ state 124
 	FilterExpr  goto 14
 	CompoundFilterExpr  goto 15
 	RelativeLocationPath  goto 16
-	DoubleSlash  goto 37
-	PrimaryExpr  goto 20
+	DoubleSlash  goto 39
+	PrimaryExpr  goto 21
 	AbsoluteLocationPath  goto 17
 	CurrentRelativeLocationPath  goto 18
 	DerefRelativeLocationPath  goto 19
-	Root  goto 23
-	AbbreviatedAbsoluteLocationPath  goto 24
-	CurrentFunc  goto 25
-	DerefFunc  goto 26
-	Step  goto 21
-	AbbreviatedRelativeLocationPath  goto 22
-	AxisSpecifier  goto 33
-	NodeTest  goto 34
-	AbbreviatedStep  goto 35
-	AbbreviatedAxisSpecifier  goto 41
+	CountRelativeLocationPath  goto 20
+	Root  goto 24
+	AbbreviatedAbsoluteLocationPath  goto 25
+	CurrentFunc  goto 26
+	DerefFunc  goto 27
+	CountFunc  goto 28
+	Step  goto 22
+	AbbreviatedRelativeLocationPath  goto 23
+	AxisSpecifier  goto 35
+	NodeTest  goto 36
+	AbbreviatedStep  goto 37
+	AbbreviatedAxisSpecifier  goto 44
 
-state 125
+state 133
 	PrimaryExpr:  FUNC '(' Expr ',' Expr ',' Expr.')' 
 
-	')'  shift 126
+	')'  shift 134
 	.  error
 
 
-state 126
+state 134
 	PrimaryExpr:  FUNC '(' Expr ',' Expr ',' Expr ')'.    (41)
 
 	.  reduce 41 (src line 229)
 
 
-39 terminals, 38 nonterminals
-82 grammar rules, 127/16000 states
+40 terminals, 40 nonterminals
+86 grammar rules, 135/16000 states
 0 shift/reduce, 0 reduce/reduce conflicts reported
-87 working sets used
-memory: parser 725/240000
-117 extra closures
-464 shift entries, 5 exceptions
-81 goto entries
-542 entries saved by goto default
-Optimizer space used: output 265/240000
-265 table entries, 68 zero
-maximum spread: 39, maximum offset: 124
+89 working sets used
+memory: parser 804/240000
+125 extra closures
+506 shift entries, 5 exceptions
+86 goto entries
+607 entries saved by goto default
+Optimizer space used: output 278/240000
+278 table entries, 68 zero
+maximum spread: 40, maximum offset: 132
