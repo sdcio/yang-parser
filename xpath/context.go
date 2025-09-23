@@ -98,6 +98,7 @@ type Entry interface {
 	Copy() Entry
 	FollowLeafRef() (lrefentry Entry, err error)
 	GetSdcpbPath() *sdcpb.Path
+	BreadthSearch(ctx gocontext.Context, path string) ([]Entry, error)
 }
 
 func NewCtxFromCurrent(goctx gocontext.Context, mach *Machine, current Entry) *context {
