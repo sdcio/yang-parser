@@ -255,8 +255,7 @@ func (progBldr *ProgBuilder) PredicatesStart() {
 	pstarts := func(ctx *context) {
 		ctx.predicatePathElemStack.AddEmptyMap()
 	}
-	progBldr.CodeFn(pstarts,
-		fmt.Sprintf("PredicatesStart"))
+	progBldr.CodeFn(pstarts, "PredicatesStart")
 }
 
 func (progBldr *ProgBuilder) PredicatesEnd() {
@@ -275,12 +274,11 @@ func (progBldr *ProgBuilder) PredicatesEnd() {
 		slices.Sort(keySlice)
 
 		for _, v := range keySlice {
-			ctx.actualPathStack.PeakPath().LastPathElem().Key[v] = elems[v]
+			ctx.actualPathStack.PeakPath().LastPathElem().AddKey(v, elems[v])
 		}
 	}
 
-	progBldr.CodeFn(pends,
-		fmt.Sprintf("PredicatesEnd"))
+	progBldr.CodeFn(pends, "PredicatesEnd")
 }
 
 func (progBldr *ProgBuilder) CodePathOper(elem int) {
