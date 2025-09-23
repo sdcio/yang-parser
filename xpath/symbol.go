@@ -27,6 +27,7 @@ import (
 	"math"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/sdcio/yang-parser/xpath/xutils"
 	log "github.com/sirupsen/logrus"
@@ -150,6 +151,9 @@ var xpathFunctionTable = symbolTable{
 
 type UserCustomFunctionCheckerFn func(name string) (*Symbol, bool)
 
+// Declare a global mutex
+var mu sync.Mutex
+
 // LookupXpathFunction - return Symbol if 'name' is found in symbol table
 //
 // Core XPATH functions are in the function table with sym.custom = false.
@@ -165,6 +169,9 @@ func LookupXpathFunction(
 	customFnsAllowed bool,
 	userFnCheckFn UserCustomFunctionCheckerFn,
 ) (*Symbol, bool) {
+	mu.Lock()         // Lock before accessing shared data
+	defer mu.Unlock() // Ensure the mutex is unlocked when the function exits
+
 	if !pluginsLoaded {
 		RegisterCustomFunctions(openPlugins())
 	}
