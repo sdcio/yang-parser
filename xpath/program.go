@@ -234,7 +234,7 @@ func (progBldr *ProgBuilder) Count() {
 	countFunc := func(ctx *context) {
 		path := ctx.actualPathStack.PopPath()
 
-		entries, err := ctx.current.BreadthSearch(ctx.goctx, strings.Join(path, "/"))
+		entries, err := ctx.current.BreadthSearch(ctx.goctx, path)
 		if err != nil {
 			ctx.execError(err.Error(), "")
 			return
@@ -261,11 +261,10 @@ func (progBldr *ProgBuilder) Deref() {
 		if err != nil {
 			ctx.execError(err.Error(), "")
 		}
-
-		ctx.actualPathStack.PushPath(append([]string{"/"}, lrefentry.GetPath()...))
+		ctx.actualPathStack.PushPath(lrefentry.GetSdcpbPath())
 	}
 
-	progBldr.CodeFn(derefFunc, fmt.Sprintf("deref"))
+	progBldr.CodeFn(derefFunc, "deref")
 
 }
 
@@ -273,8 +272,7 @@ func (progBldr *ProgBuilder) PredicatesStart() {
 	pstarts := func(ctx *context) {
 		ctx.predicatePathElemStack.AddEmptyMap()
 	}
-	progBldr.CodeFn(pstarts,
-		fmt.Sprintf("PredicatesStart"))
+	progBldr.CodeFn(pstarts, "PredicatesStart")
 }
 
 func (progBldr *ProgBuilder) PredicatesEnd() {
@@ -293,12 +291,11 @@ func (progBldr *ProgBuilder) PredicatesEnd() {
 		slices.Sort(keySlice)
 
 		for _, v := range keySlice {
-			ctx.actualPathStack.PushElem(elems[v])
+			ctx.actualPathStack.PeakPath().LastPathElem().AddKey(v, elems[v])
 		}
 	}
 
-	progBldr.CodeFn(pends,
-		fmt.Sprintf("PredicatesEnd"))
+	progBldr.CodeFn(pends, "PredicatesEnd")
 }
 
 func (progBldr *ProgBuilder) CodePathOper(elem int) {
@@ -313,13 +310,14 @@ func (progBldr *ProgBuilder) CodePathOper(elem int) {
 		// noop
 	case xutils.DOTDOT:
 		pathOperPush = func(ctx *context) {
-			ctx.actualPathStack.PushElem("..")
+			ctx.actualPathStack.PushElem(sdcpb.NewPathElem("..", nil))
 		}
 	case xutils.DBLSLASH:
 		// not implemented
 	case '/':
 		pathOperPush = func(ctx *context) {
-			ctx.actualPathStack.PushElem("/")
+			ctx.actualPathStack.PeakPath().SetIsRootBased(true)
+			//ctx.actualPathStack.PushElem("/")
 		}
 	default:
 		// unknown
@@ -339,7 +337,7 @@ func (progBldr *ProgBuilder) CodeNameTest(name xml.Name) {
 			ctx.pushDatum(NewLiteralDatum(name.Local))
 		} else {
 			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
-			ctx.actualPathStack.PushElem(name.Local)
+			ctx.actualPathStack.PushElem(sdcpb.NewPathElem(name.Local, nil))
 			//fmt.Println(utils.ToXPath(ctx.GetActualPath(),false))
 		}
 	}
