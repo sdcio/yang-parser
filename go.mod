@@ -7,7 +7,7 @@ require (
 	github.com/danos/mgmterror v0.0.0-20210701125710-6fcf751e367d
 	github.com/danos/utils v0.0.0-20210701125856-7935e3348d7c
 	github.com/sdcio/sdc-protos v0.0.55
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.1
 )
 
 require (
