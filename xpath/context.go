@@ -223,18 +223,20 @@ func (p *PathStack) NewPathFromActual() {
 // predicates etc need fine-tuning.
 func NewCtxFromMach(mach *Machine, ctxNode xutils.XpathNode) *context {
 	return &context{
-		res:          NewResult(),
-		node:         ctxNode,
-		initNode:     ctxNode,
-		validate:     false,
-		debug:        false,
-		filter:       xutils.FullTree,
-		pos:          1,
-		size:         1,
-		level:        0,
-		refExpr:      mach.refExpr,
-		prog:         mach.prog,
-		xpathStmtLoc: mach.location,
+		res:                    NewResult(),
+		node:                   ctxNode,
+		initNode:               ctxNode,
+		validate:               false,
+		debug:                  false,
+		filter:                 xutils.FullTree,
+		pos:                    1,
+		size:                   1,
+		level:                  0,
+		refExpr:                mach.refExpr,
+		prog:                   mach.prog,
+		xpathStmtLoc:           mach.location,
+		actualPathStack:        newPathStack(),
+		predicatePathElemStack: newPredicatePathElemStack(),
 	}
 }
 
@@ -246,18 +248,20 @@ func newCtx(
 	refExpr, location string,
 ) *context {
 	ctx := &context{
-		res:          NewResult(),
-		node:         ctxNode,
-		initNode:     initNode,
-		validate:     false,
-		debug:        false,
-		filter:       xutils.FullTree,
-		pos:          pos,
-		size:         size,
-		level:        level,
-		refExpr:      refExpr,
-		prog:         prog,
-		xpathStmtLoc: location,
+		res:                    NewResult(),
+		node:                   ctxNode,
+		initNode:               initNode,
+		validate:               false,
+		debug:                  false,
+		filter:                 xutils.FullTree,
+		pos:                    pos,
+		size:                   size,
+		level:                  level,
+		refExpr:                refExpr,
+		prog:                   prog,
+		xpathStmtLoc:           location,
+		actualPathStack:        newPathStack(),
+		predicatePathElemStack: newPredicatePathElemStack(),
 	}
 	for i := 0; i < level; i++ {
 		ctx.pfx += "\t"
