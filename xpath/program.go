@@ -575,8 +575,23 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 	} else {
 		// If we are no longer in a predicate and the last predicate we saw was a filter on a LeafList
 		// (e.g. /leaflist[text()='foo']) we don't need to do EvalLocPath and resolve path to value, as we
-		// already have the result of this filter (bool) on the stack
+		// already have the result of this filter (bool/DatumSlice) on the stack.
+		//
+		// This only applies to the one EvalLocPath call that immediately follows that predicate
+		// closing. Two bits of per-context state must be restored to their defaults once
+		// consumed here, mirroring what EvalLocPathInternal itself would otherwise have done,
+		// or they leak past the end of the current location path and corrupt every later,
+		// unrelated bare (non-predicated) path reference in the same must/when expression:
+		//   - previousPredicateRequiresELP itself, else this skip fires again for the next path;
+		//   - the actualPathStack frame accumulated for *this* (now-abandoned) path -- e.g. the
+		//     "flag" element pushed for "flag[text()='all']" -- else it's still sitting there
+		//     unpopped and the next bare path reference (e.g. "flag" in
+		//     "count(leaflist[text()='x']) = 0 or count(leaflist) = 1") appends onto it instead
+		//     of starting fresh, producing a bogus multi-element path that fails to navigate.
 		if !ctx.previousPredicateRequiresELP {
+			ctx.previousPredicateRequiresELP = true
+			ctx.actualPathStack.PopPath()
+			ctx.actualPathStack.NewPathFromActual()
 			return
 		}
 	}

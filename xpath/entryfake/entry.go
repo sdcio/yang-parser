@@ -24,8 +24,12 @@ type Node struct {
 	name     string
 	children map[string]*Node
 	// leafList holds this node's values when it represents a leaf-list.
-	// A nil slice means "not a leaf-list".
-	leafList []string
+	// Only meaningful when isLeafList is true, so a genuinely unset
+	// leaf-list (zero values) can be distinguished from "not a leaf-list
+	// at all" -- Go collapses a zero-arg variadic call to a nil slice, so
+	// leafList alone can't carry that distinction.
+	leafList   []string
+	isLeafList bool
 	// leaf holds this node's scalar value when it represents a leaf.
 	// Only meaningful when isLeaf is true, so an empty-string leaf value
 	// can be distinguished from "not a leaf".
@@ -52,7 +56,7 @@ func NewLeaf(name, value string) *Node {
 // matching how data-server's adapter models leaf-lists: one Entry, one
 // TypedValue_LeaflistVal, no per-item node identity.
 func NewLeafList(name string, values ...string) *Node {
-	return &Node{name: name, leafList: values}
+	return &Node{name: name, leafList: values, isLeafList: true}
 }
 
 // entry adapts a Node into an xpath.Entry.
@@ -67,7 +71,10 @@ func NewEntry(root *Node) xpath.Entry {
 
 func (e *entry) GetValue() (xpath.Datum, error) {
 	switch {
-	case e.node.leafList != nil:
+	case e.node.isLeafList:
+		// A leaf-list always reports as a DatumSliceDatum, even with zero
+		// values, matching yangParserEntryAdapter.GetValue()'s handling of
+		// an unset leaf-list (see the "no LeafVariant" branch there).
 		datums := make([]xpath.Datum, 0, len(e.node.leafList))
 		for _, v := range e.node.leafList {
 			datums = append(datums, xpath.NewLiteralDatum(v))

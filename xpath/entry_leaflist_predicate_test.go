@@ -112,6 +112,63 @@ func TestCountLeafListPredicate_Relational(t *testing.T) {
 	}
 }
 
+// Regression test for the SONiC PORT_LIST/adv_speeds must-statement in its
+// actual field form:
+//
+//	count(adv_speeds[text()='all']) = 0 or count(adv_speeds) = 1
+//
+// This is a distinct bug from the one at the top of this file: even once
+// count()/Eq() correctly handle a single leaf-list predicate, evaluating
+// TWO independent path references to the same leaf-list within one
+// expression used to corrupt the second one. EvalLocPath's "the predicate
+// already produced the value, skip re-resolving the path" fast path
+// (ctx.previousPredicateRequiresELP) left ctx.actualPathStack's frame for
+// the abandoned "adv_speeds[...]" path unpopped, so the next bare
+// "adv_speeds" reference appended onto it instead of starting fresh,
+// producing a bogus two-element path that failed to navigate -- silently
+// leaving count()'s argument unresolved and falling back to whatever
+// Bool happened to be left on the stack from the first comparison.
+func TestCountLeafListPredicate_CombinedWithBarePathReference(t *testing.T) {
+	tests := []struct {
+		name string
+		tree *entryfake.Node
+		want bool
+	}{
+		{
+			name: "only 'all' present",
+			tree: entryfake.NewContainer("port", entryfake.NewLeafList("adv_speeds", "all")),
+			want: true,
+		},
+		{
+			name: "'all' plus another value",
+			tree: entryfake.NewContainer("port", entryfake.NewLeafList("adv_speeds", "all", "10000")),
+			want: false,
+		},
+		{
+			name: "single non-'all' value",
+			tree: entryfake.NewContainer("port", entryfake.NewLeafList("adv_speeds", "10000")),
+			want: true,
+		},
+		{
+			name: "unset leaf-list",
+			tree: entryfake.NewContainer("port", entryfake.NewLeafList("adv_speeds")),
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := runBool(t, tt.tree, "count(adv_speeds[text()='all']) = 0 or count(adv_speeds) = 1")
+			if err != nil {
+				t.Fatalf("returned error: %s", err)
+			}
+			if got != tt.want {
+				t.Errorf("= %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // A bare, non-predicate leaf-list equality (no enclosing '[...]') must
 // still behave the same existential way it did before the Eq() rewrite:
 // ctx.predicateCount == 0 already forces the equality-check branch
