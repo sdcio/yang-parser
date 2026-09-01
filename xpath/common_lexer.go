@@ -359,13 +359,10 @@ func (x *CommonLex) LexName(c rune) (int, TokVal) {
 	if x.NextNonWhitespaceStringIs("(") {
 		switch name.String() {
 		case "text":
-			fn, ok := LookupXpathFunction(
-				"text",
-				false,
-				nil)
-			if ok {
-				return xutils.TEXTFUNC, fn
-			}
+			// text() is an XPath 1.0 NodeType test (§2.3), handled directly
+			// by ProgBuilder.Text() in the "expr" grammar; it has no entry
+			// in the core function table and doesn't need one.
+			return xutils.TEXTFUNC, nil
 		case "current":
 			return xutils.CURRENTFUNC, nil
 		case "deref":

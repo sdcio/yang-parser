@@ -223,18 +223,20 @@ func (p *PathStack) NewPathFromActual() {
 // predicates etc need fine-tuning.
 func NewCtxFromMach(mach *Machine, ctxNode xutils.XpathNode) *context {
 	return &context{
-		res:          NewResult(),
-		node:         ctxNode,
-		initNode:     ctxNode,
-		validate:     false,
-		debug:        false,
-		filter:       xutils.FullTree,
-		pos:          1,
-		size:         1,
-		level:        0,
-		refExpr:      mach.refExpr,
-		prog:         mach.prog,
-		xpathStmtLoc: mach.location,
+		res:                    NewResult(),
+		node:                   ctxNode,
+		initNode:               ctxNode,
+		validate:               false,
+		debug:                  false,
+		filter:                 xutils.FullTree,
+		pos:                    1,
+		size:                   1,
+		level:                  0,
+		refExpr:                mach.refExpr,
+		prog:                   mach.prog,
+		xpathStmtLoc:           mach.location,
+		actualPathStack:        newPathStack(),
+		predicatePathElemStack: newPredicatePathElemStack(),
 	}
 }
 
@@ -246,18 +248,20 @@ func newCtx(
 	refExpr, location string,
 ) *context {
 	ctx := &context{
-		res:          NewResult(),
-		node:         ctxNode,
-		initNode:     initNode,
-		validate:     false,
-		debug:        false,
-		filter:       xutils.FullTree,
-		pos:          pos,
-		size:         size,
-		level:        level,
-		refExpr:      refExpr,
-		prog:         prog,
-		xpathStmtLoc: location,
+		res:                    NewResult(),
+		node:                   ctxNode,
+		initNode:               initNode,
+		validate:               false,
+		debug:                  false,
+		filter:                 xutils.FullTree,
+		pos:                    pos,
+		size:                   size,
+		level:                  level,
+		refExpr:                refExpr,
+		prog:                   prog,
+		xpathStmtLoc:           location,
+		actualPathStack:        newPathStack(),
+		predicatePathElemStack: newPredicatePathElemStack(),
 	}
 	for i := 0; i < level; i++ {
 		ctx.pfx += "\t"
@@ -549,6 +553,10 @@ func (ctx *context) popCompareEqualityAndPush(
 		ctx.compareNodesetsAndPush(boolCompare, litCompare, numCompare,
 			operator, op1, op2)
 
+	case isDatumSlice(op1) || isDatumSlice(op2):
+		ctx.compareDatumSlicesAndPush(boolCompare, litCompare, numCompare,
+			op1, op2)
+
 	case isBool(op1) || isBool(op2):
 		ctx.pushDatum(NewBoolDatum(boolCompare(op1, op2)))
 
@@ -589,6 +597,9 @@ func (ctx *context) popCompareRelationalAndPush(
 		ctx.compareNodesetsAndPush(boolFn, litFn, numFn,
 			operator, op1, op2)
 
+	case isDatumSlice(op1) || isDatumSlice(op2):
+		ctx.compareDatumSlicesAndPush(boolFn, litFn, numFn, op1, op2)
+
 	default:
 		// Unlike equality operators ('=' and '!='), if neither operand is a
 		// nodeset, then anything not a number is converted to a number and
@@ -614,6 +625,103 @@ func (ctx *context) compareWorker(ops1, ops2 []Datum, compareFn datumCompFn) {
 	ctx.pushDatum(NewBoolDatum(false))
 }
 
+// compareDatumSlicesAndPush implements per-item predicate-filter semantics
+// for a DatumSlice operand (e.g. a leaf-list's bundled values, which have
+// no per-item node identity of their own, unlike a real Nodeset): keep
+// every item from a DatumSlice side for which the comparison holds against
+// every item on the other side, and push the filtered subset as a
+// DatumSliceDatum, rather than collapsing straight to a Bool.
+//
+// This lets the result compose correctly however it's consumed next:
+//   - reduced to a boolean, DatumSliceDatum.Boolean() is "non-empty", i.e.
+//     exactly the existential match XPath expects when a node-set (or
+//     equivalent) is used in a boolean context;
+//   - passed to a NODESET/DATUMSLICE-aware function such as count(), which
+//     gets the real filtered count instead of erroring on an unexpected
+//     Bool.
+// selectMultiCompareFn picks which scalar comparator to use for a
+// multi-item (nodeset or DatumSlice) comparison, based on the type of the
+// first item on either side: number wins over boolean wins over literal
+// (literal only when both sides are literal). Shared by
+// compareAndPushNodesets and compareDatumSlicesAndPush, which both need
+// this same per-item type dispatch. ok is false if neither side's type is
+// recognised.
+func selectMultiCompareFn(
+	first1, first2 Datum,
+	boolCompare, litCompare, numCompare datumCompFn,
+) (fn datumCompFn, ok bool) {
+	switch {
+	case isNum(first1) || isNum(first2):
+		return numCompare, true
+	case isBool(first1) || isBool(first2):
+		return boolCompare, true
+	case isLiteral(first1) && isLiteral(first2):
+		return litCompare, true
+	default:
+		return nil, false
+	}
+}
+
+// asMultiCompareItems normalizes a Datum into the slice of items it
+// represents for a multi-item comparison: a DatumSlice's own items, or
+// itself as a single-item slice for any other scalar Datum.
+func asMultiCompareItems(d Datum) []Datum {
+	if isDatumSlice(d) {
+		return d.DatumSlice("asMultiCompareItems")
+	}
+	return []Datum{d}
+}
+
+// compareDatumSlicesAndPush implements per-item predicate-filter semantics
+// for a DatumSlice operand (e.g. a leaf-list's bundled values, which have
+// no per-item node identity of their own, unlike a real Nodeset): keep
+// every item from a DatumSlice side for which the comparison holds against
+// every item on the other side, and push the filtered subset as a
+// DatumSliceDatum, rather than collapsing straight to a Bool.
+//
+// This lets the result compose correctly however it's consumed next:
+//   - reduced to a boolean, DatumSliceDatum.Boolean() is "non-empty", i.e.
+//     exactly the existential match XPath expects when a node-set (or
+//     equivalent) is used in a boolean context;
+//   - passed to a NODESET/DATUMSLICE-aware function such as count(), which
+//     gets the real filtered count instead of erroring on an unexpected
+//     Bool.
+func (ctx *context) compareDatumSlicesAndPush(
+	boolCompare datumCompFn,
+	litCompare datumCompFn,
+	numCompare datumCompFn,
+	op1, op2 Datum,
+) {
+	items1 := asMultiCompareItems(op1)
+	items2 := asMultiCompareItems(op2)
+
+	if len(items1) == 0 || len(items2) == 0 {
+		ctx.pushDatum(NewDatumSliceDatum(nil))
+		return
+	}
+
+	compareFn, ok := selectMultiCompareFn(
+		items1[0], items2[0], boolCompare, litCompare, numCompare)
+	if !ok {
+		// Unlike compareAndPushNodesets, an unrecognised type combination
+		// here isn't fatal: fall back to a literal comparison rather than
+		// aborting the whole must-statement evaluation over a predicate
+		// filter mismatch.
+		compareFn = litCompare
+	}
+
+	var matched []Datum
+	for _, i1 := range items1 {
+		for _, i2 := range items2 {
+			if compareFn(i1, i2) {
+				matched = append(matched, i1)
+				break
+			}
+		}
+	}
+	ctx.pushDatum(NewDatumSliceDatum(matched))
+}
+
 func (ctx *context) compareAndPushNodesets(
 	ops1 []Datum,
 	ops2 []Datum,
@@ -621,20 +729,13 @@ func (ctx *context) compareAndPushNodesets(
 	litCompare datumCompFn,
 	numCompare datumCompFn,
 ) {
-	switch {
-	case isNum(ops1[0]) || isNum(ops2[0]):
-		ctx.compareWorker(ops1, ops2, numCompare)
-
-	case isBool(ops1[0]) || isBool(ops2[0]):
-		ctx.compareWorker(ops1, ops2, boolCompare)
-
-	case isLiteral(ops1[0]) && isLiteral(ops2[0]):
-		ctx.compareWorker(ops1, ops2, litCompare)
-
-	default:
+	compareFn, ok := selectMultiCompareFn(
+		ops1[0], ops2[0], boolCompare, litCompare, numCompare)
+	if !ok {
 		panic(fmt.Sprintf("Cannot compare %s to %s",
 			ops1[0].name(), ops2[0].name()))
 	}
+	ctx.compareWorker(ops1, ops2, compareFn)
 }
 
 // validatePath - verify path in a must/when statement points to a valid node

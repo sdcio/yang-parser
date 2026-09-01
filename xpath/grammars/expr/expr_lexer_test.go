@@ -457,16 +457,28 @@ func TestAllValidNameCharacters(t *testing.T) {
 }
 
 func TestLexNodeType(t *testing.T) {
-	lexLine := NewExprLex("comment( text( processing-instruction( node (",
+	// "text" is deliberately excluded here: unlike comment()/
+	// processing-instruction()/node(), it lexes as its own TEXTFUNC token
+	// (see TestLexTextFunc) rather than as a generic NODETYPE, since it is
+	// fully implemented (as opposed to being "unsupported").
+	lexLine := NewExprLex(
+		"comment( processing-instruction( node (",
 		nil, nil)
 
 	CheckNodeTypeToken(t, lexLine, "comment")
 	CheckToken(t, lexLine, int('('))
-	CheckNodeTypeToken(t, lexLine, "text")
-	CheckToken(t, lexLine, int('('))
 	CheckNodeTypeToken(t, lexLine, "processing-instruction")
 	CheckToken(t, lexLine, int('('))
 	CheckNodeTypeToken(t, lexLine, "node")
+	CheckToken(t, lexLine, int('('))
+
+	CheckToken(t, lexLine, xutils.EOF)
+}
+
+func TestLexTextFunc(t *testing.T) {
+	lexLine := NewExprLex("text(", nil, nil)
+
+	CheckToken(t, lexLine, xutils.TEXTFUNC)
 	CheckToken(t, lexLine, int('('))
 
 	CheckToken(t, lexLine, xutils.EOF)

@@ -575,8 +575,23 @@ func (progBldr *ProgBuilder) EvalLocPath(ctx *context) {
 	} else {
 		// If we are no longer in a predicate and the last predicate we saw was a filter on a LeafList
 		// (e.g. /leaflist[text()='foo']) we don't need to do EvalLocPath and resolve path to value, as we
-		// already have the result of this filter (bool) on the stack
+		// already have the result of this filter (bool/DatumSlice) on the stack.
+		//
+		// This only applies to the one EvalLocPath call that immediately follows that predicate
+		// closing. Two bits of per-context state must be restored to their defaults once
+		// consumed here, mirroring what EvalLocPathInternal itself would otherwise have done,
+		// or they leak past the end of the current location path and corrupt every later,
+		// unrelated bare (non-predicated) path reference in the same must/when expression:
+		//   - previousPredicateRequiresELP itself, else this skip fires again for the next path;
+		//   - the actualPathStack frame accumulated for *this* (now-abandoned) path -- e.g. the
+		//     "flag" element pushed for "flag[text()='all']" -- else it's still sitting there
+		//     unpopped and the next bare path reference (e.g. "flag" in
+		//     "count(leaflist[text()='x']) = 0 or count(leaflist) = 1") appends onto it instead
+		//     of starting fresh, producing a bogus multi-element path that fails to navigate.
 		if !ctx.previousPredicateRequiresELP {
+			ctx.previousPredicateRequiresELP = true
+			ctx.actualPathStack.PopPath()
+			ctx.actualPathStack.NewPathFromActual()
 			return
 		}
 	}
@@ -754,30 +769,19 @@ func (progBldr *ProgBuilder) Or(ctx *context) {
 func (progBldr *ProgBuilder) Eq(ctx *context) {
 	d1 := ctx.popDatum()
 	d2 := ctx.popDatum()
-	isDS, _ := TypeIsDatumSlice(d2)
+	// test if either operand is a DatumSlice (leaf-list bundled values) ->
+	// this is a leaf-list predicate/filter, never a list-key predicate (a
+	// list key is never a leaf-list), so it must never fall into the
+	// key-recording case below even while ctx.predicateCount > 0.
+	isDS := isDatumSlice(d1) || isDatumSlice(d2)
 
 	switch {
-	// test if d2 (leftmost) is nodeset -> handle leaflist evaluation
-	case isDS:
-		ctx.isLeafListFilter = true
-		ds := d2.DatumSlice("leaflistfilter")
-		for _, datum := range ds {
-			// take advantage of the Eq function and use it recursively
-			ctx.pushDatum(datum)
-			ctx.pushDatum(d1)
-			progBldr.Eq(ctx)
-			res := ctx.popBool("eq(datumslice,arg2)")
-			if res {
-				// if we have a true we can quick return
-				ctx.pushDatum(NewBoolDatum(true))
-				return
-			}
-		}
-		ctx.pushDatum(NewBoolDatum(false))
-		return
 	// being out of predicate, this is an equality check
 	// if we are in a leaflistfilter case, this is also needed
-	case ctx.predicateCount == 0 || ctx.isLeafListFilter:
+	case isDS || ctx.predicateCount == 0 || ctx.isLeafListFilter:
+		if isDS {
+			ctx.isLeafListFilter = true
+		}
 		boolFn := func(d1, d2 Datum) bool {
 			return d1.Boolean("eq(bool1)") == d2.Boolean("eq(bool2)")
 		}
