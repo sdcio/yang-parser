@@ -103,7 +103,7 @@ var xpathFunctionTable = symbolTable{
 	"re-match": NewFnSym("re-match", re_match,
 		[]DatumTypeChecker{TypeIsLiteral, TypeIsLiteral}, TypeIsBool),
 	"count": NewFnSym("count", count,
-		[]DatumTypeChecker{TypeIsNodeset}, TypeIsNumber),
+		[]DatumTypeChecker{TypeIsNodesetOrDatumSlice}, TypeIsNumber),
 	"current": NewFnSym("current", current,
 		[]DatumTypeChecker{}, TypeIsNodeset),
 	"false": NewFnSym("false", xFalse,

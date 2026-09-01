@@ -90,6 +90,16 @@ func TypeIsDatumSlice(d Datum) (bool, string) {
 	return isDatumSlice(d), "DATUMSLICE"
 }
 
+// TypeIsNodesetOrDatumSlice accepts either a real Nodeset or a DatumSlice
+// (e.g. a leaf-list's bundled values, which have no per-item node identity
+// of their own). Built-ins such as count() that logically operate over
+// "however many items matched" need to accept both shapes; the error
+// message still reports "NODESET" since that's the type most callers will
+// recognise from the YANG/XPath spec.
+func TypeIsNodesetOrDatumSlice(d Datum) (bool, string) {
+	return isNodeset(d) || isDatumSlice(d), "NODESET"
+}
+
 // Allow for invalidDatum here hence default case.
 func TypeIsObject(d Datum) (bool, string) {
 	switch d.(type) {
