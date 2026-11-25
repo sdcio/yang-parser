@@ -39,6 +39,7 @@ import (
 
 type Datum interface {
 	name() string
+	traceString() string
 	isSameType(d Datum) bool // Are 2 datum objects of same type?
 	equalTo(d Datum) error
 
@@ -114,7 +115,8 @@ func numberFromString(numStr string) float64 {
 type invalidDatum struct {
 }
 
-func (i invalidDatum) name() string { return "INVALID" }
+func (i invalidDatum) name() string        { return "INVALID" }
+func (i invalidDatum) traceString() string { return "INVALID" }
 
 func (i invalidDatum) isSameType(d Datum) bool { return false } // Never equal!
 
@@ -156,7 +158,8 @@ func NewBoolDatum(boolVal bool) Datum {
 	return boolDatum{boolVal}
 }
 
-func (b boolDatum) name() string { return "BOOL" }
+func (b boolDatum) name() string        { return "BOOL" }
+func (b boolDatum) traceString() string { return fmt.Sprintf("BOOL(%t)", b.boolVal) }
 
 func (b boolDatum) isSameType(d Datum) bool {
 	return isBool(d)
@@ -215,7 +218,8 @@ func NewLiteralDatum(lit string) Datum {
 	return litDatum{lit}
 }
 
-func (l litDatum) name() string { return "LITERAL" }
+func (l litDatum) name() string        { return "LITERAL" }
+func (l litDatum) traceString() string { return fmt.Sprintf("LITERAL(%q)", l.lit) }
 
 func (l litDatum) isSameType(d Datum) bool {
 	return isLiteral(d)
@@ -270,6 +274,28 @@ func NewNodesetDatum(nodes []xutils.XpathNode) Datum {
 
 func (ns nodesetDatum) name() string { return "NODESET" }
 
+func (ns nodesetDatum) traceString() string {
+	if len(ns.nodes) == 0 {
+		return "NODESET(empty)"
+	}
+	parts := make([]string, 0, len(ns.nodes))
+	nilCount := 0
+	for _, n := range ns.nodes {
+		if n == nil {
+			nilCount++
+			continue
+		}
+		parts = append(parts, xutils.NodeString(n))
+	}
+	if nilCount == len(ns.nodes) {
+		return fmt.Sprintf("NODESET(len=%d, placeholder_nodes=%d)", len(ns.nodes), nilCount)
+	}
+	if nilCount > 0 {
+		return fmt.Sprintf("NODESET(len=%d, placeholder_nodes=%d, nodes=[%s])", len(ns.nodes), nilCount, strings.Join(parts, ", "))
+	}
+	return fmt.Sprintf("NODESET([%s])", strings.Join(parts, ", "))
+}
+
 func (ns nodesetDatum) isSameType(d Datum) bool {
 	return isNodeset(d)
 }
@@ -302,7 +328,9 @@ func (ns nodesetDatum) Print(pfx string) (retStr string) {
 	var retBuf bytes.Buffer
 	for _, node := range ns.nodes {
 		retBuf.WriteString(pfx + "\t\t\t")
-		if node.XRoot() == node {
+		if node == nil {
+			retBuf.WriteString("<nil>")
+		} else if node.XRoot() == node {
 			retBuf.WriteString("(root)")
 		} else {
 			retBuf.WriteString(xutils.NodeString(node))
@@ -361,7 +389,8 @@ func NewNumDatum(val float64) Datum {
 	return numDatum{val}
 }
 
-func (n numDatum) name() string { return "NUMBER" }
+func (n numDatum) name() string        { return "NUMBER" }
+func (n numDatum) traceString() string { return fmt.Sprintf("NUMBER(%s)", n.Literal("traceString")) }
 
 func (n numDatum) isSameType(d Datum) bool {
 	return isNum(d)
@@ -432,6 +461,22 @@ type datumSliceDatum struct {
 
 func (d datumSliceDatum) name() string {
 	return "DATUMSLICE"
+}
+
+func (d datumSliceDatum) formattedItems() string {
+	parts := make([]string, len(d.ds))
+	for i, elem := range d.ds {
+		parts[i] = FormatDatum(elem)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func (d datumSliceDatum) traceString() string {
+	return fmt.Sprintf("DATUMSLICE([%s])", d.formattedItems())
+}
+
+func (d datumSliceDatum) String() string {
+	return fmt.Sprintf("%s\t[%s]", d.name(), d.formattedItems())
 }
 
 func (d datumSliceDatum) isSameType(o Datum) bool {

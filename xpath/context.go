@@ -73,8 +73,9 @@ type context struct {
 
 	res *Result
 
-	validate     bool // Used to enable type checking etc.
-	debug        bool // For logging, dump instructions and stack as we go ...
+	validate     bool   // Used to enable type checking etc.
+	debug        bool   // For logging, dump instructions and stack as we go ...
+	tracer       Tracer // Optional structured execution trace sink
 	b            bytes.Buffer
 	pfx          string // Prefix when printing
 	refExpr      string // Expression being evaluated
@@ -265,6 +266,21 @@ func newCtx(
 	return ctx
 }
 
+func (ctx *context) newChildCtx(
+	prog []Inst,
+	ctxNode, initNode xutils.XpathNode,
+	pos, size, level int,
+	refExpr, location string,
+) *context {
+	child := newCtx(prog, ctxNode, initNode, pos, size, level, refExpr, location).
+		SetDebug(ctx.debug).
+		SetTracer(ctx.tracer).
+		SetAccessibleTree(ctx.filter)
+	child.current = ctx.current
+	child.goctx = ctx.goctx
+	return child
+}
+
 // These Enable / Set methods are designed to be chained together.
 func (ctx *context) EnableDebug() *context {
 	ctx.debug = true
@@ -272,6 +288,10 @@ func (ctx *context) EnableDebug() *context {
 }
 func (ctx *context) SetDebug(debug bool) *context {
 	ctx.debug = debug
+	return ctx
+}
+func (ctx *context) SetTracer(tracer Tracer) *context {
+	ctx.tracer = tracer
 	return ctx
 }
 func (ctx *context) EnableValidation() *context {
@@ -811,9 +831,19 @@ func (ctx *context) generateNodeSet(
 // Any panics while running the machine are caught and the error fed back
 // in the result to the caller.
 func (ctx *context) Run() (res *Result) {
+	if ctx.tracer != nil {
+		ctx.tracer.TraceEvent(TraceEvent{
+			Kind:  TraceEventVMStart,
+			Level: ctx.level,
+			Expr:  ctx.refExpr,
+			Node:  ctx.traceNode(),
+		})
+	}
 
+	var panicked bool
 	defer func() {
 		if r := recover(); r != nil {
+			panicked = true
 			ctx.res.runErr = fmt.Errorf("%s", r)
 			res = ctx.res
 		}
@@ -821,13 +851,37 @@ func (ctx *context) Run() (res *Result) {
 		if ctx.level == 0 {
 			ctx.logDebug()
 		}
+		if ctx.tracer != nil {
+			ev := TraceEvent{
+				Kind:     TraceEventVMEnd,
+				Level:    ctx.level,
+				Expr:     ctx.refExpr,
+				Panicked: panicked,
+			}
+			if ctx.res.value != nil {
+				ev.Result = FormatDatum(ctx.res.value)
+			}
+			if ctx.res.runErr != nil {
+				ev.Error = ctx.res.runErr.Error()
+			}
+			ctx.tracer.TraceEvent(ev)
+		}
 	}()
 
 	for x, instr := range ctx.prog {
 		ctx.addDebugInstrAndStack(instr.fnName)
+		if ctx.tracer != nil {
+			ctx.tracer.TraceEvent(ctx.buildInstrTraceEvent(TraceEventVMInstr, x, instr.fnName))
+		}
 		instr.fn(ctx)
+		if ctx.tracer != nil {
+			ev := ctx.buildInstrTraceEvent(TraceEventVMInstrDone, x, instr.fnName)
+			if ctx.res.runErr != nil {
+				ev.Error = ctx.res.runErr.Error()
+			}
+			ctx.tracer.TraceEvent(ev)
+		}
 		ctx.addDebug(ctx.pfx + "----\n")
-		_ = x
 	}
 
 	return ctx.res

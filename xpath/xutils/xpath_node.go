@@ -159,6 +159,9 @@ func FilterNodeset(
 //	and which can vary for a single node depending on what is configured
 //	under it!
 func NodeString(xNode XpathNode) string {
+	if xNode == nil {
+		return "<nil>"
+	}
 	if xNode.XIsLeaf() || xNode.XIsLeafList() {
 		return getNodeRef(xNode).String() + fmt.Sprintf(" (%s)",
 			xNode.XValue())
